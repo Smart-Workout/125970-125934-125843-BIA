@@ -1,0 +1,88 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Virtual environments
+venv/
+.venv/
+env/
+.venv311/
+.claude/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Environment variables
+.env
+.env.local
+.env.freetier
+.env.learnerlab
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Backup files
+*.bak
+
+# Session / scratch files
+*.session.sql
+Update_*.md
+
+# One-off scripts & legacy docs (kept locally, not in repo)
+generate_cost_chart.py
+generate_latency_waterfall.py
+generate_tier3_diagrams.py
+verify_eval.py
+deploy-frontend.sh
+deploy-frontend.ps1
+techpulse_progress_report.tex
+techpulse_proposal_revised.tex
+
+# AWS SAM
+.aws-sam/
+.lambda-light-deps/
+.lambda-deps/
+
+# Node / Frontend
+frontend/node_modules/
+frontend/build/
+frontend/.env
+
+# Data (local dev — don't commit raw data)
+data/raw/
+data/processed/
+data_lake/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Test / Coverage
+.coverage
+htmlcov/
+.pytest_cache/
+
+# Logs
+*.log
+
+# LaTeX build artifacts
+*.aux
+*.fdb_latexmk
+*.fls
+*.lof
+*.lot
+*.out
+*.toc
+*.synctex.gz
+
+# Screen recordings
+*.mp4
