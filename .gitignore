@@ -84,5 +84,8 @@ htmlcov/
 *.toc
 *.synctex.gz
 
+# Proposal folder should not be tracked
+Proposal/
+
 # Screen recordings
 *.mp4
