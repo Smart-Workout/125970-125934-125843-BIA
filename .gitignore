@@ -1,4 +1,11 @@
-# Python
+# ============================================================
+# Smart Workout — .gitignore
+# ============================================================
+
+# Friend's reference doc (intentionally not committed)
+final_report_KaungHeinHtet.pdf
+
+# === Python ===
 __pycache__/
 *.py[cod]
 *$py.class
@@ -8,74 +15,48 @@ dist/
 build/
 .eggs/
 
-# Virtual environments
+# === Virtual environments ===
 venv/
 .venv/
 env/
-.venv311/
-.claude/
 
-# IDE
+# === IDE / Editor ===
 .vscode/
 .idea/
+.claude/
 *.swp
 *.swo
 
-# Environment variables
+# === Environment variables (NEVER commit secrets / API keys) ===
 .env
 .env.local
-.env.freetier
-.env.learnerlab
+.env.*
 
-# OS
+# === OS ===
 .DS_Store
 Thumbs.db
 
-# Backup files
+# === Office temp lock files (e.g. ~$BIA Initial Idea.docx) ===
+~$*
+
+# === Backups ===
 *.bak
 
-# Session / scratch files
-*.session.sql
-Update_*.md
-
-# One-off scripts & legacy docs (kept locally, not in repo)
-generate_cost_chart.py
-generate_latency_waterfall.py
-generate_tier3_diagrams.py
-verify_eval.py
-deploy-frontend.sh
-deploy-frontend.ps1
-techpulse_progress_report.tex
-techpulse_proposal_revised.tex
-
-# AWS SAM
-.aws-sam/
-.lambda-light-deps/
-.lambda-deps/
-
-# Node / Frontend
-frontend/node_modules/
-frontend/build/
-frontend/.env
-
-# Data (local dev — don't commit raw data)
-data/raw/
-data/processed/
-data_lake/
-
-# Jupyter
+# === Jupyter ===
 .ipynb_checkpoints/
 
-# Test / Coverage
+# === Test / Coverage ===
 .coverage
 htmlcov/
 .pytest_cache/
 
-# Logs
+# === Logs ===
 *.log
 
-# LaTeX build artifacts
+# === LaTeX build artifacts (proposal.pdf stays tracked) ===
 *.aux
+*.bbl
+*.blg
 *.fdb_latexmk
 *.fls
 *.lof
@@ -84,8 +65,9 @@ htmlcov/
 *.toc
 *.synctex.gz
 
-# Proposal folder should not be tracked
-Proposal/
+# === Node / React (when frontend gets built) ===
+node_modules/
 
-# Screen recordings
-*.mp4
+# === ChromaDB local storage (when RAG gets set up) ===
+chroma_db/
+chromadb_storage/

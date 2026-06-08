@@ -1,0 +1,53 @@
+Course Project
+You are to develop either
+Decision Support System
+AND/OR
+Business Intelligence System
+DSS/BIS Development Project
+
+needs to descriptive , predictive and if you can prescriptive.
+ Application/problem domain
+▪ Suggested areas
+▪ System related to business application/finance*
+▪ System related to healthcare*
+▪ System related to environmental management
+▪ Etc.
+▪ Some examples: DSS or BIS
+for determining credit card fraud
+for stock price prediction
+for retinal disease diagnosis
+for flood prevention
+DSS/BIS Development Project con’t
+ Selection of appropriate models(s)/methods,
+analytics
+ Data – should use Big Data, datasets available
+from companies/organizations, internet
+resources (eg. www.data.gov)
+ Software --- your choice
+ Max 3 persons/group (at least 2 nationalities)
+▪ Can 1, 2, or 3 persons
+DSS/BIS Development Project con’t
+ Deliverables
+1) a prototype of working system
+2)A final project report
+
+
+right now i need to work on Project Proposal first
+2-3 page describing background,
+objective, description, and expected
+output of the proposed DSS/BIS
+ Due 18 June 2026\
+
+
+
+later we can do together
+Final Project Report
+Should at least include
+▪ the focus/decision context of the system
+▪ the goals/objectives of the system
+▪ types of data, DW the system will require
+▪ types of modeling, analytics the system will
+use
+▪ the end users of the system
+▪ the software for implementation
+▪ Etc.

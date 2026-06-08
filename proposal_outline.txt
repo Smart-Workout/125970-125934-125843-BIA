@@ -1,0 +1,73 @@
+Project Title
+Smart Workout: A RAG-Assisted Decision Support and Business Intelligence System for Personalized Weight Training
+1. Background
+Weight training is a common activity for people who want to improve strength, fitness, and physical performance. However, many gym users still face difficulty in planning their workouts effectively. They may not know which exercises are suitable for a specific body part, how to select exercises based on available equipment, how to organize their weekly timetable, or whether their current physical condition is suitable for a particular training plan.
+In practice, many users make training decisions based on general advice, personal feeling, or copied routines from online sources. These methods may not consider important personal factors such as age, sleep duration, BMI category, blood pressure, heart rate, equipment availability, and training schedule. As a result, the workout plan may not match the user’s current readiness, available gym equipment, or timetable preference.
+This project proposes a Decision Support System (DSS) and Business Intelligence System (BIS) for personalized weight training support. The system collects user input, preprocesses the data, retrieves relevant training knowledge using Retrieval-Augmented Generation (RAG), recommends suitable exercises, generates a daily or weekly training plan, and uses a machine learning model to estimate training outcomes. The results are presented through a dashboard that allows users to understand the recommended plan, readiness information, prediction result, and explanation. The project focuses on helping users apply data and models to support decision making, while BI transforms data into information, knowledge, decisions, and actions.
+2. Objectives
+This project aims to develop a DSS/BIS for personalized weight training support. The main objectives are:
+User data collection and preparation
+ Collect user inputs such as age, sleep duration, BMI category, blood pressure, heart rate, target body part, available equipment, and preferred schedule, then clean, convert, and standardize the data for analysis.
+RAG-based knowledge retrieval
+ Retrieve relevant timetable rules, equipment-specific rules, and exercise knowledge to support plan generation and explanation.
+Exercise recommendation
+ Filter workout data based on the user’s target body part and available equipment to recommend suitable exercises.
+Training plan generation
+ Create a daily or weekly training plan using the processed user profile, exercise recommendations, and RAG-retrieved knowledge.
+ML-based outcome prediction
+ Use a machine learning model to estimate training outcomes based on user input and generated plan features.
+BI dashboard development
+ Develop a dashboard that displays the generated training plan, readiness information, prediction results, and explanation.
+3. Description of the Proposed DSS/BIS
+The proposed system, Smart Workout, is designed as a Decision Support System and Business Intelligence System for personalized weight training. The system combines structured user input, RAG-based knowledge retrieval, exercise recommendation, machine learning prediction, and dashboard visualization.
+The workflow begins when the user enters personal and training-related information, including age, sleep duration, BMI category, blood pressure, heart rate, target body part, available equipment, and timetable preference. These inputs are then processed in the data preprocessing stage. For example, blood pressure is separated into systolic and diastolic values, BMI category is converted into a structured format, and equipment names are standardized to match the exercise database.
+After preprocessing, the system creates a processed user profile and readiness-related features. These features are used to support training plan generation and outcome prediction. The RAG component retrieves relevant knowledge such as timetable rules, equipment-specific training rules, and exercise information. RAG is used to support explanation and plan context, but it does not directly make the final decision.
+Next, the exercise recommender filters workout data based on the user’s selected target body part and available equipment. The plan generator then combines the processed user profile, recommended exercises, and RAG-retrieved knowledge to create a daily or weekly training plan.
+After the training plan is generated, a machine learning model uses both the user input and generated plan features to estimate training outcomes. The prediction may include training suitability, completion likelihood, expected intensity level, and short-term progress trend. Finally, the dashboard presents the generated plan, readiness information, prediction result, and explanation in a clear visual format.
+Yolanda Question: What ML model will we use na brothers? - will check that -
+The dashboard will also show the dashboard data from our 3 dataset? + the personalised view of user data- how will it work will it be difficult - what about the dashboard of our own dataset+ may be if we RAG dependent will it be hard to connect with API - if we don’t depend on RAG fro visulisation - we might use some predictive visualisation on dashboard (is it easy dependent on RAG or not dependent on RAG)
+Need a wireframe diagram of the dashboard / our prototype ( will design now-Yolanda)
+Rather than the proposed workflow what will be better - is it a user workflow / what is the correct naming    or system architecture (i will ask claude / gpt)
+4. Proposed Workflow
+The proposed workflow of Smart Workout is shown as follows:
+
+This workflow shows how user data are transformed into training recommendations, ML-based predictions, and dashboard outputs through DSS/BIS components. 
+5. Expected Output
+The expected output of this project is Smart Workout, a DSS/BIS system for personalized weight training support. The system is expected to provide the following outputs: 
+User input and processed profile  ( will it be correct to say A RAG interface where user can input data rather than the profile -since we make profile - will it take time creating api and stuff)
+ An interface for collecting user data and converting it into a structured profile with readiness-related features.  
+RAG-supported exercise recommendation
+ Retrieved timetable rules, equipment-specific rules, and exercise knowledge, together with recommended exercises filtered by target body part and equipment.
+Daily or weekly training plan with ML prediction  (what ML model should we use - will ask AI by inputting our chosen dataset)
+ A generated training plan including exercises, schedule, sets, reps, intensity level, and an estimated training outcome such as suitability, completion likelihood, and short-term progress trend.
+BI dashboard
+ A dashboard that presents the training plan, readiness information, prediction result, and explanation in a clear visual format.
+6. Scope and Limitations
+This project focuses on developing Smart Workout, a DSS/BIS system for personalized weight training support. The system will use available datasets such as exercise data, sleep and lifestyle data, and nutrition-related data, together with user input. The main focus is on data preprocessing, RAG-based knowledge retrieval, exercise recommendation, training plan generation, machine learning prediction, and dashboard visualization.
+The system will not provide medical diagnosis or guarantee exact fitness results. The prediction result will be presented as an estimated trend for decision support only. The system is designed to help users better understand their training plan and possible outcome, not to replace professional medical advice or certified fitness coaching.
+Another limitation is that the accuracy of the machine learning model depends on the available data. Since the system may not have a large amount of real user workout history at the initial stage, the prediction will focus on training suitability and short-term trend estimation rather than exact body transformation results.
+7. Conclusion
+Smart Workout aims to demonstrate how Decision Support System and Business Intelligence System concepts can be applied to personalized weight training. The system uses user input, data preprocessing, RAG-based knowledge retrieval, exercise recommendation, machine learning prediction, and dashboard visualization to support better training decisions.
+By combining these components, the project transforms user data into useful information, recommendations, predictions, and explanations. The expected result is a functional DSS/BIS system that helps users generate a more suitable daily or weekly training plan based on their readiness-related information, target body part, available equipment, and timetable preference.
+Overall, this project shows how analytics and intelligent systems can support personal fitness planning in a practical, explainable, and user-friendly way.
+
+
+
+User enters:
+Age, Sleep Duration, BMI Category, Blood Pressure, Heart Rate,
+Target Body Part, Equipment, Timetable Preference
+        ↓
+Data Preprocessing
+        ↓
+Create processed user profile and readiness-related features
+        ↓
+RAG retrieves timetable rules, equipment-specific rules, and exercise knowledge
+        ↓
+Exercise Recommender filters exercises by target body part and equipment
+        ↓
+Plan Generator creates daily/weekly training plan
+        ↓
+ML Model uses User Input + Generated Plan to predict training outcome
+        ↓
+Dashboard displays plan, readiness, prediction, and explanation
+
