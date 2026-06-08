@@ -1,9 +1,9 @@
-\documentclass[10pt,a4paper]{article}
+\documentclass[11pt,a4paper]{article}
 
 % ============================================================
 % PACKAGES
 % ============================================================
-\usepackage[a4paper,top=0.65in,bottom=0.65in,left=0.75in,right=0.75in]{geometry}
+\usepackage[a4paper,top=0.75in,bottom=0.75in,left=0.8in,right=0.8in]{geometry}
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
 \usepackage{mathptmx}
@@ -19,16 +19,17 @@
 \usepackage{xcolor}
 \usepackage{tikz}
 \usepackage[hidelinks]{hyperref}
+\usepackage{xurl}
 \usetikzlibrary{shapes.geometric, arrows.meta, positioning, fit, backgrounds, calc}
 
-% Tight section spacing
-\titlespacing*{\section}{0pt}{6pt}{2pt}
-\titlespacing*{\subsection}{0pt}{4pt}{2pt}
+% Professional section spacing
+\titlespacing*{\section}{0pt}{10pt}{4pt}
+\titlespacing*{\subsection}{0pt}{8pt}{3pt}
 \titleformat{\section}{\normalfont\large\bfseries}{\thesection.}{0.5em}{}
 \titleformat{\subsection}{\normalfont\normalsize\bfseries}{\thesubsection}{0.5em}{}
 
-\setlist[itemize]{leftmargin=1.2em,topsep=3pt,itemsep=2pt,parsep=0pt}
-\setlist[enumerate]{leftmargin=1.4em,topsep=3pt,itemsep=2pt,parsep=0pt}
+\setlist[itemize]{leftmargin=1.4em,topsep=3pt,itemsep=3pt,parsep=0pt}
+\setlist[enumerate]{leftmargin=1.6em,topsep=3pt,itemsep=3pt,parsep=0pt}
 
 % Color palette for architecture diagram
 \definecolor{boxblue}{RGB}{41,128,185}
@@ -44,7 +45,7 @@
 
 \setlength{\parskip}{4pt}
 \setlength{\parindent}{0pt}
-\linespread{1.05}\selectfont
+\linespread{1.08}\selectfont
 
 % ============================================================
 % TITLE BLOCK
@@ -69,7 +70,7 @@ ID: st125970 & ID: st125934 & ID: st125843 \\
 % 1. BACKGROUND
 % ============================================================
 \section{Background}
-Weight training is widely practiced for strength and fitness, yet many gym users struggle to plan effectively: they are uncertain which exercises suit a given body part, how to adapt to available equipment, how to structure a weekly timetable, and whether their physical condition supports a particular plan. Most decisions come from generic online routines that ignore personal factors --- age, sleep, BMI, blood pressure, heart rate, equipment, schedule --- producing a mismatch between plan and readiness. This project proposes \textbf{Smart Workout}, a combined Decision Support System (DSS) and Business Intelligence System (BIS) that unifies multi-source real-world data, a Retrieval-Augmented Generation (RAG) knowledge layer, and supervised ML models behind an interactive web dashboard, transforming raw input into descriptive insight, predictive outcome estimates, and prescriptive training plans while preserving human oversight. Intended end users are gym users seeking personalized training guidance; fitness coaches form a secondary audience using the dashboard for decision-support reference.
+Weight training is widely practiced for strength and fitness, yet many gym users struggle to plan effectively: they are uncertain which exercises suit a given body part, how to adapt to available equipment, how to structure a weekly timetable, and whether their physical condition supports a particular plan. Most decisions come from generic online routines that ignore personal factors --- age, sleep, BMI, blood pressure, heart rate, equipment, schedule --- producing a mismatch between plan and readiness. This project proposes \textbf{Smart Workout}, a combined Decision Support System (DSS) and Business Intelligence System (BIS) (Power, 2002; Chaudhuri et al., 2011) that unifies multi-source real-world data, a Retrieval-Augmented Generation (RAG) knowledge layer, and supervised ML models behind an interactive web dashboard, transforming raw input into descriptive insight, predictive outcome estimates, and prescriptive training plans while preserving human oversight. Intended end users are gym users seeking personalized training guidance; fitness coaches form a secondary audience using the dashboard for decision-support reference.
 
 % ============================================================
 % 2. OBJECTIVES
@@ -89,7 +90,7 @@ The project will deliver a working DSS/BIS prototype that fulfils the following 
 % 3. SYSTEM DESCRIPTION & ARCHITECTURE
 % ============================================================
 \section{Description of the Proposed DSS/BIS}
-Smart Workout will be developed as a React + FastAPI web application integrating multi-source data, two best-performing predictive models (to be selected after comparing three candidates per task via 5-fold cross-validation; see \S5), a ChromaDB-based RAG knowledge layer, a rule-based plan generator, and an embedded RAG-grounded chat assistant (LLM-augmented when available). The selected regressor and classifier run on every user request and provide input to the prescriptive plan generator; the chat reuses the same RAG pipeline so its answers are grounded in the indexed corpus rather than parametric memory. Architecture and workflow appear in Figure~\ref{fig:arch} and the numbered steps below. Technology stack: React (frontend), FastAPI (backend), pandas / scikit-learn / XGBoost (analytics), ChromaDB + \texttt{all-MiniLM-L6-v2} (RAG); a general-purpose LLM (\emph{e.g.}\ OpenAI GPT, Grok, or a comparable provider) for the chat and explanation layer.
+Smart Workout will be developed as a React + FastAPI web application integrating multi-source data, two best-performing predictive models (to be selected after comparing three candidates per task via 5-fold cross-validation; see \S5), a ChromaDB-based RAG knowledge layer (Lewis et al., 2020), a rule-based plan generator, and an embedded RAG-grounded chat assistant (LLM-augmented when available). The selected regressor and classifier run on every user request and provide input to the prescriptive plan generator; the chat reuses the same RAG pipeline so its answers are grounded in the indexed corpus rather than parametric memory. Architecture and workflow appear in Figure~\ref{fig:arch} and the numbered steps below. Technology stack: React (frontend), FastAPI (backend), pandas / scikit-learn / XGBoost (analytics), ChromaDB + \texttt{all-MiniLM-L6-v2} (RAG); a general-purpose LLM (\emph{e.g.}\ OpenAI GPT, Grok, or a comparable provider) for the chat and explanation layer.
 
 \begin{figure}[h]
 \centering
@@ -149,7 +150,7 @@ Smart Workout will be developed as a React + FastAPI web application integrating
 % 4. DATA SOURCES
 % ============================================================
 \section{Data Sources}
-Four real-world public datasets (Kaggle and the open-source ExerciseDB) span structured tabular sessions, semi-structured exercise documents, and lifestyle records; the pipeline scales to wearable streams or gym-chain telemetry without redesign. Datasets are not joined by a shared key; each plays a distinct role.
+Four real-world public datasets are integrated: an exercise catalogue (ExerciseDB, n.d.), gym workout sessions (Khorasani, 2024), sleep and lifestyle records (Tharmalingam, 2023), and daily nutrition (Shamim, 2025). Together they span structured tabular sessions, semi-structured exercise documents, and lifestyle records; the pipeline scales to wearable streams or gym-chain telemetry without redesign. Datasets are not joined by a shared key; each plays a distinct role.
 
 \vspace{-2pt}
 \begin{center}
@@ -159,10 +160,10 @@ Four real-world public datasets (Kaggle and the open-source ExerciseDB) span str
 \toprule
 \textbf{Dataset} & \textbf{Records} & \textbf{Role in the system} \\
 \midrule
-ExerciseDB (raw flat) & 1{,}500 & Exercise catalogue: body parts, equipment, target muscles, step-by-step instructions. Used by the exercise recommender and embedded for RAG. \\
-Gym Members Exercise Tracking & 973 & Real workout sessions with calories burned, BPM (max/avg/resting), session duration, workout type, BMI, and experience level. Primary training data for the predictive models. \\
-Sleep Health \& Lifestyle & 374 & Provides clusters for the descriptive lifestyle-profile view and supplies the rule-based \emph{Training Readiness} auxiliary feature. \\
-Daily Food Nutrition & 651 & Provides macro/calorie context shown on the dashboard and used in nutrition-aware rule snippets retrieved by RAG. \\
+\href{https://exercisedb.dev/}{ExerciseDB (raw flat)} (ExerciseDB, n.d.) & 1{,}500 & Exercise catalogue: body parts, equipment, target muscles, step-by-step instructions. Used by the exercise recommender and embedded for RAG. \\
+\href{https://www.kaggle.com/datasets/valakhorasani/gym-members-exercise-dataset}{Gym Members Exercise Tracking} (Khorasani, 2024) & 973 & Real workout sessions with calories burned, BPM (max/avg/resting), session duration, workout type, BMI, and experience level. Primary training data for the predictive models. \\
+\href{https://www.kaggle.com/datasets/uom190346a/sleep-health-and-lifestyle-dataset}{Sleep Health \& Lifestyle} (Tharmalingam, 2023) & 374 & Provides clusters for the descriptive lifestyle-profile view and supplies the rule-based \emph{Training Readiness} auxiliary feature. \\
+\href{https://www.kaggle.com/datasets/adilshamim8/daily-food-and-nutrition-dataset}{Daily Food Nutrition} (Shamim, 2025) & 651 & Provides macro/calorie context shown on the dashboard and used in nutrition-aware rule snippets retrieved by RAG. \\
 \bottomrule
 \end{tabularx}
 \end{center}
@@ -175,10 +176,10 @@ Daily Food Nutrition & 651 & Provides macro/calorie context shown on the dashboa
 
 \textbf{Predictive.} For each predictive task, three candidate models well-suited to an approximately 1{,}000-row tabular problem are trained and compared, with the best selected by 5-fold cross-validation. The candidate set spans an interpretable linear baseline, a robust bagged-tree ensemble, and a state-of-the-art boosted-tree model:
 \begin{itemize}
-  \item \textbf{Calorie-burn-rate regression} (kcal\,/\,hr; session duration excluded so the model learns physiology rather than the trivial duration--calories relationship, $r{=}0.91$): \emph{Ridge Regression}, \emph{Random Forest Regressor}, \emph{XGBoost Regressor}. Features: demographics, body composition, BPM, fat percentage, workout type, experience, water intake. Metrics: RMSE, MAE, $R^2$.
-  \item \textbf{Workout-intensity classification} (3-class Low / Mid / High, derived from the BPM-response ratio $\mathrm{Avg\_BPM}/\mathrm{Max\_BPM}$, tertiles $\le 0.70$, $0.70$--$0.85$, $\ge 0.85$): \emph{Multinomial Logistic Regression}, \emph{Random Forest Classifier}, \emph{XGBoost Classifier}. Features: demographics, body composition, resting BPM, fat percentage, experience level, auxiliary readiness. Metrics: accuracy, macro-F1, confusion matrix.
+  \item \textbf{Calorie-burn-rate regression} (kcal\,/\,hr; session duration excluded so the model learns physiology rather than the trivial duration--calories relationship, $r{=}0.91$): \emph{Ridge Regression}, \emph{Random Forest Regressor}, \emph{XGBoost Regressor} (Chen \& Guestrin, 2016). Features: demographics, body composition, BPM, fat percentage, workout type, experience, water intake. Metrics: RMSE, MAE, $R^2$.
+  \item \textbf{Workout-intensity classification} (3-class Low / Mid / High, derived from the average-to-maximum BPM ratio binned by tertiles $\le 0.70$, $0.70$--$0.85$, $\ge 0.85$): \emph{Multinomial Logistic Regression}, \emph{Random Forest Classifier}, \emph{XGBoost Classifier}. Features: demographics, body composition, resting BPM, fat percentage, experience level, auxiliary readiness. Metrics: accuracy, macro-F1, confusion matrix.
 \end{itemize}
-SHAP is applied to the selected models for feature-importance attribution shown in the dashboard.
+SHAP (Lundberg \& Lee, 2017) is applied to the selected models for feature-importance attribution shown in the dashboard.
 
 \textbf{Prescriptive.} A rule-based generator combines predicted intensity, readiness, target body part, and the equipment-filtered exercise pool into a structured plan (split, exercises, sets, reps, rest). Intensity modulates volume and load (High $\rightarrow$ 4--5 sets, Low $\rightarrow$ deload/mobility focus). ChromaDB (indexing the 1{,}500 ExerciseDB instructions plus a curated rule corpus, embedded with \texttt{all-MiniLM-L6-v2}) supplies rationale and substitutions to both the plan generator and chat; the system retains full functionality without the LLM stage, ensuring graceful degradation. The LLM layer is provider-agnostic --- any general-purpose AI model (\emph{e.g.}\ OpenAI GPT, Grok) can be integrated.
 
@@ -193,5 +194,24 @@ A working React + FastAPI prototype with a ChromaDB vector store and the two bes
 % ============================================================
 \section{Conclusion}
 Smart Workout applies DSS/BIS principles to personalized fitness planning by combining multi-source real-world data, supervised ML, RAG retrieval, and a rule-based prescriptive engine, producing a working prototype with evaluated, best-of-candidate models for the final report. It is a decision-support tool --- not a clinical or coaching replacement; predictive outputs are reported with class probabilities, cross-validated error metrics, and transparent model limitations; readiness and intensity labels are rule-derived auxiliary constructs. The gym-tracking dataset is moderate, so cross-validated metrics will be reported transparently; recommendations are session-level. Delivery is staged: retrieval-only RAG, descriptive view, and plan view are the core deliverable, while LLM chat and SHAP visualization are graceful-degradation extensions.
+
+% ============================================================
+% REFERENCES (APA 7th)
+% ============================================================
+\section*{References}
+\vspace{6pt}
+\footnotesize
+\setlength{\parskip}{2pt}
+\begin{list}{}{\setlength{\leftmargin}{1.5em}\setlength{\itemindent}{-1.5em}\setlength{\itemsep}{3pt}\setlength{\parsep}{0pt}\setlength{\topsep}{0pt}}
+\item Chaudhuri, S., Dayal, U., \& Narasayya, V. (2011). An overview of business intelligence technology. \emph{Communications of the ACM, 54}(8), 88--98. \url{https://doi.org/10.1145/1978542.1978562}
+\item Chen, T., \& Guestrin, C. (2016). XGBoost: A scalable tree boosting system. In \emph{Proceedings of the 22nd ACM SIGKDD International Conference on Knowledge Discovery and Data Mining} (pp. 785--794). ACM. \url{https://doi.org/10.1145/2939672.2939785}
+\item ExerciseDB. (n.d.). \emph{ExerciseDB: Free exercise database}. \url{https://exercisedb.dev/}
+\item Khorasani, V. (2024). \emph{Gym members exercise dataset} [Data set]. Kaggle. \url{https://www.kaggle.com/datasets/valakhorasani/gym-members-exercise-dataset}
+\item Lewis, P., Perez, E., Piktus, A., Petroni, F., Karpukhin, V., Goyal, N., K\"uttler, H., Lewis, M., Yih, W., Rockt\"aschel, T., Riedel, S., \& Kiela, D. (2020). Retrieval-augmented generation for knowledge-intensive NLP tasks. \emph{Advances in Neural Information Processing Systems, 33}, 9459--9474.
+\item Lundberg, S. M., \& Lee, S.-I. (2017). A unified approach to interpreting model predictions. \emph{Advances in Neural Information Processing Systems, 30}, 4765--4774.
+\item Power, D. J. (2002). \emph{Decision support systems: Concepts and resources for managers}. Quorum Books.
+\item Shamim, A. (2025). \emph{Daily food and nutrition dataset} [Data set]. Kaggle. \url{https://www.kaggle.com/datasets/adilshamim8/daily-food-and-nutrition-dataset}
+\item Tharmalingam, L. (2023). \emph{Sleep health and lifestyle dataset} [Data set]. Kaggle. \url{https://www.kaggle.com/datasets/uom190346a/sleep-health-and-lifestyle-dataset}
+\end{list}
 
 \end{document}
