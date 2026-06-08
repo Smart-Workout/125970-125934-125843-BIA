@@ -26,7 +26,7 @@
 
 ## Week 1 (23–29 Jun): Foundation
 
-### Data
+### Data (Earth and Non)
 - [ ] Set up shared GitHub repo + branch protection + README
 - [ ] Set up Python venv with pinned versions (pandas, scikit-learn, xgboost, chromadb, sentence-transformers, fastapi, uvicorn, shap, pydantic)
 - [ ] Load + inspect all 4 CSVs (one notebook per dataset)
@@ -37,22 +37,22 @@
 - [ ] Derive Training Readiness rule from Sleep dataset (composite of sleep quality + duration + stress + BMI → Low/Mid/High band)
 - [ ] Outlier check on Calories_Burned (drop or cap >3σ)
 
-### Descriptive analytics
+### Descriptive analytics (Earth and Non)
 - [ ] K-Means clustering on Sleep dataset → 3–4 user archetypes (try k=3, k=4, pick by silhouette score)
 - [ ] Cross-dataset EDA: workout-type distribution, calorie-burn patterns by experience, exercise coverage by body part, nutrition macro mix by meal type
 - [ ] Save EDA plots as PNG (for dashboard later)
 
-### Project skeleton
+### Project skeleton (Yolanda)
 - [ ] FastAPI hello-world endpoint + auto-Swagger at `/docs`
 - [ ] React + Vite project scaffolded with TailwindCSS + shadcn/ui setup
 - [ ] CORS configured so frontend can call backend
 - [ ] Define API contract: request/response JSON shapes for `/predict-calories`, `/predict-intensity`, `/recommend-exercises`, `/generate-plan`, `/chat`
 
-### RAG knowledge corpus drafting (ongoing)
+### RAG knowledge corpus drafting (ongoing) (Earth and Non)
 - [ ] Start writing the curated rule corpus (target ~50–100 snippets by end of Week 2)
 - [ ] Draft system prompt + 5–10 few-shot examples for the chat
 
-### Frontend design lock-in (see "Frontend design decisions" section below)
+### Frontend design lock-in (see "Frontend design decisions" section below) (Yolanda)
 - [ ] Pick component library (shadcn/ui), chart library (Recharts), state mgmt (React Context), routing (React Router v6)
 - [ ] Hand-sketch wireframes for all 3 dashboard views + form + chat widget
 
@@ -75,7 +75,7 @@
 - [ ] Generate SHAP plots for selected models (save as PNG)
 - [ ] Write `MODEL_RESULTS.md` with comparison table
 
-### RAG pipeline
+### RAG pipeline 
 - [ ] Install ChromaDB locally (persistent client, path `./chroma_db/`)
 - [ ] Ingest all 1,500 ExerciseDB instructions as documents with metadata (`body_parts`, `equipment`, `target_muscles`)
 - [ ] Ingest the curated rule corpus (target ~50 snippets by end of week) with category metadata
