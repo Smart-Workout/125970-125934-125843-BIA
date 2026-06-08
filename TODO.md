@@ -1,21 +1,8 @@
 # Smart Workout — Implementation TODO
 
 **Project:** Smart Workout DSS/BIS for Personalized Weight Training
-**Team:** Yolanda (st125970), Non (st125934), Earth (st125843)
 **Implementation window:** 23 Jun – 20 Jul 2026 (4 weeks)
 **Goal:** Working prototype + evaluated models + demo + final report
-
----
-
-## Suggested role split (edit as you like)
-
-| Member | Primary lane | Why |
-|---|---|---|
-| **Yolanda** | Frontend lead — React dashboard, form, chat widget UI | Heaviest single piece; needs one owner |
-| **Non** | Backend/ML lead — FastAPI, ML training & evaluation, integration | Connects everything |
-| **Earth** | RAG/Data lead — preprocessing, ChromaDB, rule corpus, plan generator logic | The knowledge-grounding work |
-
-Adjust based on individual strengths. Pair on hard pieces, don't silo.
 
 ---
 
@@ -31,7 +18,7 @@ Adjust based on individual strengths. Pair on hard pieces, don't silo.
 
 ### Cadence
 - **Daily standup** (15 min, async in chat OK): yesterday / today / blocked-on
-- **Mid-week sync** (Wed, 30 min): check Week deliverable status; reassign if behind
+- **Mid-week sync** (Wed, 30 min): check Week deliverable status
 - **End-of-week retro** (Sun, 30 min): what worked / what didn't / change next week
 - **Final week**: daily in-person sync (integration crunch)
 
@@ -39,7 +26,7 @@ Adjust based on individual strengths. Pair on hard pieces, don't silo.
 
 ## Week 1 (23–29 Jun): Foundation
 
-### Data (Earth + Non)
+### Data
 - [ ] Set up shared GitHub repo + branch protection + README
 - [ ] Set up Python venv with pinned versions (pandas, scikit-learn, xgboost, chromadb, sentence-transformers, fastapi, uvicorn, shap, pydantic)
 - [ ] Load + inspect all 4 CSVs (one notebook per dataset)
@@ -50,22 +37,22 @@ Adjust based on individual strengths. Pair on hard pieces, don't silo.
 - [ ] Derive Training Readiness rule from Sleep dataset (composite of sleep quality + duration + stress + BMI → Low/Mid/High band)
 - [ ] Outlier check on Calories_Burned (drop or cap >3σ)
 
-### Descriptive (Earth)
+### Descriptive analytics
 - [ ] K-Means clustering on Sleep dataset → 3–4 user archetypes (try k=3, k=4, pick by silhouette score)
 - [ ] Cross-dataset EDA: workout-type distribution, calorie-burn patterns by experience, exercise coverage by body part, nutrition macro mix by meal type
 - [ ] Save EDA plots as PNG (for dashboard later)
 
-### Project skeleton (Non)
+### Project skeleton
 - [ ] FastAPI hello-world endpoint + auto-Swagger at `/docs`
 - [ ] React + Vite project scaffolded with TailwindCSS + shadcn/ui setup
 - [ ] CORS configured so frontend can call backend
 - [ ] Define API contract: request/response JSON shapes for `/predict-calories`, `/predict-intensity`, `/recommend-exercises`, `/generate-plan`, `/chat`
 
-### RAG knowledge corpus drafting (Earth, ongoing)
+### RAG knowledge corpus drafting (ongoing)
 - [ ] Start writing the curated rule corpus (target ~50–100 snippets by end of Week 2)
 - [ ] Draft system prompt + 5–10 few-shot examples for the chat
 
-### Frontend design lock-in (Yolanda) — see "Frontend design decisions" section below
+### Frontend design lock-in (see "Frontend design decisions" section below)
 - [ ] Pick component library (shadcn/ui), chart library (Recharts), state mgmt (React Context), routing (React Router v6)
 - [ ] Hand-sketch wireframes for all 3 dashboard views + form + chat widget
 
@@ -75,20 +62,20 @@ Adjust based on individual strengths. Pair on hard pieces, don't silo.
 
 ## Week 2 (30 Jun – 6 Jul): Core ML + RAG
 
-### ML pipeline (Non) — see "ML pipeline details" below
+### ML pipeline (see "ML pipeline details" below)
 - [ ] **Calorie-burn-rate regression**: train Ridge, Random Forest, XGBoost on gym dataset (target = Calories_Burned / Session_Duration; exclude Session_Duration from features)
   - [ ] Apply StandardScaler for Ridge (tree models don't need it)
   - [ ] 5-fold cross-validation, `random_state=42` for reproducibility
   - [ ] Report RMSE, MAE, R² for each model
   - [ ] Select best, save as `.joblib` artifact in `models/`
-- [ ] **Workout-intensity classifier**: train Logistic Regression, Random Forest, XGBoost on gym dataset (target = intensity tertile derived from BPM ratio)
+- [ ] **Workout-intensity classifier**: train Multinomial Logistic Regression, Random Forest, XGBoost on gym dataset (target = intensity tertile derived from BPM ratio)
   - [ ] Stratified 5-fold CV
   - [ ] Report accuracy, macro-F1, confusion matrix per model
   - [ ] Select best, save artifact
 - [ ] Generate SHAP plots for selected models (save as PNG)
 - [ ] Write `MODEL_RESULTS.md` with comparison table
 
-### RAG pipeline (Earth)
+### RAG pipeline
 - [ ] Install ChromaDB locally (persistent client, path `./chroma_db/`)
 - [ ] Ingest all 1,500 ExerciseDB instructions as documents with metadata (`body_parts`, `equipment`, `target_muscles`)
 - [ ] Ingest the curated rule corpus (target ~50 snippets by end of week) with category metadata
@@ -97,7 +84,7 @@ Adjust based on individual strengths. Pair on hard pieces, don't silo.
 - [ ] Test retrieval with 10 sample queries; verify top-5 are relevant
 - [ ] Build `/chat` endpoint stub (retrieval only, no LLM yet)
 
-### Backend endpoints (Non)
+### Backend endpoints
 - [ ] `POST /preprocess` → takes user form input, returns feature vector
 - [ ] `POST /predict-calories` → returns calorie-burn rate + confidence
 - [ ] `POST /predict-intensity` → returns intensity band + class probabilities
@@ -105,7 +92,7 @@ Adjust based on individual strengths. Pair on hard pieces, don't silo.
 - [ ] Pydantic schemas for all request/response models
 - [ ] FastAPI auto-Swagger endpoint reviewed at `/docs`
 
-### Frontend shell (Yolanda)
+### Frontend shell
 - [ ] Set up shadcn/ui components library
 - [ ] Build the form: 3 sections (About You / Wellness Today / Training Intent)
   - [ ] React Hook Form + Zod validation
@@ -121,7 +108,7 @@ Adjust based on individual strengths. Pair on hard pieces, don't silo.
 
 ## Week 3 (7–13 Jul): Plan Generator + Dashboard + Chat
 
-### Plan generator (Earth)
+### Plan generator
 - [ ] Write rule-based plan generator
   - Input: predicted intensity + readiness + body part + equipment + filtered exercise list
   - Output: structured plan (split, exercises with sets/reps/rest, intensity load)
@@ -132,8 +119,8 @@ Adjust based on individual strengths. Pair on hard pieces, don't silo.
   - Pull RAG snippets for plan rationale and equipment substitutions
 - [ ] `POST /generate-plan` endpoint returning JSON plan
 
-### LLM chat integration (Non + Earth) — see "LLM integration playbook" below
-- [ ] Pick LLM provider (OpenAI GPT-4o-mini OR Grok — whichever team has API access for)
+### LLM chat integration (see "LLM integration playbook" below)
+- [ ] Pick LLM provider (OpenAI GPT-4o-mini OR Grok — whichever has API access)
 - [ ] Store API key in `.env`; never commit
 - [ ] Write system prompt anchoring assistant to RAG context (see playbook template)
 - [ ] `POST /chat` endpoint with streaming response
@@ -142,7 +129,7 @@ Adjust based on individual strengths. Pair on hard pieces, don't silo.
 - [ ] **Tier 3 refinement** (stretch): free-form modification (LLM function-calling for plan edits)
 - [ ] Write 5–10 example Q&A test cases; run and verify groundedness
 
-### Dashboard views (Yolanda)
+### Dashboard views
 - [ ] **View 1 — Descriptive (multi-dataset EDA)**: load EDA plots from Week 1
   - [ ] Recharts: workout-type bar, calorie-burn distribution, exercise body-part pie, nutrition macro stacked bar
   - [ ] K-Means cluster summary card
@@ -156,7 +143,7 @@ Adjust based on individual strengths. Pair on hard pieces, don't silo.
 - [ ] React Router v6 for view navigation
 - [ ] Loading / error / empty states on every panel
 
-### Integration (all)
+### Integration
 - [ ] End-to-end test: form → preprocess → predict → recommend → plan → display
 - [ ] Mid-week demo internally — every component connected even if rough
 
@@ -166,20 +153,20 @@ Adjust based on individual strengths. Pair on hard pieces, don't silo.
 
 ## Week 4 (14–20 Jul): Polish + Evaluation + Report
 
-### Polish (all)
+### Polish
 - [ ] Fix bugs from Week 3 integration
 - [ ] Mobile-responsive check on dashboard (use Tailwind `md:` / `lg:` breakpoints)
 - [ ] Loading states and error handling on all API calls
 - [ ] Try Tier 2 refinement if Tier 1 stable
 - [ ] Smooth visual polish (consistent spacing, typography, color scheme)
 
-### Evaluation (Non)
+### Evaluation
 - [ ] Document final ML results: best model per task + CV metrics + confusion matrices + SHAP plots
 - [ ] Run a small user test (3–5 classmates if possible): record their feedback on form + plan + chat
 - [ ] Latency benchmarks: time from form submit to plan render
 - [ ] Cost benchmark: total LLM tokens used across testing
 
-### Final Report (all — parallelize chapters) — see "Submission / admin" below
+### Final Report (parallelize chapters; see "Submission / admin" below)
 - [ ] Set up LaTeX from senior's structure (frontmatter, ToC, chapters)
 - [ ] **Chapter 1** — Introduction (problem, objectives, report org)
 - [ ] **Chapter 2** — Theoretical Foundation (DSS, BI, RAG — add 3–4 academic citations)
@@ -237,13 +224,13 @@ Adjust based on individual strengths. Pair on hard pieces, don't silo.
 
 ### Decision (make in Week 1)
 - [ ] **Choose**: local-only demo OR deployed?
-  - **Local-only (recommended for 4-week scope)**: simpler, no infra cost; team runs on laptop
+  - **Local-only (recommended for 4-week scope)**: simpler, no infra cost; runs on laptop
   - **Deployed (stretch)**: prof can access via URL; adds 2–3 days; more polish
 
 ### If local-only
 - [ ] Docker Compose with 3 services (backend, frontend, chromadb)
 - [ ] Root `README.md` with `docker compose up` instructions
-- [ ] Demo runs on team laptop during presentation
+- [ ] Demo runs on a laptop during presentation
 
 ### If deployed
 - **Frontend:** Vercel (free, ~5 min deploy from GitHub)
@@ -311,7 +298,7 @@ User question: {user_query}
 - [ ] **Intensity classifier target:** `Avg_BPM / Max_BPM` binned to tertiles (≤0.70 / 0.70–0.85 / ≥0.85)
 - [ ] **Readiness auxiliary feature:** rule-derived from Sleep dataset (sleep quality + duration + stress + BMI category) → Low/Mid/High
 - [ ] **Categorical encoding:** one-hot for Workout_Type (Strength/Cardio/HIIT/Yoga); ordinal for Experience_Level (already 1/2/3)
-- [ ] **Scaling:** StandardScaler for Ridge & Logistic; not needed for tree models
+- [ ] **Scaling:** StandardScaler for Ridge & Multinomial Logistic Regression; not needed for tree models
 
 ### Cross-validation
 - [ ] `KFold(n_splits=5, shuffle=True, random_state=42)` for regression
@@ -327,7 +314,7 @@ User question: {user_query}
 ### Model selection logic
 - Regression: highest mean CV R² wins
 - Classification: highest mean CV macro-F1 wins
-- Tiebreaker: prefer simpler model (Ridge > Random Forest > XGBoost)
+- Tiebreaker: prefer simpler model (Linear > Random Forest > XGBoost)
 
 ---
 
@@ -372,7 +359,7 @@ User question: {user_query}
 
 | Risk | Likelihood | Mitigation |
 |---|---|---|
-| Ollama too slow on team laptops | High | Fall back to OpenAI/Grok API (proposal already supports either) |
+| Ollama too slow on laptops | High | Fall back to OpenAI/Grok API (proposal already supports either) |
 | LLM API quota exhausts mid-demo | Medium | Cache last working chat responses; screenshots as live-demo backup |
 | XGBoost fails to converge / takes too long | Low | Drop to Random Forest only; report as model-selection finding |
 | React dashboard runs over budget | High | Cut View 3 (RAG explanation) to a side-panel inside View 2 |
@@ -381,7 +368,7 @@ User question: {user_query}
 | Team member sick / unavailable | Medium | Pair-buddy each piece so no single point of failure |
 | LaTeX final-report formatting blocker | Low | Use senior's template directly; no custom styling |
 | Form-to-ML data type mismatch | Medium | Use Pydantic + Zod with shared schema definition |
-| User test recruitment fails | Low | Use teammates + 2–3 classmates as informal testers |
+| User test recruitment fails | Low | Use classmates as informal testers |
 
 ---
 
@@ -451,7 +438,7 @@ Week 1 React skeleton ┘                        └─► Week 3 dashboard ─�
 ```
 
 **Highest-risk pieces** (start these on Day 1):
-1. React dashboard (5–7 days; one person owns it)
+1. React dashboard (5–7 days of work)
 2. ChromaDB ingestion + retrieval testing (subtle bugs around metadata filtering)
 3. LLM chat with plan refinement (Tier 2/3 are stretch — don't block on these)
 
