@@ -2,8 +2,9 @@
 # Smart Workout — .gitignore
 # ============================================================
 
-# Friend's reference doc (intentionally not committed)
+# External/reference documents intentionally not committed
 final_report_KaungHeinHtet.pdf
+references/external/
 
 # === Python ===
 __pycache__/
