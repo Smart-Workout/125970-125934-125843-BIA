@@ -6,7 +6,7 @@
 
 ---
 
-## Project management (Day-1 setup)
+## Project management (Day-1 setup-)
 
 ### Tooling
 - [ ] Pick communication channel (Discord / LINE / Slack) — pin a #smart-workout room
