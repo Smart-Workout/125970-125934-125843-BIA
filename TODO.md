@@ -6,6 +6,665 @@
 
 ---
 
+## BIA-Inspired Smart Workout Implementation Outline
+
+This section translates the useful structure from the friend `BIA` project into our own Smart Workout project. The goal is not to copy the vending-machine domain, but to reuse its clean project organization: clear README, separated backend/frontend, service layer, typed API responses, dashboard tabs, filters, charts, and a simple local demo workflow.
+
+### What to learn from the BIA project
+- [ ] Keep a strong root `README.md` with overview, problem statement, features, tech stack, system architecture, install steps, run steps, API docs, project structure, and troubleshooting.
+- [ ] Use one root `docker-compose.yml` for local infrastructure only. For Smart Workout, this should run ChromaDB only if needed; avoid adding PostgreSQL unless we truly need login/history storage.
+- [ ] Separate backend code by responsibility:
+  - `api/v1/` for FastAPI route files.
+  - `schemas/` for Pydantic request/response models.
+  - `services/` for data loading, analytics, ML prediction, recommendation, RAG, and plan generation.
+  - `core/` for config, logging, constants, and environment settings.
+  - `data/` or project-level `data/processed/` for cleaned datasets.
+  - `models/` for saved `.joblib` ML artifacts.
+- [ ] Separate frontend code by responsibility:
+  - `pages/` for full screens.
+  - `components/` for reusable UI blocks such as KPI cards, charts, plan cards, readiness cards, and chat widget.
+  - `services/` for API calls.
+  - `hooks/` for API data fetching and loading/error state.
+  - `types/` for TypeScript interfaces matching backend Pydantic responses.
+- [ ] Use dashboard tabs like the BIA project instead of one giant page. Smart Workout should have separate tabs for overview, personal plan, dataset insights, and RAG explanation.
+- [ ] Use API response models that are frontend-friendly. For charts, return simple shapes such as `{ labels: string[], values: number[] }`, lists of cards, and structured plan JSON.
+- [ ] Include loading, error, empty, and refresh states in the frontend from the beginning.
+
+### Target Smart Workout folder structure
+- [ ] Create this implementation structure:
+
+```text
+125970-125934-125843/
+  backend/
+    app/
+      main.py
+      api/
+        v1/
+          health.py
+          dashboard.py
+          workout.py
+          rag.py
+          chat.py
+      core/
+        config.py
+        logging.py
+        constants.py
+      schemas/
+        common.py
+        user_profile.py
+        dashboard.py
+        workout.py
+        rag.py
+        chat.py
+      services/
+        data_service.py
+        preprocessing_service.py
+        analytics_service.py
+        readiness_service.py
+        ml_service.py
+        exercise_service.py
+        plan_service.py
+        rag_service.py
+        chat_service.py
+      tests/
+        test_health.py
+        test_workout_api.py
+    pyproject.toml or requirements.txt
+    .env.example
+    README.md
+  frontend/
+    src/
+      components/
+        KPICard.tsx
+        ReadinessCard.tsx
+        PlanCard.tsx
+        ExerciseTable.tsx
+        ChartPanel.tsx
+        ChatWidget.tsx
+        LoadingState.tsx
+        ErrorState.tsx
+      pages/
+        DashboardPage.tsx
+        FormPage.tsx
+        DatasetInsightsPage.tsx
+        PlanPage.tsx
+        RagExplanationPage.tsx
+      services/
+        api.client.ts
+        dashboard.service.ts
+        workout.service.ts
+        chat.service.ts
+      hooks/
+        useDashboard.ts
+        useWorkoutPlan.ts
+        useChat.ts
+      types/
+        dashboard.types.ts
+        workout.types.ts
+        chat.types.ts
+      App.tsx
+      main.tsx
+    package.json
+    .env.example
+    README.md
+  data/
+    raw/
+    processed/
+  notebooks/
+  models/
+  chroma_db/
+  docs/
+    architecture.md
+    api_contract.md
+    demo_script.md
+  MODEL_RESULTS.md
+  RAG_CORPUS.md
+  system_prompt.md
+  docker-compose.yml
+  README.md
+  TODO.md
+```
+
+### MVP system architecture
+- [ ] Build the prototype around this simple flow:
+
+```text
+User form input
+  -> FastAPI /preprocess
+  -> readiness score and normalized profile
+  -> ML prediction endpoints
+  -> exercise recommendation endpoint
+  -> rule-based plan generator
+  -> RAG retrieval for explanation
+  -> React dashboard displays KPIs, charts, plan, and retrieved rationale
+```
+
+- [ ] Keep authentication out of MVP unless the professor explicitly requires it. BIA has login/JWT, but Smart Workout can save time by focusing on DSS/BIS analytics, prediction, prescription, and explanation.
+- [ ] Keep PostgreSQL out of MVP unless we need persistent user accounts. CSV files plus saved model files are enough for a local academic prototype.
+- [ ] Make ChromaDB optional for local demo. If ChromaDB is unstable, fall back to a simple local text search over `RAG_CORPUS.md` and ExerciseDB instructions.
+
+### Backend API outline
+- [ ] `GET /` returns app status message.
+- [ ] `GET /health` returns backend health.
+- [ ] `GET /api/v1/dashboard/summary` returns descriptive analytics for the dashboard:
+  - workout type distribution
+  - calorie burn distribution
+  - body part coverage
+  - equipment coverage
+  - nutrition macro summary
+  - sleep/readiness cluster summary
+- [ ] `POST /api/v1/workout/preprocess` accepts user profile and returns normalized features:
+  - age
+  - height and weight
+  - computed BMI and BMI category
+  - sleep duration
+  - sleep quality if available
+  - stress level if available
+  - blood pressure split into systolic/diastolic
+  - resting heart rate
+  - target body part
+  - available equipment
+  - preferred schedule
+- [ ] `POST /api/v1/workout/predict-calories` returns calorie-burn-rate prediction, model name, and confidence/metric note.
+- [ ] `POST /api/v1/workout/predict-intensity` returns Low/Mid/High intensity class and class probabilities.
+- [ ] `POST /api/v1/workout/recommend-exercises` returns filtered ExerciseDB exercises by body part, equipment, target muscle, and difficulty if available.
+- [ ] `POST /api/v1/workout/generate-plan` returns the final daily/weekly plan:
+  - split name
+  - selected exercises
+  - sets, reps, rest time
+  - intensity band
+  - readiness adjustment
+  - safety notes
+  - retrieved RAG snippets used for explanation
+- [ ] `POST /api/v1/rag/search` returns top-k retrieved snippets with metadata.
+- [ ] `POST /api/v1/chat` answers user questions using retrieved context and current plan JSON.
+
+### Backend service outline
+- [ ] `data_service.py`: load raw/processed CSV files, cache dataframes, and validate required columns.
+- [ ] `preprocessing_service.py`: standardize equipment, parse ExerciseDB list-like columns, split blood pressure, compute BMI, and convert frontend input into model-ready features.
+- [ ] `analytics_service.py`: produce chart-ready descriptive analytics and summary cards for dataset size, exercise count, equipment count, and user archetypes.
+- [ ] `readiness_service.py`: convert sleep, stress, BMI, heart rate, and blood pressure into Low/Mid/High readiness with explanation factors.
+- [ ] `ml_service.py`: load saved `.joblib` models, run calorie regression and intensity classification, and return predictions with model metadata.
+- [ ] `exercise_service.py`: filter exercises by body part and equipment, rank by match quality, and provide substitutions.
+- [ ] `plan_service.py`: combine readiness, predicted intensity, schedule, and recommended exercises into structured daily/weekly plan JSON.
+- [ ] `rag_service.py`: ingest ExerciseDB instructions and `RAG_CORPUS.md`, retrieve top-k snippets, and return source/category metadata.
+- [ ] `chat_service.py`: build prompt from retrieved snippets and current plan; support Q&A first, then Tier 1 deterministic equipment substitution.
+
+### Frontend screen outline
+- [ ] `DashboardPage.tsx`
+  - top navigation with tabs
+  - global refresh button
+  - empty state before user creates a plan
+  - error banner if backend call fails
+- [ ] Tab 1: `Overview`
+  - KPI cards: dataset rows, available exercises, equipment count, model status
+  - charts: workout type distribution, body part coverage, equipment coverage, calorie burn distribution
+  - short system pipeline visual: input -> ML -> recommendation -> plan -> dashboard
+- [ ] Tab 2: `User Profile and Readiness`
+  - form sections: About You, Wellness Today, Training Intent
+  - computed BMI display
+  - readiness card with Low/Mid/High label
+  - explanation factors: sleep, BMI, blood pressure, heart rate, stress
+- [ ] Tab 3: `Personalized Plan`
+  - predicted calorie burn rate card
+  - predicted intensity card with probabilities
+  - recommended exercise table
+  - generated plan card with schedule, sets, reps, rest, and notes
+  - button to regenerate plan after changing equipment/body part
+- [ ] Tab 4: `Dataset Insights`
+  - multi-dataset descriptive analytics
+  - sleep cluster/user archetype summary
+  - nutrition macro chart
+  - exercise coverage chart
+- [ ] Tab 5: `RAG Explanation and Chat`
+  - retrieved snippets used by the plan
+  - source/category labels for each snippet
+  - floating or side-panel chat widget
+  - chat supports "why this exercise?", "substitute equipment", and "make it lighter"
+
+### Frontend data-flow pattern copied from BIA structure
+- [ ] `api.client.ts`: central Axios client, base URL from `VITE_API_URL`, common error handling.
+- [ ] `dashboard.service.ts`: `getSummary()`.
+- [ ] `workout.service.ts`: `preprocessProfile()`, `predictCalories()`, `predictIntensity()`, `recommendExercises()`, `generatePlan()`.
+- [ ] `chat.service.ts`: `sendMessage()`; later streaming response if time allows.
+- [ ] `useDashboard.ts`: dashboard summary loading/error/refresh.
+- [ ] `useWorkoutPlan.ts`: full flow from preprocess to generated plan.
+- [ ] `useChat.ts`: chat messages, loading state, and current plan context.
+- [ ] TypeScript types must mirror backend schemas: `ChartData`, `DashboardSummary`, `UserProfileRequest`, `ProcessedProfile`, `PredictionResponse`, `ExerciseRecommendation`, `GeneratedPlan`, `RetrievedSnippet`, `ChatResponse`.
+
+### Dashboard visual checklist
+- [ ] Use KPI cards like the BIA project, but for Smart Workout:
+  - readiness band
+  - predicted intensity
+  - estimated calorie burn rate
+  - recommended exercise count
+  - plan duration/sessions per week
+- [ ] Use tabs and filters:
+  - target body part filter
+  - equipment filter
+  - schedule preference filter
+  - intensity/readiness filter
+- [ ] Use Recharts for:
+  - bar chart: workout type distribution
+  - pie/donut chart: exercise body part coverage
+  - stacked bar: nutrition macros by meal type
+  - line/bar chart: calorie burn or model prediction comparison
+  - small feature importance chart from SHAP if available
+- [ ] Include loading skeletons, error states, and no-plan empty state.
+- [ ] Keep UI focused on decision support, not decoration.
+
+### README outline to write later
+- [ ] Root `README.md` should include project overview, problem statement, DSS/BIS decision context, features, tech stack, system architecture diagram, dataset list/sources, run steps, API summary, dashboard screen descriptions, ML summary, RAG summary, demo script link, and troubleshooting.
+- [ ] Backend `README.md` should include Python setup, environment variables, API route list, model training/loading, and test commands.
+- [ ] Frontend `README.md` should include Node setup, `.env` setup, main pages/components, and build command.
+
+### Demo flow outline
+- [ ] Start backend and frontend.
+- [ ] Open dashboard overview and show descriptive analytics.
+- [ ] Fill user profile form.
+- [ ] Submit and show readiness score.
+- [ ] Show calorie/intensity predictions.
+- [ ] Show recommended exercises.
+- [ ] Generate plan.
+- [ ] Open RAG explanation and show retrieved snippets.
+- [ ] Ask chat: "Why did you choose these exercises?"
+- [ ] Ask chat/refinement: "Replace barbell exercises with dumbbell options."
+- [ ] End with limitations: no medical diagnosis, prediction is estimate, no real long-term user history.
+
+### MVP versus stretch scope
+- [ ] MVP must-have:
+  - clean datasets
+  - FastAPI backend
+  - React dashboard
+  - descriptive analytics dashboard
+  - at least one calorie or intensity ML model, ideally both
+  - exercise recommendation by body part/equipment
+  - rule-based plan generator
+  - RAG retrieval or simple fallback retrieval
+  - basic chat Q&A grounded in retrieved snippets
+  - final report and demo script
+- [ ] Stretch only if MVP is stable:
+  - user login/JWT
+  - PostgreSQL
+  - Docker Compose for all services
+  - streaming chat
+  - LLM function calling for plan edits
+  - deployment to Vercel/Render/Railway
+  - advanced SHAP dashboard
+
+### Deliverables to match friend's project quality
+- [ ] Working app folder structure, not only notebooks.
+- [ ] API documented through FastAPI Swagger at `/docs`.
+- [ ] Frontend has typed services/hooks like the BIA project.
+- [ ] README explains how another person can run the project.
+- [ ] Dashboard has multiple tabs and real charts.
+- [ ] Final demo follows a clear story: data -> analytics -> prediction -> decision support -> explanation.
+
+### Detailed build blueprint from the BIA project
+
+Use this as the exact implementation checklist when we start building. The friend project is useful because it is not only a notebook/report project; it has a runnable backend, frontend, API layer, services, UI pages, charts, filters, and documentation. Our project should reach the same level, but focused on Smart Workout.
+
+#### 1. Repository and environment setup
+- [ ] Create `backend/` and `frontend/` folders at project root.
+- [ ] Add root `.gitignore` entries:
+  - `.env`
+  - `.venv/`
+  - `node_modules/`
+  - `dist/`
+  - `__pycache__/`
+  - `.pytest_cache/`
+  - `chroma_db/`
+  - `models/*.joblib` only if model files are too large for Git
+- [ ] Add root `.env.example` or separate examples:
+  - `backend/.env.example`
+  - `frontend/.env.example`
+- [ ] Decide dependency style:
+  - simple option: `backend/requirements.txt`
+  - cleaner option like BIA: `backend/pyproject.toml`
+- [ ] Pin backend dependencies:
+  - `fastapi`
+  - `uvicorn`
+  - `pandas`
+  - `numpy`
+  - `scikit-learn`
+  - `joblib`
+  - `pydantic`
+  - `pydantic-settings`
+  - `python-dotenv`
+  - `chromadb`
+  - `sentence-transformers`
+  - `shap`
+  - `pytest`
+  - optional: `xgboost`
+- [ ] Pin frontend dependencies:
+  - `react`
+  - `react-dom`
+  - `typescript`
+  - `vite`
+  - `axios`
+  - `recharts`
+  - `lucide-react`
+  - `react-router-dom`
+  - `tailwindcss`
+  - optional: `react-hook-form`
+  - optional: `zod`
+- [ ] Add root `docker-compose.yml` only for optional local services:
+  - ChromaDB if using persistent vector store
+  - do not add PostgreSQL unless we add login/history later
+- [ ] Add `docs/architecture.md`, `docs/api_contract.md`, and `docs/demo_script.md`.
+
+#### 2. Backend setup tasks
+- [ ] Create `backend/app/main.py` similar to BIA:
+  - initialize FastAPI app
+  - set app title to `Smart Workout DSS/BIS API`
+  - configure CORS for frontend ports `3000`, `3001`, `5173`, and `5174`
+  - include routers from `api/v1`
+  - add root route `/`
+  - add health route `/health`
+  - expose Swagger at `/docs`
+- [ ] Create `backend/app/core/config.py`:
+  - app name
+  - environment
+  - API prefix `/api/v1`
+  - raw data path
+  - processed data path
+  - model path
+  - ChromaDB path
+  - optional LLM API key name
+- [ ] Create `backend/app/core/logging.py`:
+  - standard logging format
+  - log startup/shutdown
+  - log endpoint errors clearly
+- [ ] Create `backend/app/core/constants.py`:
+  - allowed body parts
+  - allowed equipment labels
+  - readiness thresholds
+  - intensity thresholds
+  - default sets/reps/rest rules
+- [ ] Create `backend/app/api/v1/health.py`:
+  - `GET /api/v1/health`
+  - returns app status, data-loaded status, model-loaded status
+- [ ] Create `backend/app/api/v1/dashboard.py`:
+  - `GET /api/v1/dashboard/summary`
+  - returns all descriptive BI dashboard data in one response like BIA's `/dashboard/summary`
+- [ ] Create `backend/app/api/v1/workout.py`:
+  - `POST /preprocess`
+  - `POST /predict-calories`
+  - `POST /predict-intensity`
+  - `POST /recommend-exercises`
+  - `POST /generate-plan`
+- [ ] Create `backend/app/api/v1/rag.py`:
+  - `POST /search`
+  - `POST /ingest` only for development, not needed in final UI
+- [ ] Create `backend/app/api/v1/chat.py`:
+  - `POST /chat`
+  - return grounded answer and retrieved snippets
+- [ ] Create `backend/app/schemas/` with Pydantic models:
+  - `ChartData`
+  - `KPIResponse`
+  - `DashboardSummaryResponse`
+  - `UserProfileRequest`
+  - `ProcessedProfileResponse`
+  - `PredictionResponse`
+  - `ExerciseRecommendationResponse`
+  - `GeneratedPlanResponse`
+  - `RagSearchRequest`
+  - `RetrievedSnippet`
+  - `ChatRequest`
+  - `ChatResponse`
+- [ ] Add backend smoke tests:
+  - health endpoint returns `200`
+  - dashboard summary returns expected keys
+  - invalid workout input returns validation error
+  - generate-plan returns structured plan for one sample profile
+
+#### 3. Backend service details
+- [ ] `data_service.py`
+  - load `Sleep_health_and_lifestyle_dataset.csv`
+  - load `gym_members_exercise_tracking.csv`
+  - load `exercisedb_all_raw_flat.csv`
+  - load `daily_food_nutrition_dataset.csv`
+  - expose cached dataframes
+  - expose dataset summary counts
+  - check missing required columns at startup
+- [ ] `preprocessing_service.py`
+  - split blood pressure like `120/80` into systolic and diastolic
+  - compute BMI from height/weight
+  - normalize BMI category names
+  - normalize equipment names to match ExerciseDB values
+  - parse list-like ExerciseDB columns into real Python lists
+  - convert frontend form values into model feature vector
+- [ ] `analytics_service.py`
+  - workout type distribution
+  - calories burned distribution
+  - average calories by workout type
+  - body part coverage from ExerciseDB
+  - equipment coverage from ExerciseDB
+  - target muscle coverage
+  - nutrition macro totals by meal type
+  - sleep duration and stress summary
+  - readiness archetype/cluster summary
+  - return chart-friendly objects like BIA: `{ labels, values }`
+- [ ] `readiness_service.py`
+  - calculate readiness score from sleep duration, stress, heart rate, BMI, and blood pressure
+  - output readiness band: `Low`, `Medium`, `High`
+  - output explanation factors:
+    - low sleep penalty
+    - high stress penalty
+    - elevated blood pressure warning
+    - high resting heart rate warning
+    - BMI-related adjustment
+- [ ] `ml_service.py`
+  - load saved model artifacts with `joblib`
+  - expose `predict_calorie_burn_rate()`
+  - expose `predict_intensity_band()`
+  - return model name and metrics from `MODEL_RESULTS.md` or a small JSON metadata file
+  - if model file is missing, return clear error instead of crashing
+- [ ] `exercise_service.py`
+  - filter by body part
+  - filter by available equipment
+  - rank exact equipment matches first
+  - allow bodyweight fallback if no equipment selected
+  - return exercise name, body parts, target muscles, equipment, instructions, and match score
+- [ ] `plan_service.py`
+  - choose plan type from schedule preference:
+    - 2 days: full body
+    - 3 days: push/pull/legs or full-body rotation
+    - 4 days: upper/lower
+    - 5 days: body-part split
+  - adjust sets/reps/rest using predicted intensity
+  - reduce volume if readiness is low
+  - include safety note if blood pressure or heart rate is high
+  - return structured JSON, not plain text
+- [ ] `rag_service.py`
+  - ingest `RAG_CORPUS.md`
+  - ingest ExerciseDB instructions
+  - store metadata:
+    - source
+    - category
+    - body part
+    - equipment
+    - target muscle
+  - retrieve top 5 snippets per query
+  - provide simple keyword fallback if ChromaDB is not ready
+- [ ] `chat_service.py`
+  - answer using retrieved snippets and current plan
+  - keep responses short for demo
+  - say when the context is insufficient
+  - support deterministic equipment substitution first
+  - leave advanced LLM plan editing as stretch
+
+#### 4. Frontend setup tasks
+- [ ] Create React + Vite + TypeScript project in `frontend/`.
+- [ ] Configure frontend scripts:
+  - `npm run dev`
+  - `npm run build`
+  - `npm run preview`
+  - optional `npm run lint`
+- [ ] Configure `frontend/.env.example`:
+  - `VITE_API_URL=http://localhost:8000`
+  - `VITE_API_V1=/api/v1`
+- [ ] Create `src/services/api.client.ts` like BIA:
+  - central Axios instance
+  - base URL from env
+  - JSON headers
+  - common error handling
+- [ ] Create API service files:
+  - `dashboard.service.ts`
+  - `workout.service.ts`
+  - `chat.service.ts`
+- [ ] Create hooks:
+  - `useDashboard`
+  - `useWorkoutPlan`
+  - `useChat`
+  - each hook should expose `data`, `loading`, `error`, and `refresh` or `submit`
+- [ ] Create TypeScript interfaces:
+  - chart data
+  - dashboard summary
+  - user input form
+  - processed profile
+  - predictions
+  - exercise recommendation
+  - generated plan
+  - RAG snippet
+  - chat message
+- [ ] Use React Router for pages or tab views:
+  - `/`
+  - `/dashboard`
+  - `/plan`
+  - `/insights`
+  - `/rag`
+- [ ] Use Lucide icons for navigation and buttons.
+- [ ] Use Recharts for all charts.
+- [ ] Add reusable UI components before building full pages.
+
+#### 5. Frontend UI and dashboard details
+- [ ] Build a top navigation bar like BIA:
+  - app name: `Smart Workout`
+  - subtitle: `DSS/BIS Personalized Training Dashboard`
+  - refresh button
+  - backend health indicator
+- [ ] Build tab navigation:
+  - `Overview`
+  - `Profile`
+  - `Plan`
+  - `Insights`
+  - `RAG + Chat`
+- [ ] `Overview` tab:
+  - KPI: total exercises
+  - KPI: available equipment types
+  - KPI: dataset rows
+  - KPI: model status
+  - chart: workout type distribution
+  - chart: body part coverage
+  - chart: equipment coverage
+  - chart: calorie burn distribution
+- [ ] `Profile` tab:
+  - user form with three grouped sections:
+    - About You: age, height, weight
+    - Wellness Today: sleep, stress, blood pressure, resting heart rate
+    - Training Intent: body part, equipment, sessions per week, goal
+  - BMI auto-calculation
+  - validation messages
+  - submit button
+  - readiness result card after submit
+- [ ] `Plan` tab:
+  - predicted calorie burn rate card
+  - predicted intensity band card
+  - class probability mini-bars
+  - recommended exercise table
+  - generated weekly plan cards
+  - plan notes and safety warnings
+  - regenerate button
+- [ ] `Insights` tab:
+  - descriptive BI charts from all datasets
+  - nutrition macro view
+  - sleep/readiness archetype view
+  - exercise database coverage view
+  - model comparison chart from `MODEL_RESULTS.md`
+- [ ] `RAG + Chat` tab:
+  - retrieved snippets panel
+  - source/category badges
+  - chat input
+  - chat response area
+  - current plan context shown in a compact panel
+  - example prompt buttons:
+    - `Why this plan?`
+    - `Make it lighter`
+    - `Use dumbbells only`
+    - `Explain recovery time`
+- [ ] Add UI states:
+  - loading skeletons for charts/cards
+  - empty state before profile submit
+  - error banner on API failure
+  - disabled submit while loading
+  - no exercise match state with fallback suggestion
+- [ ] UI quality requirements:
+  - no giant landing page; open directly into dashboard
+  - compact operational dashboard style
+  - use cards only for actual dashboard panels
+  - keep text short and scannable
+  - every chart needs a clear title
+  - every prediction needs a short interpretation
+  - dashboard must be readable on laptop screen during demo
+
+#### 6. API contract to document in `docs/api_contract.md`
+- [ ] Document sample request/response for `/dashboard/summary`.
+- [ ] Document sample request/response for `/workout/preprocess`.
+- [ ] Document sample request/response for `/workout/predict-calories`.
+- [ ] Document sample request/response for `/workout/predict-intensity`.
+- [ ] Document sample request/response for `/workout/recommend-exercises`.
+- [ ] Document sample request/response for `/workout/generate-plan`.
+- [ ] Document sample request/response for `/rag/search`.
+- [ ] Document sample request/response for `/chat`.
+- [ ] Keep backend Pydantic schemas and frontend TypeScript types aligned.
+
+#### 7. Integration sequence
+- [ ] First integration: frontend calls `/health`.
+- [ ] Second integration: frontend loads `/dashboard/summary` and renders charts.
+- [ ] Third integration: profile form calls `/workout/preprocess`.
+- [ ] Fourth integration: profile submit calls predictions.
+- [ ] Fifth integration: recommendations render in table.
+- [ ] Sixth integration: generated plan renders in cards.
+- [ ] Seventh integration: RAG snippets display for plan explanation.
+- [ ] Final integration: chat uses current plan and retrieved snippets.
+
+#### 8. What to copy conceptually from BIA, and what not to copy
+- [ ] Copy conceptually:
+  - clean README
+  - backend router/service/schema separation
+  - frontend service/hook/type separation
+  - one dashboard summary endpoint
+  - typed frontend API calls
+  - KPI cards
+  - dashboard tabs
+  - refresh/loading/error states
+  - local demo instructions
+- [ ] Do not copy for MVP:
+  - login/authentication
+  - PostgreSQL database
+  - Alembic migrations
+  - vending machine domain logic
+  - overly complex visual styling
+  - generated/fake analytics that are not tied to our datasets
+
+#### 9. Minimum final demo acceptance checklist
+- [ ] `backend` starts successfully.
+- [ ] `frontend` starts successfully.
+- [ ] `/docs` opens and shows all major endpoints.
+- [ ] dashboard overview loads real dataset analytics.
+- [ ] user can submit profile form.
+- [ ] readiness result appears.
+- [ ] prediction result appears.
+- [ ] recommended exercises appear.
+- [ ] generated plan appears.
+- [ ] RAG snippets appear.
+- [ ] chat answers at least one grounded question.
+- [ ] README has exact run commands.
+- [ ] demo script is written.
+
+---
+
 ## Project management (Day-1 setup-)
 
 ### Tooling
@@ -43,10 +702,84 @@
 - [ ] Save EDA plots as PNG (for dashboard later)
 
 ### Project skeleton (Yolanda)
-- [ ] FastAPI hello-world endpoint + auto-Swagger at `/docs`
-- [ ] React + Vite project scaffolded with TailwindCSS + shadcn/ui setup
-- [ ] CORS configured so frontend can call backend
-- [ ] Define API contract: request/response JSON shapes for `/predict-calories`, `/predict-intensity`, `/recommend-exercises`, `/generate-plan`, `/chat`
+- [x] Follow the full detailed plan in `yolanda_notes/YOLANDA_PROJECT_SKELETON_PLAN.md`
+- [x] Backend first: create FastAPI app with root endpoint `/`, health endpoint `/api/v1/health`, and auto-Swagger at `/docs`
+- [x] Backend structure inspired by friend BIA project:
+  - `backend/app/main.py`
+  - `backend/app/api/v1/health.py`
+  - `backend/app/api/v1/workout.py`
+  - `backend/app/api/v1/chat.py`
+  - `backend/app/schemas/workout.py`
+  - `backend/app/schemas/chat.py`
+  - `backend/app/services/workout_service.py`
+  - `backend/app/services/chat_service.py`
+- [x] CORS configured so React dev servers can call backend:
+  - `http://localhost:3000`
+  - `http://localhost:3001`
+  - `http://localhost:5173`
+  - `http://localhost:5174`
+  - `http://127.0.0.1:5173`
+- [x] Define and implement mock API contracts first, then replace with real ML/RAG later:
+  - `POST /api/v1/workout/predict-calories`
+  - `POST /api/v1/workout/predict-intensity`
+  - `POST /api/v1/workout/recommend-exercises`
+  - `POST /api/v1/workout/generate-plan`
+  - `POST /api/v1/chat`
+- [x] Test backend endpoints with automated smoke tests (`py -m pytest -q`: 4 passed)
+- [x] Frontend second: React + Vite + TypeScript scaffold
+- [x] Frontend UI setup:
+  - TailwindCSS
+  - shadcn/ui-compatible local components now; official shadcn install is optional later
+  - Recharts
+  - Lucide React
+  - Axios
+  - React Router
+- [x] Frontend structure inspired by friend BIA project:
+  - `frontend/src/services/api.client.ts`
+  - `frontend/src/services/workout.service.ts`
+  - `frontend/src/services/chat.service.ts`
+  - `frontend/src/hooks/useWorkoutPlan.ts`
+  - `frontend/src/hooks/useChat.ts`
+  - `frontend/src/types/workout.types.ts`
+  - `frontend/src/types/chat.types.ts`
+  - `frontend/src/pages/DashboardPage.tsx`
+- [x] Initial UI design:
+  - top navbar with app name, backend status, refresh button
+  - dashboard tabs: `Overview`, `Profile`, `Plan`, `RAG Chat`
+  - profile form for user input
+  - plan cards for API output
+  - chat panel for `/chat`
+- [x] Check the "Overlooked Items to Add Before Coding" section in `yolanda_notes/YOLANDA_PROJECT_SKELETON_PLAN.md`
+- [x] Check the "Second Backend Audit from Friend BIA Project" section in `yolanda_notes/YOLANDA_PROJECT_SKELETON_PLAN.md`
+- [x] Add two extra endpoints that are important for the proposal/professor requirement:
+  - `POST /api/v1/workout/preprocess` for BMI, blood-pressure split, equipment normalization, and readiness
+  - `GET /api/v1/dashboard/summary` for descriptive BI dashboard charts
+- [x] Add BIA-inspired backend quality items:
+  - `backend/app/core/config.py` using `pydantic-settings`
+  - `backend/app/core/logging.py`
+  - FastAPI lifespan startup/shutdown logs
+  - `backend/app/api/deps.py`
+  - `response_model` and `tags` on every router
+  - package `__init__.py` files
+  - `GET /api/v1/health/readiness`
+  - Vite proxy for `/api` in frontend config
+- [x] Add stable handoff points so teammates can replace mock logic without breaking the frontend:
+  - calorie prediction service
+  - intensity prediction service
+  - exercise recommendation service
+  - plan generation service
+  - chat/RAG service
+  - dashboard summary service
+
+#### Yolanda remaining work after skeleton
+- [ ] Manually test full browser flow: Overview -> Profile submit -> Plan -> RAG Chat
+- [x] Replace mock dashboard calculations with real dataset aggregations
+- [x] Replace mock exercise recommendations with real ExerciseDB CSV filtering
+- [x] Add frontend validation messages for invalid fields
+- [x] Add intensity probability bars in the Plan tab
+- [x] Show retrieved RAG snippets in the Plan tab, not only Chat
+- [x] Add `docs/demo_script.md` for Yolanda's demo walkthrough
+- [x] Add frontend manual-test checklist with screenshots for the report
 
 ### RAG knowledge corpus drafting (ongoing) (Earth and Non)
 - [ ] Start writing the curated rule corpus (target ~50–100 snippets by end of Week 2)
