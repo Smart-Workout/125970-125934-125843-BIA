@@ -782,8 +782,8 @@ Use this as the exact implementation checklist when we start building. The frien
 - [x] Add frontend manual-test checklist with screenshots for the report
 
 ### RAG knowledge corpus drafting (ongoing) (Earth and Non)
-- [ ] Start writing the curated rule corpus (target ~50–100 snippets by end of Week 2)
-- [ ] Draft system prompt + 5–10 few-shot examples for the chat
+- [x] Start writing the curated rule corpus (target ~50–100 snippets by end of Week 2)
+- [x] Draft system prompt + 5–10 few-shot examples for the chat
 
 ### Frontend design lock-in (see "Frontend design decisions" section below) (Yolanda)
 - [ ] Pick component library (shadcn/ui), chart library (Recharts), state mgmt (React Context), routing (React Router v6)
