@@ -686,20 +686,20 @@ Use this as the exact implementation checklist when we start building. The frien
 ## Week 1 (23–29 Jun): Foundation
 
 ### Data (Earth and Non)
-- [ ] Set up shared GitHub repo + branch protection + README
-- [ ] Set up Python venv with pinned versions (pandas, scikit-learn, xgboost, chromadb, sentence-transformers, fastapi, uvicorn, shap, pydantic)
-- [ ] Load + inspect all 4 CSVs (one notebook per dataset)
-- [ ] Clean Sleep dataset: split blood pressure into systolic/diastolic, normalize BMI categories
-- [ ] Clean Gym Members dataset: verify no missing, derive BPM-response ratio (Avg/Max), bin into Low/Mid/High intensity tertiles (≤0.70, 0.70–0.85, ≥0.85)
-- [ ] Clean ExerciseDB: parse `bodyParts`, `equipments`, `targetMuscles` from string-list format → proper lists
-- [ ] Clean Nutrition dataset: standardize macro columns
-- [ ] Derive Training Readiness rule from Sleep dataset (composite of sleep quality + duration + stress + BMI → Low/Mid/High band)
-- [ ] Outlier check on Calories_Burned (drop or cap >3σ)
+- [x] Set up shared GitHub repo + branch protection + README
+- [x] Set up Python venv with pinned versions (pandas, scikit-learn, xgboost, chromadb, sentence-transformers, fastapi, uvicorn, shap, pydantic)
+- [x] Load + inspect all 4 CSVs (one notebook per dataset)
+- [x] Clean Sleep dataset: split blood pressure into systolic/diastolic, normalize BMI categories
+- [x] Clean Gym Members dataset: verify no missing, derive BPM-response ratio (Avg/Max), bin into Low/Mid/High intensity tertiles (≤0.70, 0.70–0.85, ≥0.85)
+- [x] Clean ExerciseDB: parse `bodyParts`, `equipments`, `targetMuscles` from string-list format → proper lists
+- [x] Clean Nutrition dataset: standardize macro columns
+- [x] Derive Training Readiness rule from Sleep dataset (composite of sleep quality + duration + stress + BMI → Low/Mid/High band)
+- [x] Outlier check on Calories_Burned (drop or cap >3σ)
 
 ### Descriptive analytics (Earth and Non)
-- [ ] K-Means clustering on Sleep dataset → 3–4 user archetypes (try k=3, k=4, pick by silhouette score)
-- [ ] Cross-dataset EDA: workout-type distribution, calorie-burn patterns by experience, exercise coverage by body part, nutrition macro mix by meal type
-- [ ] Save EDA plots as PNG (for dashboard later)
+- [x] K-Means clustering on Sleep dataset → 3–4 user archetypes (try k=3, k=4, pick by silhouette score)
+- [x] Cross-dataset EDA: workout-type distribution, calorie-burn patterns by experience, exercise coverage by body part, nutrition macro mix by meal type
+- [x] Save EDA plots as PNG (for dashboard later)
 
 ### Project skeleton (Yolanda)
 - [x] Follow the full detailed plan in `yolanda_notes/YOLANDA_PROJECT_SKELETON_PLAN.md`
