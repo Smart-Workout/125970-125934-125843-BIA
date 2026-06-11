@@ -1,0 +1,87 @@
+{
+  "project": "Smart Workout DSS/BIS",
+  "week": "Week 1 Foundation",
+  "owner_scope": "Earth and Non data foundation tasks",
+  "project_root": "C:\\Users\\Waranon-021\\Desktop\\BIA Project\\125970-125934-125843-BIA-main",
+  "raw_dir": "C:\\Users\\Waranon-021\\Desktop\\BIA Project\\125970-125934-125843-BIA-main\\data\\raw",
+  "processed_dir": "C:\\Users\\Waranon-021\\Desktop\\BIA Project\\125970-125934-125843-BIA-main\\data\\processed",
+  "figures_dir": "C:\\Users\\Waranon-021\\Desktop\\BIA Project\\125970-125934-125843-BIA-main\\docs\\figures\\week1",
+  "summary_tables_path": "C:\\Users\\Waranon-021\\Desktop\\BIA Project\\125970-125934-125843-BIA-main\\data\\processed\\week1_eda_summary_tables.json",
+  "selected_sleep_cluster_k": 4,
+  "processed_files": [
+    {
+      "path": "C:\\Users\\Waranon-021\\Desktop\\BIA Project\\125970-125934-125843-BIA-main\\data\\processed\\sleep_cleaned_readiness.csv",
+      "rows": 374,
+      "columns": 25,
+      "missing_values": 219
+    },
+    {
+      "path": "C:\\Users\\Waranon-021\\Desktop\\BIA Project\\125970-125934-125843-BIA-main\\data\\processed\\sleep_cleaned_readiness_clusters.csv",
+      "rows": 374,
+      "columns": 26,
+      "missing_values": 219
+    },
+    {
+      "path": "C:\\Users\\Waranon-021\\Desktop\\BIA Project\\125970-125934-125843-BIA-main\\data\\processed\\gym_cleaned_intensity_calories.csv",
+      "rows": 973,
+      "columns": 21,
+      "missing_values": 0
+    },
+    {
+      "path": "C:\\Users\\Waranon-021\\Desktop\\BIA Project\\125970-125934-125843-BIA-main\\data\\processed\\exercisedb_cleaned_catalog.csv",
+      "rows": 1500,
+      "columns": 13,
+      "missing_values": 0
+    },
+    {
+      "path": "C:\\Users\\Waranon-021\\Desktop\\BIA Project\\125970-125934-125843-BIA-main\\data\\processed\\nutrition_cleaned_macros.csv",
+      "rows": 651,
+      "columns": 18,
+      "missing_values": 0
+    },
+    {
+      "path": "C:\\Users\\Waranon-021\\Desktop\\BIA Project\\125970-125934-125843-BIA-main\\data\\processed\\sleep_cluster_profile.csv",
+      "rows": 4,
+      "columns": 10,
+      "missing_values": 0
+    }
+  ],
+  "figure_files": [
+    "C:\\Users\\Waranon-021\\Desktop\\BIA Project\\125970-125934-125843-BIA-main\\docs\\figures\\week1\\workout_type_distribution.png",
+    "C:\\Users\\Waranon-021\\Desktop\\BIA Project\\125970-125934-125843-BIA-main\\docs\\figures\\week1\\calories_by_experience_level.png",
+    "C:\\Users\\Waranon-021\\Desktop\\BIA Project\\125970-125934-125843-BIA-main\\docs\\figures\\week1\\intensity_band_distribution.png",
+    "C:\\Users\\Waranon-021\\Desktop\\BIA Project\\125970-125934-125843-BIA-main\\docs\\figures\\week1\\exercise_coverage_by_body_part.png",
+    "C:\\Users\\Waranon-021\\Desktop\\BIA Project\\125970-125934-125843-BIA-main\\docs\\figures\\week1\\exercise_coverage_by_equipment.png",
+    "C:\\Users\\Waranon-021\\Desktop\\BIA Project\\125970-125934-125843-BIA-main\\docs\\figures\\week1\\nutrition_macro_mix_by_meal_type.png",
+    "C:\\Users\\Waranon-021\\Desktop\\BIA Project\\125970-125934-125843-BIA-main\\docs\\figures\\week1\\training_readiness_distribution.png",
+    "C:\\Users\\Waranon-021\\Desktop\\BIA Project\\125970-125934-125843-BIA-main\\docs\\figures\\week1\\sleep_archetype_clusters.png"
+  ],
+  "cleaning_notes": [
+    "Sleep blood pressure was split into systolic_bp and diastolic_bp.",
+    "Sleep BMI Category normalized Normal Weight into Normal.",
+    "Training Readiness used sleep duration, sleep quality, stress level, and BMI category.",
+    "Gym intensity band used Avg_BPM / Max_BPM thresholds: Low <= 0.70, Mid 0.70-0.85, High >= 0.85.",
+    "Gym Calories_Burned outliers were flagged by 3-sigma and capped in calories_burned_clean.",
+    "ExerciseDB list-like fields were parsed into real lists and exported as JSON strings.",
+    "Nutrition CSV required repair parsing because unquoted commas appeared inside Food_Item values.",
+    "K-Means compared k=3 and k=4 using silhouette score.",
+    "EDA plots were saved as PNG files for dashboard and report reuse."
+  ],
+  "final_product_handoff": {
+    "week2_ml": [
+      "data/processed/gym_cleaned_intensity_calories.csv",
+      "data/processed/sleep_cleaned_readiness_clusters.csv"
+    ],
+    "week3_dashboard": [
+      "docs/figures/week1/*.png",
+      "data/processed/week1_eda_summary_tables.json"
+    ],
+    "week3_recommender_rag": [
+      "data/processed/exercisedb_cleaned_catalog.csv"
+    ],
+    "report_evidence": [
+      "data/processed/week1_manifest.json",
+      "docs/figures/week1/*.png"
+    ]
+  }
+}

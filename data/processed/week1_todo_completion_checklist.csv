@@ -1,0 +1,11 @@
+todo_line,todo_item,status,evidence
+691,Load and inspect all 4 CSVs,complete,week1_raw_inspection_summary.csv
+692,Clean Sleep dataset,complete,sleep_cleaning_proof.csv
+693,Clean Gym Members dataset,complete,gym_cleaned_intensity_calories.csv
+694,Clean ExerciseDB string-list fields,complete,exercisedb_parse_proof.csv
+695,Clean Nutrition macro columns,complete,nutrition_numeric_validation.csv
+696,Derive Training Readiness rule,complete,readiness_component_summary.csv
+697,Outlier check on Calories_Burned,complete,gym_calorie_outlier_proof.csv
+700,K-Means clustering on Sleep dataset,complete,sleep_kmeans_silhouette_scores.csv + sleep_cluster_profile.csv
+701,Cross-dataset EDA,complete,week1_dashboard_summary_tables.json
+702,Save EDA plots as PNG,complete,week1_figure_manifest.csv

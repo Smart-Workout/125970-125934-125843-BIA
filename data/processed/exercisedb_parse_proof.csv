@@ -1,0 +1,9 @@
+name,raw_body_parts,parsed_body_parts,raw_equipments,parsed_equipments,raw_target_muscles,parsed_target_muscles
+upward facing dog,['back'],['back'],['body weight'],['body weight'],['spine'],['spine']
+assisted hanging knee raise,['waist'],['waist'],['assisted'],['assisted'],['abs'],['abs']
+impossible dips,['upper arms'],['upper arms'],['body weight'],['body weight'],['triceps'],['triceps']
+push-up inside leg kick,['upper legs'],['upper legs'],['body weight'],['body weight'],['glutes'],['glutes']
+cable cross-over variation,['chest'],['chest'],['cable'],['cable'],['pectorals'],['pectorals']
+barbell seated bradford rocky press,['shoulders'],['shoulders'],['barbell'],['barbell'],['delts'],['delts']
+band underhand pulldown with classic,['back'],['back'],['band'],['band'],['lats'],['lats']
+dumbbell standing reverse curl,['upper arms'],['upper arms'],['dumbbell'],['dumbbell'],['biceps'],['biceps']

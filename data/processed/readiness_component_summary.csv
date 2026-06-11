@@ -1,0 +1,4 @@
+readiness_band,sleep_duration_score,sleep_quality_score,stress_score,bmi_score,readiness_score
+High,2.0,1.85,1.54,1.82,7.21
+Low,0.93,0.86,0.0,1.0,2.79
+Mid,1.08,1.0,0.88,1.41,4.37

@@ -1,0 +1,2 @@
+calories_mean,calories_std,lower_bound_3sigma,upper_bound_3sigma,outlier_row_count,original_max_calories,cleaned_max_calories
+905.42,272.64,87.5,1723.35,3,1783.0,1723.3469542899727

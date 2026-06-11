@@ -1,0 +1,403 @@
+{
+  "workout_type_distribution": [
+    {
+      "workout_type": "Strength",
+      "session_count": 258
+    },
+    {
+      "workout_type": "Cardio",
+      "session_count": 255
+    },
+    {
+      "workout_type": "Yoga",
+      "session_count": 239
+    },
+    {
+      "workout_type": "HIIT",
+      "session_count": 221
+    }
+  ],
+  "intensity_distribution": [
+    {
+      "intensity_band": "Low",
+      "session_count": 158
+    },
+    {
+      "intensity_band": "Mid",
+      "session_count": 511
+    },
+    {
+      "intensity_band": "High",
+      "session_count": 304
+    }
+  ],
+  "experience_calorie_summary": [
+    {
+      "experience_level": 1,
+      "count": 376,
+      "mean": 726.38,
+      "median": 719.5,
+      "std": 227.34
+    },
+    {
+      "experience_level": 2,
+      "count": 406,
+      "mean": 901.92,
+      "median": 886.0,
+      "std": 152.65
+    },
+    {
+      "experience_level": 3,
+      "count": 191,
+      "mean": 1264.8,
+      "median": 1242.0,
+      "std": 185.41
+    }
+  ],
+  "body_part_coverage_top20": [
+    {
+      "body_part": "upper arms",
+      "exercise_count": 323
+    },
+    {
+      "body_part": "upper legs",
+      "exercise_count": 257
+    },
+    {
+      "body_part": "back",
+      "exercise_count": 239
+    },
+    {
+      "body_part": "waist",
+      "exercise_count": 195
+    },
+    {
+      "body_part": "chest",
+      "exercise_count": 191
+    },
+    {
+      "body_part": "shoulders",
+      "exercise_count": 156
+    },
+    {
+      "body_part": "lower legs",
+      "exercise_count": 63
+    },
+    {
+      "body_part": "lower arms",
+      "exercise_count": 40
+    },
+    {
+      "body_part": "cardio",
+      "exercise_count": 33
+    },
+    {
+      "body_part": "neck",
+      "exercise_count": 3
+    }
+  ],
+  "equipment_coverage_top20": [
+    {
+      "equipment": "body weight",
+      "exercise_count": 372
+    },
+    {
+      "equipment": "dumbbell",
+      "exercise_count": 319
+    },
+    {
+      "equipment": "cable",
+      "exercise_count": 181
+    },
+    {
+      "equipment": "barbell",
+      "exercise_count": 170
+    },
+    {
+      "equipment": "leverage machine",
+      "exercise_count": 91
+    },
+    {
+      "equipment": "band",
+      "exercise_count": 67
+    },
+    {
+      "equipment": "smith machine",
+      "exercise_count": 56
+    },
+    {
+      "equipment": "kettlebell",
+      "exercise_count": 46
+    },
+    {
+      "equipment": "weighted",
+      "exercise_count": 41
+    },
+    {
+      "equipment": "stability ball",
+      "exercise_count": 34
+    },
+    {
+      "equipment": "ez barbell",
+      "exercise_count": 26
+    },
+    {
+      "equipment": "assisted",
+      "exercise_count": 18
+    },
+    {
+      "equipment": "sled machine",
+      "exercise_count": 18
+    },
+    {
+      "equipment": "medicine ball",
+      "exercise_count": 14
+    },
+    {
+      "equipment": "rope",
+      "exercise_count": 11
+    },
+    {
+      "equipment": "resistance band",
+      "exercise_count": 10
+    },
+    {
+      "equipment": "roller",
+      "exercise_count": 8
+    },
+    {
+      "equipment": "bosu ball",
+      "exercise_count": 4
+    },
+    {
+      "equipment": "elliptical machine",
+      "exercise_count": 3
+    },
+    {
+      "equipment": "wheel roller",
+      "exercise_count": 2
+    }
+  ],
+  "target_muscle_coverage_top20": [
+    {
+      "target_muscle": "abs",
+      "exercise_count": 195
+    },
+    {
+      "target_muscle": "pectorals",
+      "exercise_count": 185
+    },
+    {
+      "target_muscle": "glutes",
+      "exercise_count": 162
+    },
+    {
+      "target_muscle": "biceps",
+      "exercise_count": 162
+    },
+    {
+      "target_muscle": "triceps",
+      "exercise_count": 161
+    },
+    {
+      "target_muscle": "delts",
+      "exercise_count": 156
+    },
+    {
+      "target_muscle": "upper back",
+      "exercise_count": 102
+    },
+    {
+      "target_muscle": "lats",
+      "exercise_count": 101
+    },
+    {
+      "target_muscle": "calves",
+      "exercise_count": 63
+    },
+    {
+      "target_muscle": "quads",
+      "exercise_count": 52
+    },
+    {
+      "target_muscle": "forearms",
+      "exercise_count": 40
+    },
+    {
+      "target_muscle": "cardiovascular system",
+      "exercise_count": 33
+    },
+    {
+      "target_muscle": "hamstrings",
+      "exercise_count": 31
+    },
+    {
+      "target_muscle": "spine",
+      "exercise_count": 21
+    },
+    {
+      "target_muscle": "traps",
+      "exercise_count": 16
+    },
+    {
+      "target_muscle": "abductors",
+      "exercise_count": 6
+    },
+    {
+      "target_muscle": "serratus anterior",
+      "exercise_count": 6
+    },
+    {
+      "target_muscle": "adductors",
+      "exercise_count": 6
+    },
+    {
+      "target_muscle": "levator scapulae",
+      "exercise_count": 2
+    }
+  ],
+  "meal_macro_summary": [
+    {
+      "meal_type": "Breakfast",
+      "calories_kcal": 12601,
+      "protein_g": 387.9,
+      "carbohydrates_g": 1629.7,
+      "fat_g": 527.6,
+      "water_intake_ml": 7730
+    },
+    {
+      "meal_type": "Dinner",
+      "calories_kcal": 36380,
+      "protein_g": 1944.4,
+      "carbohydrates_g": 3290.2,
+      "fat_g": 1699.7,
+      "water_intake_ml": 10990
+    },
+    {
+      "meal_type": "Lunch",
+      "calories_kcal": 24177,
+      "protein_g": 1231.7,
+      "carbohydrates_g": 2209.1,
+      "fat_g": 1156.9,
+      "water_intake_ml": 14818
+    },
+    {
+      "meal_type": "Side",
+      "calories_kcal": 22,
+      "protein_g": 1.7,
+      "carbohydrates_g": 4.0,
+      "fat_g": 0.4,
+      "water_intake_ml": 0
+    },
+    {
+      "meal_type": "Snack",
+      "calories_kcal": 21537,
+      "protein_g": 508.2,
+      "carbohydrates_g": 2860.8,
+      "fat_g": 793.9,
+      "water_intake_ml": 11144
+    }
+  ],
+  "readiness_distribution": [
+    {
+      "readiness_band": "Low",
+      "record_count": 86
+    },
+    {
+      "readiness_band": "Mid",
+      "record_count": 75
+    },
+    {
+      "readiness_band": "High",
+      "record_count": 213
+    }
+  ],
+  "cluster_profile": [
+    {
+      "archetype_cluster": 0,
+      "age": 39.99,
+      "sleep_duration": 7.66,
+      "quality_of_sleep": 8.01,
+      "physical_activity_level": 63.36,
+      "stress_level": 4.55,
+      "heart_rate": 68.19,
+      "daily_steps": 7135.2,
+      "systolic_bp": 123.32,
+      "diastolic_bp": 80.55,
+      "readiness_score": 7.25,
+      "record_count": 179,
+      "suggested_archetype_label": "Moderate / Mixed Readiness"
+    },
+    {
+      "archetype_cluster": 1,
+      "age": 49.75,
+      "sleep_duration": 6.07,
+      "quality_of_sleep": 6.0,
+      "physical_activity_level": 90.0,
+      "stress_level": 8.0,
+      "heart_rate": 75.0,
+      "daily_steps": 10000.0,
+      "systolic_bp": 140.0,
+      "diastolic_bp": 95.0,
+      "readiness_score": 2.97,
+      "record_count": 32,
+      "suggested_archetype_label": "Strained / Low Recovery"
+    },
+    {
+      "archetype_cluster": 2,
+      "age": 37.78,
+      "sleep_duration": 6.35,
+      "quality_of_sleep": 6.0,
+      "physical_activity_level": 40.38,
+      "stress_level": 7.17,
+      "heart_rate": 73.83,
+      "daily_steps": 5503.96,
+      "systolic_bp": 128.53,
+      "diastolic_bp": 83.69,
+      "readiness_score": 3.33,
+      "record_count": 101,
+      "suggested_archetype_label": "Strained / Low Recovery"
+    },
+    {
+      "archetype_cluster": 3,
+      "age": 51.79,
+      "sleep_duration": 7.44,
+      "quality_of_sleep": 8.13,
+      "physical_activity_level": 61.77,
+      "stress_level": 3.53,
+      "heart_rate": 67.4,
+      "daily_steps": 6393.55,
+      "systolic_bp": 137.79,
+      "diastolic_bp": 92.69,
+      "readiness_score": 6.06,
+      "record_count": 62,
+      "suggested_archetype_label": "Moderate / Mixed Readiness"
+    }
+  ],
+  "cluster_readiness_mix": [
+    {
+      "archetype_cluster": 0,
+      "High": 178,
+      "Low": 0,
+      "Mid": 1
+    },
+    {
+      "archetype_cluster": 1,
+      "High": 0,
+      "Low": 32,
+      "Mid": 0
+    },
+    {
+      "archetype_cluster": 2,
+      "High": 0,
+      "Low": 54,
+      "Mid": 47
+    },
+    {
+      "archetype_cluster": 3,
+      "High": 35,
+      "Low": 0,
+      "Mid": 27
+    }
+  ]
+}
