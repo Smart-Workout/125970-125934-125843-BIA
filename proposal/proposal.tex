@@ -83,14 +83,14 @@ The project will deliver a working DSS/BIS prototype that fulfils the following 
   \item \textbf{Predictive analytics:} train and compare three candidate models per task on the gym-tracking data, selecting the best by 5-fold cross-validation: (a) \emph{calorie-burn-rate} regression (kcal\,/\,hr; session duration excluded so the model learns physiology); (b) \emph{Workout Intensity} 3-class classification (Low / Mid / High, derived from the BPM-response ratio). A rule-derived \emph{Training Readiness} band acts as an auxiliary feature (candidate models detailed in \S5).
   \item \textbf{Prescriptive analytics:} generate a daily/weekly training plan via a rule-based engine conditioned on the predicted intensity, readiness, target body part, and available equipment; the predicted calorie-burn rate is displayed alongside the plan.
   \item \textbf{RAG knowledge retrieval \& AI chat assistant:} retrieve exercise instructions, equipment-substitution rules, and timetable guidance; expose a pop-up AI chat widget that answers follow-ups and supports post-generation plan refinement (\emph{e.g.}\ ``Why this exercise?'', ``Substitute dumbbells'', ``Make Tuesday lighter'').
-  \item \textbf{BI dashboard:} React-based dashboard presenting the multi-dataset descriptive view, personalized predictions, prescribed plan, RAG-sourced explanation, and embedded chat.
+  \item \textbf{BI dashboard:} React-based dashboard (with embedded Tableau views) presenting the multi-dataset descriptive view, personalized predictions, prescribed plan, RAG-sourced explanation, and embedded chat.
 \end{itemize}
 
 % ============================================================
 % 3. SYSTEM DESCRIPTION & ARCHITECTURE
 % ============================================================
 \section{Description of the Proposed DSS/BIS}
-Smart Workout will be developed as a React + FastAPI web application integrating multi-source data, two best-performing predictive models (to be selected after comparing three candidates per task via 5-fold cross-validation; see \S5), a ChromaDB-based RAG knowledge layer (Lewis et al., 2020), a rule-based plan generator, and an embedded RAG-grounded chat assistant (LLM-augmented when available). The selected regressor and classifier run on every user request and provide input to the prescriptive plan generator; the chat reuses the same RAG pipeline so its answers are grounded in the indexed corpus rather than parametric memory. Architecture and workflow appear in Figure~\ref{fig:arch} and the numbered steps below. Technology stack: React (frontend), FastAPI (backend), pandas / scikit-learn / XGBoost (analytics), ChromaDB + \texttt{all-MiniLM-L6-v2} (RAG); a general-purpose LLM (\emph{e.g.}\ OpenAI GPT, Grok, or a comparable provider) for the chat and explanation layer.
+Smart Workout will be developed as a React + FastAPI web application integrating multi-source data, two best-performing predictive models (to be selected after comparing three candidates per task via 5-fold cross-validation; see \S5), a ChromaDB-based RAG knowledge layer (Lewis et al., 2020), a rule-based plan generator, and an embedded RAG-grounded chat assistant (LLM-augmented when available). The selected regressor and classifier run on every user request and provide input to the prescriptive plan generator; the chat reuses the same RAG pipeline so its answers are grounded in the indexed corpus rather than parametric memory. Architecture and workflow appear in Figure~\ref{fig:arch} and the numbered steps below. Technology stack: React (frontend, with embedded Tableau dashboards), FastAPI (backend), pandas / scikit-learn / XGBoost (analytics), ChromaDB + \texttt{all-MiniLM-L6-v2} (RAG); a general-purpose LLM (\emph{e.g.}\ OpenAI GPT, Grok, or a comparable provider) for the chat and explanation layer.
 
 \begin{figure}[h]
 \centering
@@ -111,7 +111,7 @@ Smart Workout will be developed as a React + FastAPI web application integrating
 \node[app]  (api)   at (3.4,  1.9) {FastAPI\\Preprocess};
 \node[ml]   (ml)    at (6.8,  1.9) {ML Models\\Calorie + Intensity};
 \node[ml]   (plan)  at (10.2, 1.9) {Rule-based\\Plan Generator};
-\node[app]  (dash)  at (13.6, 1.9) {React\\Dashboard};
+\node[app]  (dash)  at (13.6, 1.9) {React Dashboard\\(+Tableau)};
 % Row 2 (y=0): supporting + interactive layer
 %   RAG aligned vertically with Plan; Chat aligned vertically with Dashboard
 \node[data] (data)  at (0,    0)   {Multi-source\\Datasets};
@@ -199,10 +199,10 @@ Smart Workout applies DSS/BIS principles to personalized fitness planning by com
 % REFERENCES (APA 7th)
 % ============================================================
 \section*{References}
-\vspace{6pt}
+\vspace{2pt}
 \footnotesize
 \setlength{\parskip}{2pt}
-\begin{list}{}{\setlength{\leftmargin}{1.5em}\setlength{\itemindent}{-1.5em}\setlength{\itemsep}{3pt}\setlength{\parsep}{0pt}\setlength{\topsep}{0pt}}
+\begin{list}{}{\setlength{\leftmargin}{1.5em}\setlength{\itemindent}{-1.5em}\setlength{\itemsep}{2pt}\setlength{\parsep}{0pt}\setlength{\topsep}{0pt}}
 \item Chaudhuri, S., Dayal, U., \& Narasayya, V. (2011). An overview of business intelligence technology. \emph{Communications of the ACM, 54}(8), 88--98. \url{https://doi.org/10.1145/1978542.1978562}
 \item Chen, T., \& Guestrin, C. (2016). XGBoost: A scalable tree boosting system. In \emph{Proceedings of the 22nd ACM SIGKDD International Conference on Knowledge Discovery and Data Mining} (pp. 785--794). ACM. \url{https://doi.org/10.1145/2939672.2939785}
 \item ExerciseDB. (n.d.). \emph{ExerciseDB: Free exercise database}. \url{https://exercisedb.dev/}
