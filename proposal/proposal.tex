@@ -70,19 +70,19 @@ ID: st125970 & ID: st125934 & ID: st125843 \\
 % 1. BACKGROUND
 % ============================================================
 \section{Background}
-Weight training is widely practiced for strength and fitness, yet many gym users struggle to plan effectively: they are uncertain which exercises suit a given body part, how to adapt to available equipment, how to structure a weekly timetable, and whether their physical condition supports a particular plan. Most decisions come from generic online routines that ignore personal factors --- age, sleep, BMI, physiological indicators, equipment, schedule --- producing a mismatch between plan and readiness. This project proposes \textbf{Smart Workout}, a combined Decision Support System (DSS) and Business Intelligence System (BIS) (Power, 2002; Chaudhuri et al., 2011) that unifies multi-source real-world data, a Retrieval-Augmented Generation (RAG) knowledge layer, and supervised ML models behind an interactive web dashboard, transforming raw input into descriptive insight, predictive outcome estimates, and prescriptive training plans while preserving human oversight. Intended end users are gym users seeking personalized training guidance; fitness coaches form a secondary audience using the dashboard for decision-support reference.
+Weight training is widely practiced for strength and fitness, yet many gym users struggle to plan effectively: they are uncertain which exercises suit a given body part, how to adapt to available equipment, how to structure a weekly timetable, and whether their physical condition supports a particular plan. Most decisions rely on generic online routines that ignore personal factors --- age, sleep, BMI, physiological indicators, equipment, schedule --- producing a mismatch between plan and readiness. This project proposes \textbf{Smart Workout}, a combined Decision Support System (DSS) and Business Intelligence System (BIS) (Power, 2002; Chaudhuri et al., 2011) that unifies multi-source real-world data, a Retrieval-Augmented Generation (RAG) knowledge layer, and supervised ML models within an interactive web dashboard, transforming user-provided inputs into descriptive insight, predictive outcome estimates, and prescriptive training plans while preserving human oversight. The primary target users are gym members seeking personalized training guidance; fitness coaches constitute a secondary audience using the dashboard for decision-support reference.
 
 % ============================================================
 % 2. OBJECTIVES
 % ============================================================
 \section{Objectives}
-The project will deliver a working DSS/BIS prototype that fulfils the following objectives, explicitly covering the descriptive, predictive, and prescriptive analytics layers required of a BI system:
+The project is expected to deliver a functional DSS/BIS prototype that fulfils the following objectives, explicitly covering the descriptive, predictive, and prescriptive analytics layers required of a BI system:
 \begin{itemize}
-  \item \textbf{Data collection \& preparation:} clean and standardize multi-source public datasets (gym membership and check-in records, exercise catalogue, gym-member workout tracking, sleep \& lifestyle, daily nutrition; details in \S4) plus structured user input.
-  \item \textbf{Descriptive analytics:} segment users into lifestyle profiles via clustering on the sleep dataset, and present multi-dataset exploratory insights (calorie-burn patterns, exercise coverage, nutrition macro mix) on the dashboard.
-  \item \textbf{Predictive analytics:} train and compare multiple candidate models per task via cross-validation: (a) \emph{calorie-burn-rate} regression (kcal\,/\,hr); (b) \emph{Workout Intensity} 3-class classification (Low/Mid/High). A rule-derived \emph{Training Readiness} band (computed from user input; rules drawn from the Sleep Health dataset) guides the plan generator (see \S5).
-  \item \textbf{Prescriptive analytics:} generate a daily/weekly training plan via a rule-based engine conditioned on the predicted intensity, readiness, target body part, and available equipment; the predicted calorie-burn rate is displayed alongside the plan.
-  \item \textbf{RAG knowledge retrieval \& AI chat assistant:} retrieve exercise instructions, equipment-substitution rules, and timetable guidance via a pop-up chat widget (RAG retrieval is core; LLM chat is a planned extension).
+  \item \textbf{Data collection \& preparation:} clean and standardize multi-source public datasets (gym membership and check-in records, exercise catalogue, gym-member workout tracking, sleep \& lifestyle, daily nutrition; details in \S4) alongside structured user input.
+  \item \textbf{Descriptive analytics:} segment users into lifestyle profiles via clustering; present a relational gym membership view (member activity, subscription trends, usage analytics) as an interactive dashboard; and present cross-dataset insights (calorie-burn patterns, exercise coverage, nutrition macro mix).
+  \item \textbf{Predictive analytics:} train and compare multiple candidate models per task via cross-validation: (a) \emph{calorie-burn-rate} regression (kcal\,/\,hr); (b) \emph{Workout-intensity} 3-class classification (Low/Mid/High).
+  \item \textbf{Prescriptive analytics:} generate a daily/weekly training plan via a rule-based engine conditioned on the predicted intensity, readiness, target body part, and available equipment; the predicted calorie-burn rate is displayed alongside the plan. A rule-derived \emph{Training Readiness} band (computed from user input; rules drawn from the Sleep Health dataset) guides the plan generator (see \S5).
+  \item \textbf{RAG knowledge retrieval \& AI chat assistant:} retrieve exercise instructions, equipment-substitution rules, and scheduling guidance via an interactive chat interface (RAG retrieval is core; LLM chat is a planned extension).
   \item \textbf{BI dashboard:} React-based dashboard (with embedded Tableau views) presenting a relational gym membership view, multi-dataset descriptive analytics, personalized predictions, prescribed plan, RAG-sourced explanation, and embedded chat.
 \end{itemize}
 
@@ -90,7 +90,7 @@ The project will deliver a working DSS/BIS prototype that fulfils the following 
 % 3. SYSTEM DESCRIPTION & ARCHITECTURE
 % ============================================================
 \section{Description of the Proposed DSS/BIS}
-Smart Workout will be developed as a React + FastAPI web application integrating multi-source data, trained and evaluated models (selected after comparing multiple candidates per task via cross-validation; see \S5), a vector store-based RAG knowledge layer (Lewis et al., 2020), a rule-based plan generator, and an embedded chat assistant powered by RAG retrieval, with optional LLM enhancement. The selected regressor and classifier run on every user request and provide input to the prescriptive plan generator; the chat reuses the same RAG pipeline so its answers are grounded in the indexed corpus rather than parametric memory. The system architecture and end-to-end workflow are illustrated in Figure~\ref{fig:arch}. The technology stack comprises React with embedded Tableau dashboards (frontend), FastAPI (backend), pandas, scikit-learn, and XGBoost (analytics), a vector store with sentence embeddings (RAG), and a general-purpose LLM such as OpenAI GPT or Grok for chat and explanation.
+Smart Workout will be developed as a React + FastAPI web application integrating multi-source data, trained and evaluated models (selected via cross-validation; see \S5), a vector store-based RAG knowledge layer (Lewis et al., 2020), a rule-based plan generator, and an embedded chat assistant powered by RAG retrieval, with optional LLM enhancement. The selected regressor and classifier are invoked per request and provide input to the prescriptive plan generator; the chat reuses the same RAG pipeline, ensuring its answers are grounded in the indexed corpus rather than parametric memory. The system architecture and end-to-end workflow are illustrated in Figure~\ref{fig:arch}. The technology stack comprises React with embedded Tableau dashboards (frontend), FastAPI (backend), pandas and scikit-learn (ML libraries), a vector store with sentence embeddings (RAG), and a general-purpose LLM such as OpenAI GPT or Grok for chat and explanation.
 
 \begin{figure}[h]
 \centering
@@ -153,7 +153,7 @@ Smart Workout will be developed as a React + FastAPI web application integrating
 % 4. DATA SOURCES
 % ============================================================
 \section{Data Sources}
-Five publicly available datasets are used across the system, each serving a distinct role. The gym membership dataset provides a relational star schema (users, check-ins, subscription plans, gym locations linked by shared keys) as the primary Tableau descriptive source; the remaining datasets support ML training, RAG retrieval, lifestyle clustering, and nutrition context.
+Five publicly available datasets are used across the system, each serving a distinct role. The gym membership dataset provides a relational star schema (users, check-ins, subscription plans, gym locations linked by shared keys) as the primary descriptive source; the remaining datasets support ML training, RAG retrieval, lifestyle clustering, and nutrition context.
 
 \vspace{-2pt}
 \begin{center}
@@ -163,10 +163,10 @@ Five publicly available datasets are used across the system, each serving a dist
 \toprule
 \textbf{Dataset} & \textbf{Records} & \textbf{Role in the system} \\
 \midrule
-\href{https://www.kaggle.com/datasets/amoghabhinavms/gym-database-management-system}{Gym Database Management System} (Amoghabhinavms, n.d.) & 305{,}013 & Four linked tables (users, check-ins, subscription plans, gym locations). Primary Tableau descriptive source; gym type and facilities inform location-level plan constraints. \\
-\href{https://exercisedb.dev/}{ExerciseDB (raw flat)} (ExerciseDB, n.d.) & 1{,}500 & Exercise catalogue (body parts, equipment, target muscles, instructions). Powers the exercise recommender and RAG. \\
+\href{https://www.kaggle.com/datasets/amoghabhinavms/gym-database-management-system}{Gym Database Management System} (Amoghabhinavms, n.d.) & 305{,}013 & Four linked tables (users, check-ins, subscription plans, gym locations). Primary descriptive source; gym type and facilities inform location-level plan constraints. \\
+\href{https://exercisedb.dev/}{ExerciseDB (raw flat)} (ExerciseDB, n.d.) & 1{,}500 & Exercise catalogue (body parts, equipment, target muscles, instructions). Supports the exercise recommender and RAG pipeline. \\
 \href{https://www.kaggle.com/datasets/valakhorasani/gym-members-exercise-dataset}{Gym Members Exercise Tracking} (Khorasani, 2024) & 973 & Workout sessions with calories, BPM, duration, workout type, BMI, experience. Primary ML training data. \\
-\href{https://www.kaggle.com/datasets/uom190346a/sleep-health-and-lifestyle-dataset}{Sleep Health \& Lifestyle} (Tharmalingam, 2023) & 374 & Lifestyle cluster basis; rule source for \emph{Training Readiness} computed from user input. \\
+\href{https://www.kaggle.com/datasets/uom190346a/sleep-health-and-lifestyle-dataset}{Sleep Health \& Lifestyle} (Tharmalingam, 2023) & 374 & Informs lifestyle clustering and \emph{Training Readiness} rules derived from user input. \\
 \href{https://www.kaggle.com/datasets/adilshamim8/daily-food-and-nutrition-dataset}{Daily Food Nutrition} (Shamim, 2025) & 651 & Macro/calorie context on the dashboard; nutrition-aware snippets embedded in RAG. \\
 \bottomrule
 \end{tabularx}
@@ -176,28 +176,28 @@ Five publicly available datasets are used across the system, each serving a dist
 % 5. METHODS
 % ============================================================
 \section{Methods: Descriptive, Predictive, Prescriptive}
-\textbf{Descriptive:} Clustering on the Sleep \& Lifestyle dataset identifies several user archetypes. The Tableau descriptive layer presents a relational gym membership view --- member activity patterns, subscription trends, and usage analytics --- powered by the Gym Database Management System star schema, alongside cross-dataset exploratory views (calorie-burn patterns, exercise coverage, nutrition macro mix).
+\textbf{Descriptive:} The descriptive layer will employ clustering on the Sleep \& Lifestyle dataset to identify user lifestyle archetypes. A relational membership view --- member activity patterns, subscription trends, and usage analytics --- will be constructed from the Gym Database Management System, alongside cross-dataset exploratory views (calorie-burn patterns, exercise coverage, nutrition macro mix).
 
-\textbf{Predictive:} For each predictive task, multiple candidate models well-suited to a moderately-sized tabular problem are trained and compared, with the best selected via cross-validation. The candidate set spans an interpretable linear baseline, a robust bagged-tree ensemble, and a state-of-the-art boosted-tree model:
+\textbf{Predictive:} Multiple candidate models will be trained and evaluated per task, with the best-performing model selected via cross-validation. The candidate set comprises an interpretable linear baseline, a robust bagged-tree ensemble, and a gradient-boosted tree model:
 \begin{itemize}
-  \item \textbf{Calorie-burn-rate regression} (kcal\,/\,hr; session duration excluded so the model learns physiology): \emph{Ridge Regression}, \emph{Random Forest Regressor}, \emph{XGBoost Regressor} (Chen \& Guestrin, 2016). Metrics: RMSE, MAE, $R^2$.
+  \item \textbf{Calorie-burn-rate regression} (kcal\,/\,hr; session duration excluded to focus prediction on physiological indicators): \emph{Ridge Regression}, \emph{Random Forest Regressor}, \emph{XGBoost Regressor} (Chen \& Guestrin, 2016). Metrics: RMSE, MAE, $R^2$.
   \item \textbf{Workout-intensity classification} (3-class Low/Mid/High, derived from BPM indicators; label-derived features excluded from inputs): \emph{Multinomial Logistic Regression}, \emph{Random Forest Classifier}, \emph{XGBoost Classifier}. Metrics: accuracy, macro-F1, confusion matrix.
 \end{itemize}
-SHAP (Lundberg \& Lee, 2017) is applied to the selected models for feature-importance attribution shown in the dashboard.
+SHAP (Lundberg \& Lee, 2017) will be applied to the selected models for feature-importance attribution presented on the dashboard.
 
-\textbf{Prescriptive:} A rule-based generator combines predicted intensity, readiness, target body part, and the exercise recommender's filtered pool into a structured plan (split, exercises, sets, reps, rest). Intensity modulates volume and load (High $\rightarrow$ higher volume, Low $\rightarrow$ reduced load). Gym type and facilities sourced from the gym locations dimension provide location-level context for plan constraints. A vector store (indexing ExerciseDB exercise instructions, nutrition-aware workout snippets from the Daily Food Nutrition dataset, and a curated rule corpus of training guidelines and equipment substitutions, embedded using sentence embeddings) supplies rationale, substitutions, and nutrition-aware guidance to both the plan generator and chat; LLM-powered chat is a planned extension; any compatible AI model (\emph{e.g.}\ OpenAI GPT, Grok) can be integrated when available.
+\textbf{Prescriptive:} A rule-based plan generator will integrate predicted intensity, readiness, target body part, and the exercise recommender's filtered pool to produce a structured training plan. Training volume and load will be modulated according to the predicted intensity level. Gym type and facility information drawn from the gym locations dimension will inform location-level plan constraints. A vector store, indexing ExerciseDB instructions, nutrition-aware content, and a curated rule corpus via sentence embeddings, will provide rationale, substitutions, and nutrition-aware guidance to the plan generator and chat interface. LLM-powered chat is a planned extension; any compatible AI model (\emph{e.g.}\ OpenAI GPT, Grok) will be integrated as an enhancement.
 
 % ============================================================
 % 6. EXPECTED OUTPUTS
 % ============================================================
 \section{Expected Outputs}
-A working React + FastAPI prototype with a vector store and trained and evaluated models; a personalized training plan (structured format and dashboard view) including split, exercises, sets/reps, intensity band, predicted calorie-burn rate, and equipment substitutions; predictive insights with class probabilities and SHAP feature attribution; and a multi-view BI dashboard (gym membership, lifestyle profiles, descriptive exploration, prediction + plan, RAG explanation) with an embedded RAG-grounded chat assistant.
+A functional React + FastAPI prototype with a vector store and trained models; a personalized training plan (structured format and dashboard view) comprising exercises, sets/reps, intensity band, predicted calorie-burn rate, and equipment substitutions; predictive insights with class probabilities and SHAP attribution; and a multi-view BI dashboard (gym membership, lifestyle profiles, descriptive exploration, prediction + plan) with an embedded RAG-grounded AI-enhanced chat assistant.
 
 % ============================================================
 % 7. CONCLUSION (merged: scope, limitations, conclusion)
 % ============================================================
 \section{Conclusion}
-Smart Workout delivers a working DSS/BIS prototype combining multi-source real-world data, supervised ML, a relational Tableau descriptive layer, and a RAG-grounded prescriptive engine. It is a decision-support tool, not a clinical replacement; outputs include class probabilities, cross-validated metrics, and transparent limitations. Core deliverables are the descriptive view, plan generator, retrieval-only RAG, and SHAP attribution; LLM-powered chat is a planned extension.
+Smart Workout is intended to deliver a functional DSS/BIS prototype that integrates multi-source real-world data, supervised machine learning, a relational descriptive layer, and a RAG-grounded prescriptive engine within a unified interactive dashboard. The core deliverables comprise a multi-view descriptive BI dashboard, a cross-validated predictive module, and a rule-based plan generator supported by retrieval-augmented knowledge; LLM-powered conversational assistance is scoped as a planned extension. Together, these components constitute a coherent decision-support prototype that advances personalised, data-driven guidance for weight training.
 
 % ============================================================
 % REFERENCES (APA 7th)
