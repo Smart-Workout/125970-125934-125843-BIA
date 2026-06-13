@@ -1,0 +1,39 @@
+Queries:
+1.Update the salary of the trainer named Chetan Gowda by adding 1000 to it.
+
+
+2.Return the trainer who is paid the higher salary.
+
+
+3.Upgrade the membership plan of the member with member id 4 to one year package plan
+solution:
+
+
+4.Calculate the total amount paid between August 6th and August 8th.
+solution:
+
+
+5.Change name of the member whose member_id is 1 into Kathy Mcgregor in transactions column
+solution:
+
+
+6.Check package plan expiry date of members with 6 months plan
+solution:
+
+
+7.Return trainer whose client has an member id of 3.
+
+
+8.Return email id of members with package plan of 6 months.
+
+
+9.Return member id and full name of a member who has a letter 'J' in first name and 'P' in last name
+
+
+10.Return number of plans_ that are available.
+
+
+11:Return members and their corresponding package plans
+
+
+12.Return members who all are having 6 Months package plan.

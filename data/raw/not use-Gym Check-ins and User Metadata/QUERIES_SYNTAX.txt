@@ -1,0 +1,86 @@
+Queries:
+1.solution:
+
+UPDATE trainers
+SET salary= salary+1000
+WHERE trainer_name='Chetan Gowda';
+
+2.solution:
+
+SELECT trainer_name,salary FROM trainers
+ORDER BY salary DESC
+LIMIT 1;
+
+3.solution:
+
+In members table:
+
+UPDATE members
+SET membership_id=5,end_date='2025-08-06'
+WHERE member_id=4;
+
+In transaction table:
+
+UPDATE transactions
+SET membership_id=5,amount_paid='9000'
+WHERE member_id=4;
+
+
+4.solution:
+
+SELECT SUM(amount_paid)
+FROM transactions AS total_amount
+WHERE transaction_date BETWEEN '2024-08-06' AND '2024-08-08';
+
+5.solution:
+
+UPDATE transactions
+SET first_name='Kathy',last_name='Mcgregor'
+WHERE member_id=1;
+
+6.solution:
+
+SELECT member_info.member_id,first_name,last_name,plans_ FROM members
+INNER JOIN member_info
+ON member_info.member_id=members.member_id
+INNER JOIN memberships
+ON memberships.membership_id=members.membership_id
+WHERE plans_='6 Months';
+
+7.solution:
+
+SELECT trainer_name,member_id FROM members
+INNER JOIN trainers
+ON members.trainer_id=trainers.trainer_id
+WHERE member_id='3';
+
+
+8.solution:
+
+SELECT email_id,plans_ FROM member_info
+INNER JOIN memberships
+ON memberships.membership_id=member_info.membership_id
+WHERE plans_='6 Months';
+
+9.solution:
+
+SELECT member_id,first_name,last_name FROM members
+WHERE first_name LIKE '%J%' AND last_name LIKE '%P%';
+
+10.solution:
+
+SELECT COUNT(DISTINCT(plans_)) FROM memberships;
+
+11:solution:
+
+SELECT first_name,last_name,plans_ FROM members
+INNER JOIN memberships
+ON members.membership_id=memberships.membership_id;
+
+
+12.solution:
+
+SELECT first_name,last_name,plans_ FROM members
+INNER JOIN memberships
+ON members.membership_id=memberships.membership_id
+WHERE plans_='6 Months';
