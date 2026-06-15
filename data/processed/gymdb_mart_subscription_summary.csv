@@ -1,0 +1,4 @@
+subscription_plan,user_count,price_per_month,estimated_monthly_recurring_revenue
+Basic,1628,19.99,32543.72
+Pro,1687,49.99,84333.13
+Student,1685,9.99,16833.15

@@ -793,9 +793,9 @@ Use this as the exact implementation checklist when we start building. The frien
 
 ---
 
-## Week 2 (30 Jun – 6 Jul): Core ML + RAG
+## Week 2 (30 Jun – 6 Jul): Core ML + RAG 
 
-### ML pipeline (see "ML pipeline details" below)
+### ML pipeline (see "ML pipeline details" below) (Earth & Non)
 - [ ] **Calorie-burn-rate regression**: train Ridge, Random Forest, XGBoost on gym dataset (target = Calories_Burned / Session_Duration; exclude Session_Duration from features)
   - [ ] Apply StandardScaler for Ridge (tree models don't need it)
   - [ ] 5-fold cross-validation, `random_state=42` for reproducibility
@@ -808,7 +808,7 @@ Use this as the exact implementation checklist when we start building. The frien
 - [ ] Generate SHAP plots for selected models (save as PNG)
 - [ ] Write `MODEL_RESULTS.md` with comparison table
 
-### RAG pipeline 
+### RAG pipeline (Earth & Non)
 - [ ] Install ChromaDB locally (persistent client, path `./chroma_db/`)
 - [ ] Ingest all 1,500 ExerciseDB instructions as documents with metadata (`body_parts`, `equipment`, `target_muscles`)
 - [ ] Ingest the curated rule corpus (target ~50 snippets by end of week) with category metadata
@@ -817,7 +817,12 @@ Use this as the exact implementation checklist when we start building. The frien
 - [ ] Test retrieval with 10 sample queries; verify top-5 are relevant
 - [ ] Build `/chat` endpoint stub (retrieval only, no LLM yet)
 
-### Backend endpoints
+### Tableu Dashboard page 1 (Yolanda)
+- [ ]
+### Tableu Dashboard page 2 (Earth & Non) + 3 (Deciding first)
+- [ ]
+
+### Backend endpoints (Yolanda)
 - [ ] `POST /preprocess` → takes user form input, returns feature vector
 - [ ] `POST /predict-calories` → returns calorie-burn rate + confidence
 - [ ] `POST /predict-intensity` → returns intensity band + class probabilities
@@ -825,7 +830,7 @@ Use this as the exact implementation checklist when we start building. The frien
 - [ ] Pydantic schemas for all request/response models
 - [ ] FastAPI auto-Swagger endpoint reviewed at `/docs`
 
-### Frontend shell
+### Frontend shell (Yolanda)
 - [ ] Set up shadcn/ui components library
 - [ ] Build the form: 3 sections (About You / Wellness Today / Training Intent)
   - [ ] React Hook Form + Zod validation

@@ -1,0 +1,6 @@
+validation_rule,invalid_count,status
+Every check-in user_id exists in users,0,pass
+Every check-in gym_id exists in gym_locations,0,pass
+Every user subscription_plan exists in subscription_plans,0,pass
+Every check-in has positive duration,0,pass
+Every check-in has parseable checkin_time and checkout_time,0,pass

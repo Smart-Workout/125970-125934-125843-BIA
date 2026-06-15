@@ -6,6 +6,9 @@ python-dotenv
 pandas
 numpy
 scikit-learn
+matplotlib
+seaborn
+ipykernel
 joblib
 pytest
 httpx

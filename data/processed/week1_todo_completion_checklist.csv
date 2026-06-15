@@ -1,5 +1,5 @@
 todo_line,todo_item,status,evidence
-691,Load and inspect all 4 CSVs,complete,week1_raw_inspection_summary.csv
+691 + extension,Load and inspect original 4 CSVs plus 4 Gym DB tables,complete,week1_raw_inspection_summary.csv + gymdb_raw_inspection_summary.csv
 692,Clean Sleep dataset,complete,sleep_cleaning_proof.csv
 693,Clean Gym Members dataset,complete,gym_cleaned_intensity_calories.csv
 694,Clean ExerciseDB string-list fields,complete,exercisedb_parse_proof.csv
@@ -9,3 +9,4 @@ todo_line,todo_item,status,evidence
 700,K-Means clustering on Sleep dataset,complete,sleep_kmeans_silhouette_scores.csv + sleep_cluster_profile.csv
 701,Cross-dataset EDA,complete,week1_dashboard_summary_tables.json
 702,Save EDA plots as PNG,complete,week1_figure_manifest.csv
+extension,Integrate Gym Database Management System for post-Week-1 warehouse/dashboard work,complete,gymdb_relationship_validation.csv + gymdb_mart_*.csv

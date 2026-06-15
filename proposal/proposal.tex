@@ -153,7 +153,7 @@ Smart Workout will be developed as a React + FastAPI web application integrating
 % 4. DATA SOURCES
 % ============================================================
 \section{Data Sources}
-Five publicly available datasets are used across the system, each serving a distinct role. The gym membership dataset provides a relational star schema (users, check-ins, subscription plans, gym locations linked by shared keys) as the primary descriptive source; the remaining datasets support ML training, RAG retrieval, lifestyle clustering, and nutrition context.
+Eight source tables/files are used across the system, organized into five public dataset groups. Four of these sources come from the Gym Database Management System and form a relational star-style structure: users, check-in/check-out history, subscription plans, and gym locations linked by shared keys. The remaining four standalone datasets support ML training, exercise retrieval, lifestyle clustering, and nutrition context.
 
 \vspace{-2pt}
 \begin{center}
@@ -161,9 +161,12 @@ Five publicly available datasets are used across the system, each serving a dist
 \renewcommand{\arraystretch}{1.1}
 \begin{tabularx}{\linewidth}{l r X}
 \toprule
-\textbf{Dataset} & \textbf{Records} & \textbf{Role in the system} \\
+\textbf{Source table/file} & \textbf{Records} & \textbf{Role in the system} \\
 \midrule
-\href{https://www.kaggle.com/datasets/amoghabhinavms/gym-database-management-system}{Gym Database Management System} (Amoghabhinavms, n.d.) & 305{,}013 & Four linked tables (users, check-ins, subscription plans, gym locations). Primary descriptive source; gym type and facilities inform location-level plan constraints. \\
+\href{https://www.kaggle.com/datasets/amoghabhinavms/gym-database-management-system}{Gym DB -- Users} (Amoghabhinavms, n.d.) & 5{,}000 & Member dimension table containing demographics, signup dates, locations, and subscription-plan keys. Supports dashboard filters and member segmentation. \\
+\href{https://www.kaggle.com/datasets/amoghabhinavms/gym-database-management-system}{Gym DB -- Check-in/check-out history} (Amoghabhinavms, n.d.) & 300{,}000 & Central session fact table containing gym visits, workout type, timestamps, duration-derived features, and calories burned. Primary descriptive and warehouse source. \\
+\href{https://www.kaggle.com/datasets/amoghabhinavms/gym-database-management-system}{Gym DB -- Subscription plans} (Amoghabhinavms, n.d.) & 3 & Plan dimension table containing monthly price and feature descriptions. Supports subscription mix and estimated recurring-revenue summaries. \\
+\href{https://www.kaggle.com/datasets/amoghabhinavms/gym-database-management-system}{Gym DB -- Gym locations} (Amoghabhinavms, n.d.) & 10 & Location dimension table containing branch city, gym type, and facilities. Supports utilization analysis and location-level plan constraints. \\
 \href{https://exercisedb.dev/}{ExerciseDB (raw flat)} (ExerciseDB, n.d.) & 1{,}500 & Exercise catalogue (body parts, equipment, target muscles, instructions). Supports the exercise recommender and RAG pipeline. \\
 \href{https://www.kaggle.com/datasets/valakhorasani/gym-members-exercise-dataset}{Gym Members Exercise Tracking} (Khorasani, 2024) & 973 & Workout sessions with calories, BPM, duration, workout type, BMI, experience. Primary ML training data. \\
 \href{https://www.kaggle.com/datasets/uom190346a/sleep-health-and-lifestyle-dataset}{Sleep Health \& Lifestyle} (Tharmalingam, 2023) & 374 & Informs lifestyle clustering and \emph{Training Readiness} rules derived from user input. \\

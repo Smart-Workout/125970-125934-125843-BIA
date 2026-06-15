@@ -3,3 +3,5 @@ sleep_clean,6,[],True
 gym_clean,4,[],True
 exercise_clean,6,[],True
 nutrition_clean,7,[],True
+gymdb_users_clean,6,[],True
+gymdb_fact_sessions,9,[],True

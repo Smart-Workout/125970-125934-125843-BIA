@@ -1,0 +1,5 @@
+table,rows,columns,missing_values,duplicate_key_count,status
+gymdb_users_clean,5000,10,0,0,pass
+gymdb_plans_clean,3,3,0,0,pass
+gymdb_locations_clean,10,5,0,0,pass
+gymdb_checkins_clean,300000,13,0,0,pass

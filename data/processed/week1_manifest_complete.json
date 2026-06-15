@@ -1,131 +1,221 @@
 {
   "project": "Smart Workout DSS/BIS",
-  "scope": "Week 1 Earth and Non data foundation complete package",
+  "scope": "Week 1 Earth and Non data foundation complete package with Gym DB warehouse extension",
   "project_root": "C:\\Users\\Waranon-021\\Desktop\\125970-125934-125843-BIA",
-  "processed_dir": "C:\\Users\\Waranon-021\\Desktop\\125970-125934-125843-BIA\\data\\processed",
-  "figures_dir": "C:\\Users\\Waranon-021\\Desktop\\125970-125934-125843-BIA\\docs\\figures\\week1",
-  "summary_tables_path": "C:\\Users\\Waranon-021\\Desktop\\125970-125934-125843-BIA\\data\\processed\\week1_dashboard_summary_tables.json",
+  "processed_dir": "data\\processed",
+  "figures_dir": "docs\\figures\\week1",
+  "summary_tables_path": "data\\processed\\week1_dashboard_summary_tables.json",
   "selected_sleep_cluster_k": 4,
+  "gymdb_full_fact_exported": false,
   "processed_files": [
     {
-      "path": "C:\\Users\\Waranon-021\\Desktop\\125970-125934-125843-BIA\\data\\processed\\week1_raw_inspection_summary.csv",
-      "rows": 4,
-      "columns": 6,
+      "path": "data\\processed\\week1_raw_inspection_summary.csv",
+      "rows": 8,
+      "columns": 7,
       "missing_values": 0
     },
     {
-      "path": "C:\\Users\\Waranon-021\\Desktop\\125970-125934-125843-BIA\\data\\processed\\nutrition_csv_repair_log.csv",
+      "path": "data\\processed\\gymdb_raw_inspection_summary.csv",
+      "rows": 4,
+      "columns": 7,
+      "missing_values": 0
+    },
+    {
+      "path": "data\\processed\\nutrition_csv_repair_log.csv",
       "rows": 651,
       "columns": 5,
       "missing_values": 0
     },
     {
-      "path": "C:\\Users\\Waranon-021\\Desktop\\125970-125934-125843-BIA\\data\\processed\\sleep_cleaning_proof.csv",
+      "path": "data\\processed\\sleep_cleaning_proof.csv",
       "rows": 4,
       "columns": 2,
       "missing_values": 0
     },
     {
-      "path": "C:\\Users\\Waranon-021\\Desktop\\125970-125934-125843-BIA\\data\\processed\\readiness_component_summary.csv",
+      "path": "data\\processed\\readiness_component_summary.csv",
       "rows": 3,
       "columns": 6,
       "missing_values": 0
     },
     {
-      "path": "C:\\Users\\Waranon-021\\Desktop\\125970-125934-125843-BIA\\data\\processed\\sleep_cleaned_readiness.csv",
+      "path": "data\\processed\\sleep_cleaned_readiness.csv",
       "rows": 374,
       "columns": 24,
       "missing_values": 219
     },
     {
-      "path": "C:\\Users\\Waranon-021\\Desktop\\125970-125934-125843-BIA\\data\\processed\\gym_cleaned_intensity_calories.csv",
+      "path": "data\\processed\\gym_cleaned_intensity_calories.csv",
       "rows": 973,
       "columns": 21,
       "missing_values": 0
     },
     {
-      "path": "C:\\Users\\Waranon-021\\Desktop\\125970-125934-125843-BIA\\data\\processed\\gym_calorie_outlier_proof.csv",
+      "path": "data\\processed\\gym_calorie_outlier_proof.csv",
       "rows": 1,
       "columns": 7,
       "missing_values": 0
     },
     {
-      "path": "C:\\Users\\Waranon-021\\Desktop\\125970-125934-125843-BIA\\data\\processed\\exercisedb_cleaned_catalog.csv",
+      "path": "data\\processed\\exercisedb_cleaned_catalog.csv",
       "rows": 1500,
       "columns": 13,
       "missing_values": 0
     },
     {
-      "path": "C:\\Users\\Waranon-021\\Desktop\\125970-125934-125843-BIA\\data\\processed\\exercisedb_parse_proof.csv",
+      "path": "data\\processed\\exercisedb_parse_proof.csv",
       "rows": 8,
       "columns": 7,
       "missing_values": 0
     },
     {
-      "path": "C:\\Users\\Waranon-021\\Desktop\\125970-125934-125843-BIA\\data\\processed\\nutrition_cleaned_macros.csv",
+      "path": "data\\processed\\nutrition_cleaned_macros.csv",
       "rows": 651,
       "columns": 18,
       "missing_values": 0
     },
     {
-      "path": "C:\\Users\\Waranon-021\\Desktop\\125970-125934-125843-BIA\\data\\processed\\nutrition_numeric_validation.csv",
+      "path": "data\\processed\\nutrition_numeric_validation.csv",
       "rows": 9,
       "columns": 2,
       "missing_values": 0
     },
     {
-      "path": "C:\\Users\\Waranon-021\\Desktop\\125970-125934-125843-BIA\\data\\processed\\sleep_cleaned_readiness_clusters.csv",
+      "path": "data\\processed\\sleep_cleaned_readiness_clusters.csv",
       "rows": 374,
       "columns": 25,
       "missing_values": 219
     },
     {
-      "path": "C:\\Users\\Waranon-021\\Desktop\\125970-125934-125843-BIA\\data\\processed\\sleep_kmeans_silhouette_scores.csv",
+      "path": "data\\processed\\sleep_kmeans_silhouette_scores.csv",
       "rows": 2,
       "columns": 2,
       "missing_values": 0
     },
     {
-      "path": "C:\\Users\\Waranon-021\\Desktop\\125970-125934-125843-BIA\\data\\processed\\sleep_cluster_profile.csv",
+      "path": "data\\processed\\sleep_cluster_profile.csv",
       "rows": 4,
       "columns": 13,
       "missing_values": 0
     },
     {
-      "path": "C:\\Users\\Waranon-021\\Desktop\\125970-125934-125843-BIA\\data\\processed\\sleep_cluster_readiness_mix.csv",
+      "path": "data\\processed\\sleep_cluster_readiness_mix.csv",
       "rows": 4,
       "columns": 4,
       "missing_values": 0
     },
     {
-      "path": "C:\\Users\\Waranon-021\\Desktop\\125970-125934-125843-BIA\\data\\processed\\week1_figure_manifest.csv",
-      "rows": 8,
+      "path": "data\\processed\\gymdb_dim_users_cleaned.csv",
+      "rows": 5000,
+      "columns": 10,
+      "missing_values": 0
+    },
+    {
+      "path": "data\\processed\\gymdb_dim_subscription_plans_cleaned.csv",
+      "rows": 3,
+      "columns": 3,
+      "missing_values": 0
+    },
+    {
+      "path": "data\\processed\\gymdb_dim_locations_cleaned.csv",
+      "rows": 10,
+      "columns": 5,
+      "missing_values": 0
+    },
+    {
+      "path": "data\\processed\\gymdb_table_cleaning_proof.csv",
+      "rows": 4,
+      "columns": 6,
+      "missing_values": 0
+    },
+    {
+      "path": "data\\processed\\gymdb_fact_sessions_sample.csv",
+      "rows": 1000,
+      "columns": 23,
+      "missing_values": 0
+    },
+    {
+      "path": "data\\processed\\gymdb_relationship_validation.csv",
+      "rows": 5,
+      "columns": 3,
+      "missing_values": 0
+    },
+    {
+      "path": "data\\processed\\gymdb_warehouse_overview.csv",
+      "rows": 7,
+      "columns": 4,
+      "missing_values": 0
+    },
+    {
+      "path": "data\\processed\\gymdb_mart_session_by_workout.csv",
+      "rows": 6,
+      "columns": 6,
+      "missing_values": 0
+    },
+    {
+      "path": "data\\processed\\gymdb_mart_subscription_summary.csv",
+      "rows": 3,
+      "columns": 4,
+      "missing_values": 0
+    },
+    {
+      "path": "data\\processed\\gymdb_mart_location_utilization.csv",
+      "rows": 10,
+      "columns": 6,
+      "missing_values": 0
+    },
+    {
+      "path": "data\\processed\\gymdb_mart_monthly_activity.csv",
+      "rows": 10,
+      "columns": 5,
+      "missing_values": 0
+    },
+    {
+      "path": "data\\processed\\gymdb_mart_hourly_usage.csv",
+      "rows": 15,
+      "columns": 3,
+      "missing_values": 0
+    },
+    {
+      "path": "data\\processed\\gymdb_mart_gym_type_workout_summary.csv",
+      "rows": 18,
+      "columns": 4,
+      "missing_values": 0
+    },
+    {
+      "path": "data\\processed\\week1_figure_manifest.csv",
+      "rows": 13,
       "columns": 1,
       "missing_values": 0
     },
     {
-      "path": "C:\\Users\\Waranon-021\\Desktop\\125970-125934-125843-BIA\\data\\processed\\week1_data_contract_validation.csv",
-      "rows": 4,
+      "path": "data\\processed\\week1_data_contract_validation.csv",
+      "rows": 6,
       "columns": 4,
       "missing_values": 0
     }
   ],
   "figure_files": [
-    "C:\\Users\\Waranon-021\\Desktop\\125970-125934-125843-BIA\\docs\\figures\\week1\\workout_type_distribution.png",
-    "C:\\Users\\Waranon-021\\Desktop\\125970-125934-125843-BIA\\docs\\figures\\week1\\calories_by_experience_level.png",
-    "C:\\Users\\Waranon-021\\Desktop\\125970-125934-125843-BIA\\docs\\figures\\week1\\intensity_band_distribution.png",
-    "C:\\Users\\Waranon-021\\Desktop\\125970-125934-125843-BIA\\docs\\figures\\week1\\exercise_coverage_by_body_part.png",
-    "C:\\Users\\Waranon-021\\Desktop\\125970-125934-125843-BIA\\docs\\figures\\week1\\exercise_coverage_by_equipment.png",
-    "C:\\Users\\Waranon-021\\Desktop\\125970-125934-125843-BIA\\docs\\figures\\week1\\nutrition_macro_mix_by_meal_type.png",
-    "C:\\Users\\Waranon-021\\Desktop\\125970-125934-125843-BIA\\docs\\figures\\week1\\training_readiness_distribution.png",
-    "C:\\Users\\Waranon-021\\Desktop\\125970-125934-125843-BIA\\docs\\figures\\week1\\sleep_archetype_clusters.png"
+    "docs\\figures\\week1\\workout_type_distribution.png",
+    "docs\\figures\\week1\\calories_by_experience_level.png",
+    "docs\\figures\\week1\\intensity_band_distribution.png",
+    "docs\\figures\\week1\\exercise_coverage_by_body_part.png",
+    "docs\\figures\\week1\\exercise_coverage_by_equipment.png",
+    "docs\\figures\\week1\\nutrition_macro_mix_by_meal_type.png",
+    "docs\\figures\\week1\\training_readiness_distribution.png",
+    "docs\\figures\\week1\\sleep_archetype_clusters.png",
+    "docs\\figures\\week1\\gymdb_sessions_by_workout_type.png",
+    "docs\\figures\\week1\\gymdb_hourly_usage_pattern.png",
+    "docs\\figures\\week1\\gymdb_location_utilization.png",
+    "docs\\figures\\week1\\gymdb_subscription_plan_mix.png",
+    "docs\\figures\\week1\\gymdb_calories_per_minute_by_workout.png"
   ],
   "todo_checklist": [
     {
-      "todo_line": 691,
-      "todo_item": "Load and inspect all 4 CSVs",
+      "todo_line": "691 + extension",
+      "todo_item": "Load and inspect original 4 CSVs plus 4 Gym DB tables",
       "status": "complete",
-      "evidence": "week1_raw_inspection_summary.csv"
+      "evidence": "week1_raw_inspection_summary.csv + gymdb_raw_inspection_summary.csv"
     },
     {
       "todo_line": 692,
@@ -180,6 +270,12 @@
       "todo_item": "Save EDA plots as PNG",
       "status": "complete",
       "evidence": "week1_figure_manifest.csv"
+    },
+    {
+      "todo_line": "extension",
+      "todo_item": "Integrate Gym Database Management System for post-Week-1 warehouse/dashboard work",
+      "status": "complete",
+      "evidence": "gymdb_relationship_validation.csv + gymdb_mart_*.csv"
     }
   ],
   "final_product_handoff": {
@@ -189,14 +285,22 @@
     ],
     "week3_dashboard": [
       "week1_dashboard_summary_tables.json",
-      "docs/figures/week1/*.png"
+      "docs/figures/week1/*.png",
+      "gymdb_mart_*.csv"
+    ],
+    "warehouse_bi": [
+      "gymdb_dim_users_cleaned.csv",
+      "gymdb_dim_locations_cleaned.csv",
+      "gymdb_dim_subscription_plans_cleaned.csv",
+      "gymdb_mart_*.csv"
     ],
     "recommender_rag": [
       "exercisedb_cleaned_catalog.csv"
     ],
     "report_evidence": [
       "week1_manifest_complete.json",
-      "week1_todo_completion_checklist.csv"
+      "week1_todo_completion_checklist.csv",
+      "gymdb_relationship_validation.csv"
     ]
   }
 }

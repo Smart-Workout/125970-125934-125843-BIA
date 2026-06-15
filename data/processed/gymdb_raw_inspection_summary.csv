@@ -1,8 +1,4 @@
 dataset,rows,columns,total_missing,duplicate_rows,memory_mb,dataset_group
-Sleep Health Raw,374,13,219,0,0.118,original_week1
-Gym Members Raw,973,15,0,0,0.197,original_week1
-ExerciseDB Raw,1500,8,0,0,1.512,original_week1
-Nutrition Raw Repaired,651,12,0,54,0.403,original_week1
 Gym DB users Raw,5000,9,0,0,2.185,gym_database_management_system
 Gym DB subscription_plans Raw,3,3,0,0,0.001,gym_database_management_system
 Gym DB gym_locations Raw,10,4,0,0,0.003,gym_database_management_system

@@ -399,5 +399,306 @@
       "Low": 0,
       "Mid": 27
     }
+  ],
+  "gymdb_session_by_workout": [
+    {
+      "workout_type": "Weightlifting",
+      "session_count": 50306,
+      "unique_users": 5000,
+      "avg_duration_minutes": 104.337,
+      "avg_calories": 887.135,
+      "avg_calories_per_minute": 10.705
+    },
+    {
+      "workout_type": "Swimming",
+      "session_count": 50133,
+      "unique_users": 5000,
+      "avg_duration_minutes": 104.45,
+      "avg_calories": 887.662,
+      "avg_calories_per_minute": 10.709
+    },
+    {
+      "workout_type": "Pilates",
+      "session_count": 50035,
+      "unique_users": 5000,
+      "avg_duration_minutes": 104.623,
+      "avg_calories": 884.525,
+      "avg_calories_per_minute": 10.628
+    },
+    {
+      "workout_type": "CrossFit",
+      "session_count": 49976,
+      "unique_users": 5000,
+      "avg_duration_minutes": 104.549,
+      "avg_calories": 886.251,
+      "avg_calories_per_minute": 10.621
+    },
+    {
+      "workout_type": "Yoga",
+      "session_count": 49921,
+      "unique_users": 4999,
+      "avg_duration_minutes": 104.584,
+      "avg_calories": 885.482,
+      "avg_calories_per_minute": 10.659
+    },
+    {
+      "workout_type": "Cardio",
+      "session_count": 49629,
+      "unique_users": 4999,
+      "avg_duration_minutes": 104.578,
+      "avg_calories": 885.462,
+      "avg_calories_per_minute": 10.605
+    }
+  ],
+  "gymdb_subscription_summary": [
+    {
+      "subscription_plan": "Basic",
+      "user_count": 1628,
+      "price_per_month": 19.99,
+      "estimated_monthly_recurring_revenue": 32543.72
+    },
+    {
+      "subscription_plan": "Pro",
+      "user_count": 1687,
+      "price_per_month": 49.99,
+      "estimated_monthly_recurring_revenue": 84333.13
+    },
+    {
+      "subscription_plan": "Student",
+      "user_count": 1685,
+      "price_per_month": 9.99,
+      "estimated_monthly_recurring_revenue": 16833.15
+    }
+  ],
+  "gymdb_location_utilization": [
+    {
+      "gym_id": "gym_3",
+      "location": "Chicago",
+      "gym_type": "Budget",
+      "session_count": 30286,
+      "unique_users": 4996,
+      "avg_duration_minutes": 104.106
+    },
+    {
+      "gym_id": "gym_4",
+      "location": "Houston",
+      "gym_type": "Premium",
+      "session_count": 30182,
+      "unique_users": 4986,
+      "avg_duration_minutes": 104.787
+    },
+    {
+      "gym_id": "gym_5",
+      "location": "Phoenix",
+      "gym_type": "Standard",
+      "session_count": 30104,
+      "unique_users": 4988,
+      "avg_duration_minutes": 104.155
+    },
+    {
+      "gym_id": "gym_7",
+      "location": "San Antonio",
+      "gym_type": "Premium",
+      "session_count": 29954,
+      "unique_users": 4991,
+      "avg_duration_minutes": 104.861
+    },
+    {
+      "gym_id": "gym_1",
+      "location": "New York",
+      "gym_type": "Premium",
+      "session_count": 29952,
+      "unique_users": 4988,
+      "avg_duration_minutes": 104.313
+    },
+    {
+      "gym_id": "gym_8",
+      "location": "San Diego",
+      "gym_type": "Standard",
+      "session_count": 29935,
+      "unique_users": 4985,
+      "avg_duration_minutes": 104.703
+    },
+    {
+      "gym_id": "gym_10",
+      "location": "San Jose",
+      "gym_type": "Premium",
+      "session_count": 29925,
+      "unique_users": 4980,
+      "avg_duration_minutes": 104.341
+    },
+    {
+      "gym_id": "gym_2",
+      "location": "Los Angeles",
+      "gym_type": "Budget",
+      "session_count": 29895,
+      "unique_users": 4986,
+      "avg_duration_minutes": 104.872
+    },
+    {
+      "gym_id": "gym_6",
+      "location": "Philadelphia",
+      "gym_type": "Budget",
+      "session_count": 29893,
+      "unique_users": 4985,
+      "avg_duration_minutes": 104.419
+    },
+    {
+      "gym_id": "gym_9",
+      "location": "Dallas",
+      "gym_type": "Premium",
+      "session_count": 29874,
+      "unique_users": 4984,
+      "avg_duration_minutes": 104.643
+    }
+  ],
+  "gymdb_monthly_activity": [
+    {
+      "session_month": "2023-01",
+      "session_count": 32612,
+      "unique_users": 4990,
+      "total_calories": 28777505,
+      "avg_duration_minutes": 104.278
+    },
+    {
+      "session_month": "2023-02",
+      "session_count": 28864,
+      "unique_users": 4987,
+      "total_calories": 25629073,
+      "avg_duration_minutes": 104.635
+    },
+    {
+      "session_month": "2023-03",
+      "session_count": 32201,
+      "unique_users": 4991,
+      "total_calories": 28444284,
+      "avg_duration_minutes": 104.569
+    },
+    {
+      "session_month": "2023-04",
+      "session_count": 31384,
+      "unique_users": 4994,
+      "total_calories": 27775101,
+      "avg_duration_minutes": 104.187
+    },
+    {
+      "session_month": "2023-05",
+      "session_count": 32515,
+      "unique_users": 4990,
+      "total_calories": 28852472,
+      "avg_duration_minutes": 104.611
+    },
+    {
+      "session_month": "2023-06",
+      "session_count": 30952,
+      "unique_users": 4987,
+      "total_calories": 27531002,
+      "avg_duration_minutes": 104.763
+    },
+    {
+      "session_month": "2023-07",
+      "session_count": 32741,
+      "unique_users": 4992,
+      "total_calories": 29122456,
+      "avg_duration_minutes": 104.269
+    },
+    {
+      "session_month": "2023-08",
+      "session_count": 32279,
+      "unique_users": 4992,
+      "total_calories": 28478636,
+      "avg_duration_minutes": 104.371
+    },
+    {
+      "session_month": "2023-09",
+      "session_count": 30815,
+      "unique_users": 4991,
+      "total_calories": 27358380,
+      "avg_duration_minutes": 104.643
+    },
+    {
+      "session_month": "2023-10",
+      "session_count": 15637,
+      "unique_users": 4792,
+      "total_calories": 13857714,
+      "avg_duration_minutes": 105.295
+    }
+  ],
+  "gymdb_hourly_usage": [
+    {
+      "session_hour": 6,
+      "session_count": 19950,
+      "avg_calories": 886.072
+    },
+    {
+      "session_hour": 7,
+      "session_count": 19910,
+      "avg_calories": 885.451
+    },
+    {
+      "session_hour": 8,
+      "session_count": 20095,
+      "avg_calories": 889.675
+    },
+    {
+      "session_hour": 9,
+      "session_count": 20326,
+      "avg_calories": 886.608
+    },
+    {
+      "session_hour": 10,
+      "session_count": 19736,
+      "avg_calories": 885.185
+    },
+    {
+      "session_hour": 11,
+      "session_count": 19873,
+      "avg_calories": 884.633
+    },
+    {
+      "session_hour": 12,
+      "session_count": 20108,
+      "avg_calories": 887.339
+    },
+    {
+      "session_hour": 13,
+      "session_count": 19840,
+      "avg_calories": 889.921
+    },
+    {
+      "session_hour": 14,
+      "session_count": 20428,
+      "avg_calories": 881.098
+    },
+    {
+      "session_hour": 15,
+      "session_count": 19999,
+      "avg_calories": 886.219
+    },
+    {
+      "session_hour": 16,
+      "session_count": 19996,
+      "avg_calories": 889.275
+    },
+    {
+      "session_hour": 17,
+      "session_count": 20013,
+      "avg_calories": 884.012
+    },
+    {
+      "session_hour": 18,
+      "session_count": 20026,
+      "avg_calories": 881.995
+    },
+    {
+      "session_hour": 19,
+      "session_count": 19703,
+      "avg_calories": 885.877
+    },
+    {
+      "session_hour": 20,
+      "session_count": 19997,
+      "avg_calories": 888.058
+    }
   ]
 }

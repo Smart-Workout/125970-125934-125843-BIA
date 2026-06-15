@@ -1,0 +1,11 @@
+gym_id,location,gym_type,session_count,unique_users,avg_duration_minutes
+gym_3,Chicago,Budget,30286,4996,104.106
+gym_4,Houston,Premium,30182,4986,104.787
+gym_5,Phoenix,Standard,30104,4988,104.155
+gym_7,San Antonio,Premium,29954,4991,104.861
+gym_1,New York,Premium,29952,4988,104.313
+gym_8,San Diego,Standard,29935,4985,104.703
+gym_10,San Jose,Premium,29925,4980,104.341
+gym_2,Los Angeles,Budget,29895,4986,104.872
+gym_6,Philadelphia,Budget,29893,4985,104.419
+gym_9,Dallas,Premium,29874,4984,104.643

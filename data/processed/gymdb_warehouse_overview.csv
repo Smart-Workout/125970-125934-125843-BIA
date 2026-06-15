@@ -1,0 +1,8 @@
+asset,rows,exported,purpose
+gymdb_fact_sessions,300000,False,central in-memory workout-session fact table
+gymdb_dim_users_cleaned.csv,5000,True,member dimension
+gymdb_dim_subscription_plans_cleaned.csv,3,True,subscription plan dimension
+gymdb_dim_locations_cleaned.csv,10,True,gym branch dimension
+gymdb_mart_session_by_workout.csv,6,True,workout demand mart
+gymdb_mart_subscription_summary.csv,3,True,plan and revenue mart
+gymdb_mart_location_utilization.csv,10,True,branch utilization mart

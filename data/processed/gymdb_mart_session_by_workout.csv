@@ -1,0 +1,7 @@
+workout_type,session_count,unique_users,avg_duration_minutes,avg_calories,avg_calories_per_minute
+Weightlifting,50306,5000,104.337,887.135,10.705
+Swimming,50133,5000,104.45,887.662,10.709
+Pilates,50035,5000,104.623,884.525,10.628
+CrossFit,49976,5000,104.549,886.251,10.621
+Yoga,49921,4999,104.584,885.482,10.659
+Cardio,49629,4999,104.578,885.462,10.605

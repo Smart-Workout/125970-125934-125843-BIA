@@ -1,0 +1,9 @@
+file,repair_used,repaired_rows,status
+Sleep_health_and_lifestyle_dataset.csv,False,0,standard_parser_ok
+gym_members_exercise_tracking.csv,False,0,standard_parser_ok
+exercisedb_all_raw_flat.csv,False,0,standard_parser_ok
+daily_food_nutrition_dataset.csv,True,6,food_item_commas_repaired
+checkin_checkout_history_updated.csv,False,0,standard_parser_ok
+gym_locations_data.csv,False,0,standard_parser_ok
+subscription_plans.csv,False,0,standard_parser_ok
+users_data.csv,False,0,standard_parser_ok
