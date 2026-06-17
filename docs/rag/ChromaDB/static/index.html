@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Smart Workout RAG Chat</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        /* ===== RESET ===== */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .container {
+            background: white;
+            max-width: 960px;
+            width: 100%;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        h1 {
+            font-size: 28px;
+            margin-bottom: 5px;
+            color: #333;
+        }
+        .subtitle {
+            color: #666;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+        
+        /* ===== FILTERS ===== */
+        .filters {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+        .filters select, .filters input {
+            padding: 10px 14px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 14px;
+            background: #fafafa;
+            transition: border-color 0.2s;
+        }
+        .filters select:focus, .filters input:focus {
+            border-color: #667eea;
+            outline: none;
+        }
+        .filters select { flex: 2; }
+        .filters input[type="number"] { width: 80px; flex: 0; }
+        
+        /* ===== SEARCH ===== */
+        .search-box {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .search-box input[type="text"] {
+            flex: 1;
+            padding: 14px 18px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: border-color 0.2s;
+        }
+        .search-box input[type="text"]:focus {
+            border-color: #667eea;
+            outline: none;
+        }
+        .search-box button {
+            padding: 14px 32px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.1s, box-shadow 0.2s;
+            white-space: nowrap;
+        }
+        .search-box button:hover {
+            transform: scale(1.02);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+        .search-box button:active {
+            transform: scale(0.98);
+        }
+        
+        /* ===== SPINNER ===== */
+        .spinner {
+            display: none;
+            text-align: center;
+            padding: 30px;
+            font-size: 18px;
+            color: #667eea;
+        }
+        .spinner.active { display: block; }
+        
+        /* ===== RESULTS ===== */
+        #results h3 {
+            margin: 20px 0 15px 0;
+            color: #333;
+            font-size: 16px;
+        }
+        
+        /* ===== RESULT CARD ===== */
+        .result-card {
+            background: #f8f9fa;
+            border-radius: 14px;
+            padding: 18px 20px;
+            margin-bottom: 16px;
+            border-left: 5px solid #667eea;
+            transition: background 0.2s, transform 0.1s;
+        }
+        .result-card:hover {
+            background: #f0f1f5;
+            transform: translateX(4px);
+        }
+        
+        /* Header: Source + Score */
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+        .badge {
+            display: inline-block;
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .badge.exercisedb {
+            background: #28a745;
+            color: white;
+        }
+        .badge.rule_corpus {
+            background: #ffc107;
+            color: #333;
+        }
+        .badge.unknown {
+            background: #6c757d;
+            color: white;
+        }
+        .score {
+            font-size: 13px;
+            color: #666;
+            background: white;
+            padding: 2px 12px;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+        .score .num {
+            color: #667eea;
+            font-size: 15px;
+        }
+        
+        /* Title */
+        .result-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1a1a2e;
+            margin-bottom: 6px;
+        }
+        
+        /* Tags: Equipment + Target Muscles + Body Parts */
+        .result-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 10px;
+        }
+        .tag {
+            display: inline-block;
+            padding: 3px 12px;
+            border-radius: 16px;
+            font-size: 12px;
+            font-weight: 500;
+            background: #e9ecef;
+            color: #495057;
+        }
+        .tag.equipment {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+        .tag.muscle {
+            background: #fce4ec;
+            color: #b71c1c;
+        }
+        .tag.bodypart {
+            background: #e0f2fe;
+            color: #0369a1;
+        }
+        .tag.category {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        
+        /* Instructions */
+        .result-instructions {
+            background: white;
+            padding: 12px 16px;
+            border-radius: 10px;
+            font-size: 14px;
+            color: #333;
+            line-height: 1.7;
+            margin-bottom: 8px;
+            border: 1px solid #e9ecef;
+        }
+        .result-instructions .step {
+            display: block;
+            padding: 2px 0;
+        }
+        .result-instructions .step::before {
+            content: "• ";
+            color: #667eea;
+            font-weight: bold;
+        }
+        
+        /* Meta Raw (collapsible) */
+        .result-meta-raw {
+            font-size: 11px;
+            color: #999;
+            background: #f1f3f5;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-break: break-all;
+            max-height: 80px;
+            overflow-y: auto;
+            cursor: pointer;
+            transition: max-height 0.3s;
+        }
+        .result-meta-raw:hover {
+            max-height: 300px;
+        }
+        .result-meta-raw .label {
+            color: #666;
+            font-weight: 600;
+        }
+        
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 50px 20px;
+            color: #999;
+        }
+        .empty-state .icon { font-size: 48px; margin-bottom: 10px; }
+        
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 600px) {
+            .container { padding: 16px; }
+            .search-box { flex-wrap: wrap; }
+            .search-box button { width: 100%; justify-content: center; }
+            .result-title { font-size: 17px; }
+            .filters select { flex: 1; min-width: 120px; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>🏋️ Smart Workout RAG Chat</h1>
+    <p class="subtitle">Search exercise instructions and rules from the RAG Corpus</p>
+
+    <!-- Filters -->
+    <div class="filters">
+        <select id="filter_source">
+            <option value="">📂 All</option>
+            <option value="exercisedb">💪 ExerciseDB</option>
+            <option value="rule_corpus">📋 Rule Corpus</option>
+        </select>
+        <input type="number" id="n_results" value="5" min="1" max="10" placeholder="Count">
+    </div>
+
+    <!-- Search -->
+    <div class="search-box">
+        <input type="text" id="query_input" placeholder="💡 Ask about exercises, recovery, safety, equipment...">
+        <button onclick="search()">🔍 Search</button>
+    </div>
+
+    <!-- Spinner -->
+    <div id="spinner" class="spinner">⏳ Searching...</div>
+
+    <!-- Results -->
+    <div id="results">
+        <div class="empty-state">
+            <div class="icon">🔎</div>
+            <p>Type your question above to start searching</p>
+        </div>
+    </div>
+</div>
+
+<script>
+async function search() {
+    const query = document.getElementById('query_input').value.trim();
+    if (!query) {
+        document.getElementById('results').innerHTML = `<div class="empty-state"><div class="icon">✏️</div><p>Please enter a question first</p></div>`;
+        return;
+    }
+
+    const n_results = parseInt(document.getElementById('n_results').value) || 5;
+    const filter_source = document.getElementById('filter_source').value;
+
+    const payload = { query, n_results };
+    if (filter_source) payload.filter_source = filter_source;
+
+    const spinner = document.getElementById('spinner');
+    spinner.classList.add('active');
+    document.getElementById('results').innerHTML = '';
+
+    try {
+        const response = await fetch('/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        const data = await response.json();
+
+        if (response.ok) {
+            let html = `<h3>📊 Found ${data.total_results} results</h3>`;
+            
+            if (data.results && data.results.length > 0) {
+                data.results.forEach((r, i) => {
+                    const source = r.source || 'unknown';
+                    const badgeClass = source === 'rule_corpus' ? 'badge rule_corpus' : 
+                                       source === 'exercisedb' ? 'badge exercisedb' : 'badge unknown';
+                    
+                    // ---- Extract data ----
+                    const meta = r.metadata || {};
+                    const name = meta.name || meta.exercise_id || meta.rule_text || r.id || 'Unknown';
+                    const equipment = meta.equipment || meta.applies_to || '';
+                    const targetMuscles = meta.target_muscles || meta.category || '';
+                    const bodyParts = meta.body_parts || '';
+                    const category = meta.category || '';
+                    const sourceType = meta.source || source;
+                    
+                    // ---- Process document (instructions) ----
+                    let docText = r.document || '';
+                    let steps = [];
+                    if (sourceType === 'exercisedb' && docText) {
+                        const stepMatches = docText.match(/Step:\d+[^\n]*/g);
+                        if (stepMatches && stepMatches.length > 0) {
+                            steps = stepMatches.map(s => s.trim());
+                        } else {
+                            steps = [docText];
+                        }
+                    } else if (sourceType === 'rule_corpus') {
+                        steps = [meta.rule_text || docText];
+                    } else {
+                        steps = [docText];
+                    }
+                    
+                    // ---- Build HTML ----
+                    html += `
+                        <div class="result-card">
+                            <div class="result-header">
+                                <span class="${badgeClass}">${sourceType}</span>
+                                <span class="score">🎯 <span class="num">${(r.relevance_score * 100).toFixed(1)}%</span></span>
+                            </div>
+                            <div class="result-title">${name}</div>
+                            <div class="result-tags">
+                    `;
+                    
+                    if (equipment) {
+                        html += `<span class="tag equipment">🛠️ ${equipment}</span>`;
+                    }
+                    if (targetMuscles) {
+                        html += `<span class="tag muscle">🎯 ${targetMuscles}</span>`;
+                    }
+                    if (bodyParts) {
+                        html += `<span class="tag bodypart">📌 ${bodyParts}</span>`;
+                    }
+                    if (category && sourceType === 'rule_corpus') {
+                        html += `<span class="tag category">📂 ${category}</span>`;
+                    }
+                    
+                    html += `
+                            </div>
+                            <div class="result-instructions">
+                    `;
+                    
+                    if (steps.length > 0) {
+                        steps.forEach(step => {
+                            html += `<span class="step">${step}</span>`;
+                        });
+                    } else {
+                        html += `<span>${docText.substring(0, 300)}${docText.length > 300 ? '...' : ''}</span>`;
+                    }
+                    
+                    html += `
+                            </div>
+                            <div class="result-meta-raw">
+                                <span class="label">📦 Metadata:</span> ${JSON.stringify(meta, null, 2)}
+                            </div>
+                        </div>
+                    `;
+                });
+            } else {
+                html += `<div class="empty-state"><div class="icon">😅</div><p>No relevant results found</p></div>`;
+            }
+            document.getElementById('results').innerHTML = html;
+        } else {
+            document.getElementById('results').innerHTML = `<div class="empty-state" style="color:red;"><div class="icon">❌</div><p>Error: ${data.detail || 'Something went wrong'}</p></div>`;
+        }
+    } catch (e) {
+        document.getElementById('results').innerHTML = `<div class="empty-state" style="color:red;"><div class="icon">🔌</div><p>Cannot connect to API: ${e.message}</p></div>`;
+    } finally {
+        spinner.classList.remove('active');
+    }
+}
+
+// Press Enter to search
+document.getElementById('query_input').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') search();
+});
+
+// Rotating example questions
+const exampleQueries = [
+    "Chest exercises with dumbbells",
+    "What to do if I sleep less than 6 hours",
+    "Body weight exercises for legs",
+    "High blood pressure workout safety",
+    "Beginner workout plan"
+];
+let exampleIndex = 0;
+document.getElementById('query_input').placeholder = `💡 Try: ${exampleQueries[0]}`;
+setInterval(() => {
+    exampleIndex = (exampleIndex + 1) % exampleQueries.length;
+    document.getElementById('query_input').placeholder = `💡 Try: ${exampleQueries[exampleIndex]}`;
+}, 4000);
+</script>
+</body>
+</html>

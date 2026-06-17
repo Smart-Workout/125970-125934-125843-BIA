@@ -809,13 +809,13 @@ Use this as the exact implementation checklist when we start building. The frien
 - [ ] Write `MODEL_RESULTS.md` with comparison table
 
 ### RAG pipeline (Earth & Non)
-- [ ] Install ChromaDB locally (persistent client, path `./chroma_db/`)
-- [ ] Ingest all 1,500 ExerciseDB instructions as documents with metadata (`body_parts`, `equipment`, `target_muscles`)
-- [ ] Ingest the curated rule corpus (target ~50 snippets by end of week) with category metadata
-- [ ] Embed with `all-MiniLM-L6-v2` sentence-transformer
-- [ ] Decide chunk strategy (full instruction set vs sentence-level)
-- [ ] Test retrieval with 10 sample queries; verify top-5 are relevant
-- [ ] Build `/chat` endpoint stub (retrieval only, no LLM yet)
+- [x] Install ChromaDB locally (persistent client, path `./chroma_db/`)
+- [x] Ingest all 1,500 ExerciseDB instructions as documents with metadata (`body_parts`, `equipment`, `target_muscles`)
+- [x] Ingest the curated rule corpus (target ~50 snippets by end of week) with category metadata
+- [x] Embed with `all-MiniLM-L6-v2` sentence-transformer
+- [x] Decide chunk strategy (full instruction set vs sentence-level)
+- [x] Test retrieval with 10 sample queries; verify top-5 are relevant
+- [x] Build `/chat` endpoint stub (retrieval only, no LLM yet)
 
 ### Tableu Dashboard page 1 (Yolanda)
 - [ ]
