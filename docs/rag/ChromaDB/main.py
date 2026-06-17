@@ -1,5 +1,5 @@
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import FileResponse  # ✅ เพิ่มบรรทัดนี้!
+from fastapi.responses import FileResponse  # Serve the static HTML page.
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from typing import Optional
@@ -8,11 +8,11 @@ from chromadb.utils import embedding_functions
 
 app = FastAPI(title="RAG Exercise API (Retrieval Only)")
 
-# โหลด ChromaDB ตอนเริ่มต้น
+# Load ChromaDB when the API starts.
 client = chromadb.PersistentClient(path="./chroma_db")
 collection = client.get_collection("exercise_instructions")
 
-# Mount static folder (ต้องมีโฟลเดอร์ static และไฟล์ index.html)
+# Mount the static folder. The folder must contain index.html.
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 class ChatRequest(BaseModel):
@@ -38,7 +38,7 @@ def chat_endpoint(request: ChatRequest):
             return {
                 "query": request.query,
                 "results": [],
-                "message": "ไม่พบข้อมูลที่เกี่ยวข้อง"
+                "message": "No relevant information found."
             }
         
         response_results = []
@@ -68,4 +68,4 @@ def chat_endpoint(request: ChatRequest):
 
 @app.get("/")
 def read_root():
-    return FileResponse("static/index.html")  # ✅ ตอนนี้ใช้ได้แล้ว
+    return FileResponse("static/index.html")  # Return the local RAG search page.
