@@ -5,16 +5,18 @@ Use this checklist before taking screenshots for the report.
 
 ## Environment
 
-- [ ] Backend starts with `py -m uvicorn app.main:app --reload`.
-- [ ] Frontend starts with `npm run dev`.
+- [ ] Backend starts with `python -m uvicorn app.main:app --app-dir backend --reload --host 127.0.0.1 --port 8000`.
+- [ ] Frontend starts with `cmd /c npm run dev`.
 - [ ] Frontend opens at `http://127.0.0.1:5173`.
 - [ ] Swagger opens at `http://127.0.0.1:8000/docs`.
 - [ ] `GET /api/v1/health` returns `200`.
 
 ## Screenshot evidence to capture
 
-- [ ] Swagger page showing Yolanda endpoints.
+- [ ] Swagger page showing the main API endpoints.
 - [ ] Overview tab with KPI cards and charts.
+- [ ] Gym Membership tab.
+- [ ] Lifestyle Profiles tab.
 - [ ] Profile tab before submission.
 - [ ] Profile tab showing validation message for invalid input.
 - [ ] Plan tab after successful submission.
@@ -23,6 +25,7 @@ Use this checklist before taking screenshots for the report.
 - [ ] Generated weekly plan card.
 - [ ] Retrieved RAG snippets in the Plan tab.
 - [ ] RAG Chat tab with one question and answer.
+- [ ] Floating assistant with one grounded answer visible.
 - [ ] Browser devtools Network tab showing successful API calls, if useful for report evidence.
 
 ## Happy-path test
@@ -39,7 +42,6 @@ Use this sample profile:
 - Target body part: `chest`
 - Equipment: `dumbbell`, `body weight`
 - Sessions per week: `3`
-- Session duration: `60`
 
 Expected result:
 
@@ -90,6 +92,12 @@ Expected result:
 - [ ] Chat answer appears.
 - [ ] Retrieved snippets appear with source/category labels.
 - [ ] UI stays responsive while loading.
+
+## Floating assistant test
+
+- [ ] Assistant opens from the bottom-right launcher.
+- [ ] Chat answer remains readable and is not covered by retrieved evidence.
+- [ ] Assistant content scrolls correctly when the answer becomes longer.
 
 ## Final browser checks
 
