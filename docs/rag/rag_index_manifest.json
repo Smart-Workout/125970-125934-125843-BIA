@@ -1,0 +1,9 @@
+{
+  "collection": "smart_workout_knowledge",
+  "embedding_model": "all-MiniLM-L6-v2",
+  "chroma_path": "chroma_db",
+  "chunk_strategy": "full ExerciseDB instruction set per exercise; one curated rule snippet per rule",
+  "exercise_documents": 1500,
+  "rule_documents": 80,
+  "total_documents": 1580
+}

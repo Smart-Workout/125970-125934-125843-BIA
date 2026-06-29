@@ -9,6 +9,10 @@ scikit-learn
 matplotlib
 seaborn
 ipykernel
+xgboost
+shap
+chromadb
+sentence-transformers
 joblib
 pytest
 httpx

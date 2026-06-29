@@ -1,0 +1,57 @@
+{
+  "random_state": 42,
+  "n_splits": 5,
+  "regression_features": [
+    "age",
+    "gender",
+    "weight_kg",
+    "height_m",
+    "max_bpm",
+    "avg_bpm",
+    "resting_bpm",
+    "workout_type",
+    "fat_percentage",
+    "water_intake_liters",
+    "workout_frequency_days_week",
+    "experience_level",
+    "bmi",
+    "bpm_response_ratio",
+    "intensity_band"
+  ],
+  "classifier_features": [
+    "age",
+    "gender",
+    "weight_kg",
+    "height_m",
+    "resting_bpm",
+    "workout_type",
+    "fat_percentage",
+    "water_intake_liters",
+    "workout_frequency_days_week",
+    "experience_level",
+    "bmi"
+  ],
+  "selected_regression": {
+    "task": "Calorie-burn-rate regression",
+    "model_name": "Random Forest Regressor",
+    "metrics": {
+      "RMSE": 2.0668089240736944,
+      "MAE": 1.051322576918999,
+      "R2": 0.9994342228870147
+    },
+    "selected": true
+  },
+  "selected_classifier": {
+    "task": "Workout-intensity classification",
+    "model_name": "XGBoost Classifier",
+    "metrics": {
+      "Accuracy": 0.45940390544707094,
+      "Macro-F1": 0.31591458715561205
+    },
+    "selected": true
+  },
+  "shap_notes": {
+    "regression": "shap",
+    "classification": "fallback"
+  }
+}
