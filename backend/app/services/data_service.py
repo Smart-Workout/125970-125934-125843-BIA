@@ -11,6 +11,10 @@ def raw_data_path(filename: str) -> Path:
     return settings.RAW_DATA_DIR / filename
 
 
+def processed_data_path(filename: str) -> Path:
+    return settings.PROCESSED_DATA_DIR / filename
+
+
 def file_exists(filename: str) -> bool:
     return raw_data_path(filename).exists()
 
@@ -41,6 +45,20 @@ def count_column_values(filename: str, column: str, limit: int = 8) -> dict[str,
 
 def read_csv_rows(filename: str, limit: int | None = None) -> list[dict[str, str]]:
     path = raw_data_path(filename)
+    if not path.exists():
+        return []
+    rows: list[dict[str, str]] = []
+    with path.open("r", encoding="utf-8-sig", newline="") as handle:
+        reader = csv.DictReader(handle)
+        for row in reader:
+            rows.append(row)
+            if limit is not None and len(rows) >= limit:
+                break
+    return rows
+
+
+def read_processed_csv_rows(filename: str, limit: int | None = None) -> list[dict[str, str]]:
+    path = processed_data_path(filename)
     if not path.exists():
         return []
     rows: list[dict[str, str]] = []
@@ -92,7 +110,7 @@ def readiness_checks() -> dict[str, bool]:
         "sleep_dataset_exists": file_exists("Sleep_health_and_lifestyle_dataset.csv"),
         "nutrition_dataset_exists": file_exists("daily_food_nutrition_dataset.csv"),
         "model_dir_exists": settings.MODEL_DIR.exists(),
-        "calorie_model_exists": (settings.MODEL_DIR / "calorie_model.joblib").exists(),
-        "intensity_model_exists": (settings.MODEL_DIR / "intensity_model.joblib").exists(),
+        "calorie_model_exists": (settings.MODEL_DIR / "best_calorie_regressor.joblib").exists(),
+        "intensity_model_exists": (settings.MODEL_DIR / "best_intensity_classifier.joblib").exists(),
         "chroma_db_dir_exists": settings.CHROMA_DB_DIR.exists(),
     }

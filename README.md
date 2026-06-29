@@ -11,14 +11,28 @@ The project is built around four main ideas:
 
 ## Current Status
 
+Documentation status updated: `2026-06-29`
+
 | Area | Status | Main output |
 |---|---|---|
 | Week 1 data foundation | Complete for Earth and Non scope | cleaned CSVs, validation tables, plots |
-| Week 1 descriptive analytics | Complete for Earth and Non scope | EDA summary tables and PNG charts |
-| Week 1 RAG corpus drafting | Started | `docs/rag/RAG_CORPUS.md`, `system_prompt.md`, examples |
+| Week 1 descriptive analytics | Complete for Earth and Non scope | EDA tables, GymDB marts, and PNG charts |
+| Relational GymDB dashboard layer | Working | backend summary payload plus frontend `Gym Membership` tab |
+| Lifestyle clustering dashboard layer | Working | cluster profile cards, scatter view, silhouette and archetype charts |
 | Week 2 ML pipeline | Working | `MODEL_RESULTS.md`, `.joblib` models, SHAP/importance plots |
-| Week 2 RAG pipeline | Working | ChromaDB index, retrieval test report |
-| Backend API stub | Working locally | FastAPI endpoints under `/api/v1` |
+| Week 2 RAG pipeline | Working | ChromaDB index, retrieval test report, grounded chat snippets |
+| Backend API prototype | Working locally | FastAPI endpoints under `/api/v1` with model-backed prediction endpoints |
+| Plan generation workflow | Working and improved | rule-based weekly split, ExerciseDB-backed session assembly, RAG rationale snippets |
+| Frontend dashboard shell | Working | BIA-inspired shell, floating assistant, proposal-aligned tabs |
+
+## Remaining Proposal Gaps
+
+Status checked on: `2026-06-29`
+
+- The plan generator is no longer the old fixed-template prototype, but it may still need final tuning after local verification and professor feedback.
+- Tableau embedding is still not implemented. The current dashboard is React + FastAPI only, even though the proposal mentions embedded Tableau views.
+- Backend tests have now been verified on a normal local machine: `12 passed, 2 warnings in 6.09s` on `2026-06-29`.
+- Final local verification and screenshot capture are still needed from a normal local machine for the report and presentation.
 
 ## Folder Structure
 
@@ -150,15 +164,15 @@ The project is built around four main ideas:
 | `backend/app/core/config.py` | Shared configuration and project path detection. |
 | `backend/app/core/constants.py` | Shared workout-intensity rule table for Low/Mid/High planning. |
 | `backend/app/api/v1/health.py` | Health and readiness endpoints. |
-| `backend/app/api/v1/workout.py` | Workout preprocessing, calorie prediction stub, intensity prediction stub, recommendation, and plan generation endpoints. |
+| `backend/app/api/v1/workout.py` | Workout preprocessing, model-backed calorie prediction, model-backed intensity prediction, recommendation, and plan generation endpoints. |
 | `backend/app/api/v1/dashboard.py` | Dashboard summary endpoint. |
-| `backend/app/api/v1/chat.py` | Retrieval-only chat endpoint. |
+| `backend/app/api/v1/chat.py` | Grounded chat endpoint built from retrieved rules and current plan context. |
 | `backend/app/schemas/*.py` | Pydantic request/response schemas. |
 | `backend/app/services/data_service.py` | CSV loading, parsing, and readiness helper functions. |
 | `backend/app/services/dashboard_service.py` | Dashboard summary aggregation service. |
 | `backend/app/services/workout_service.py` | Workout profile processing and ExerciseDB recommendation logic. |
 | `backend/app/services/rag_service.py` | ChromaDB retrieval service with fallback corpus search. |
-| `backend/app/services/chat_service.py` | Retrieval-only chat response builder. |
+| `backend/app/services/chat_service.py` | Grounded chat response builder using retrieved snippets and plan context. |
 | `backend/tests/*.py` | API regression tests for health, workout, recommendation, plan, and dashboard behavior. |
 
 ## Quick Start
@@ -166,7 +180,7 @@ The project is built around four main ideas:
 Open PowerShell in the repository root:
 
 ```powershell
-cd "C:\Users\Waranon-021\Desktop\125970-125934-125843-BIA"
+cd "C:\Users\Windows\Desktop\125970-125934-125843"
 ```
 
 Create and activate a virtual environment:
@@ -204,17 +218,63 @@ $env:PYTHONPATH = "backend"
 python -m uvicorn app.main:app --app-dir backend --reload --host 127.0.0.1 --port 8000
 ```
 
+Open another PowerShell window and run the frontend:
+
+```powershell
+cd "C:\Users\Windows\Desktop\125970-125934-125843\frontend"
+cmd /c npm install
+cmd /c npm run dev
+```
+
 Open:
 
+- Frontend: `http://127.0.0.1:5173`
 - Root API: `http://127.0.0.1:8000`
 - API docs: `http://127.0.0.1:8000/docs`
 - Health check: `http://127.0.0.1:8000/api/v1/health`
+
+Recommended local check flow:
+
+1. Open Swagger and confirm `/api/v1/health`, `/api/v1/dashboard/summary`, `/api/v1/workout/*`, and `/api/v1/chat` load.
+2. Open the frontend and inspect `Overview`, `Gym Membership`, and `Lifestyle Profiles`.
+3. Submit a sample profile from the `Profile` tab.
+4. Inspect the `Plan` tab for readiness, calories, intensity, recommended exercises, and weekly split.
+5. Open the floating assistant or `RAG Chat` tab and ask:
+   - `Why this plan?`
+   - `Can I replace barbell exercises with dumbbells?`
+6. Capture screenshots for the report and presentation once the output looks correct.
 
 ## Detailed Workflow
 
 For a step-by-step guide from Week 1 to the current Week 2 state, read:
 
 `docs/WEEK1_WEEK2_RUN_STEPS.md`
+
+## What Is Done
+
+- Week 1 raw-data inspection, cleaning, validation, and EDA are complete.
+- GymDB fact and dimension cleaning plus descriptive marts are complete.
+- Lifestyle clustering and readiness-preparation outputs are complete.
+- Week 2 calorie regression and intensity classification training are complete.
+- Saved model artifacts are already wired into the backend prediction endpoints.
+- RAG corpus creation, ChromaDB indexing, retrieval testing, and grounded chat responses are complete at prototype level.
+- Frontend dashboard now includes:
+  - `Overview`
+  - `Gym Membership`
+  - `Lifestyle Profiles`
+  - `Profile`
+  - `Plan`
+  - `RAG Chat`
+  - floating bottom-right assistant
+- The weekly plan generator now produces a structured split using readiness, predicted intensity, goal, target body part, equipment, and ExerciseDB candidates.
+
+## What Still Needs To Be Done
+
+- Add the final Tableau embeds promised in the proposal.
+- Run the full backend `pytest` suite on a normal local machine.
+- Do a full local walkthrough and capture final screenshots for the report and presentation.
+- Tighten the final plan-generator logic further if needed after local inspection and professor feedback.
+- Decide whether to add an external LLM API for a richer assistant, or keep the current retrieval-grounded assistant for submission.
 
 ## Git Notes
 

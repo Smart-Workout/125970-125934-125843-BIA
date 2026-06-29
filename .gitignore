@@ -68,7 +68,16 @@ htmlcov/
 
 # === Node / React (when frontend gets built) ===
 node_modules/
+frontend/dist/
+frontend/vite.log
+frontend/vite.err
+/package-lock.json
 
 # === ChromaDB local storage (when RAG gets set up) ===
 chroma_db/
 chromadb_storage/
+
+# === Local presentation / screenshot working files ===
+image_progress/
+125970-125934-125843-SmartWorkout-BIA-proposal-presentation_REVISED_18June.pptx
+Proposal-diagram-20260629T105932Z-3-001/

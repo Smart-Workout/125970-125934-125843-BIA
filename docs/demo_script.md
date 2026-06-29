@@ -2,21 +2,31 @@
 
 Owner: Yolanda  
 Purpose: 5-minute walkthrough for the frontend/backend skeleton and integration flow.
+Last updated: `2026-06-29`
 
 ## Before the demo
+
+Local backend verification already completed on `2026-06-29`:
+
+```text
+python -m pytest backend\tests -q
+12 passed, 2 warnings in 6.09s
+```
 
 Run the backend:
 
 ```powershell
-cd C:\Users\Windows\Desktop\125970-125934-125843\backend
-py -m uvicorn app.main:app --reload
+cd C:\Users\Windows\Desktop\125970-125934-125843
+$env:PYTHONPATH = "backend"
+python -m uvicorn app.main:app --app-dir backend --reload --host 127.0.0.1 --port 8000
 ```
 
 Run the frontend:
 
 ```powershell
 cd C:\Users\Windows\Desktop\125970-125934-125843\frontend
-npm run dev
+cmd /c npm install
+cmd /c npm run dev
 ```
 
 Open:
@@ -42,7 +52,7 @@ Show that FastAPI is running and Swagger lists the main endpoints:
 
 Talk track:
 
-> My part sets up the backend API contract and frontend integration shell. The ML and RAG internals can be replaced later without changing the frontend calls.
+> This shows the full API contract for the current prototype. The ML prediction endpoints are already wired to saved Week 2 models, while the chat remains retrieval-grounded rather than fully LLM-generated.
 
 ### 2. Open the dashboard overview
 
@@ -51,6 +61,8 @@ Show:
 - backend status
 - readiness/model/data status
 - dataset KPI cards
+- Gym Membership tab for relational analytics
+- Lifestyle Profiles tab for clustering outputs
 - workout type chart
 - body-part coverage chart
 - equipment coverage chart
@@ -74,7 +86,6 @@ Use this sample:
 - Target body part: `chest`
 - Equipment: `dumbbell`, `body weight`
 - Sessions per week: `3`
-- Session duration: `60`
 
 Submit the form.
 
@@ -95,7 +106,8 @@ Show:
 
 Talk track:
 
-> The current predictions are placeholder logic, but the endpoint names and response shapes are stable. The exercise recommendations already use the ExerciseDB CSV filtering by body part and equipment.
+> The current plan flow uses real saved ML models for calorie and intensity prediction, real ExerciseDB filtering for exercise recommendation, and a still-simplified rule engine for weekly plan assembly.
+> The current plan flow uses real saved ML models for calorie and intensity prediction, real ExerciseDB filtering for exercise recommendation, and a stronger rule-based weekly split that is grounded in readiness, goal, equipment, and target body part.
 
 ### 5. Show the RAG chat tab
 
@@ -113,7 +125,7 @@ Can I replace barbell exercises with dumbbells?
 
 Talk track:
 
-> The chat endpoint currently returns grounded mock responses with snippets. Later, the RAG owner can replace the service internals with ChromaDB and an LLM while keeping this same frontend contract.
+> The chat endpoint returns grounded answers assembled from retrieved snippets and current plan context. It is not the final free-form LLM assistant yet, but it already demonstrates evidence-grounded explanation.
 
 ### 6. Show one edge case
 
@@ -129,11 +141,13 @@ Talk track:
 
 ## Closing line
 
-> Yolanda's implementation provides the runnable app skeleton, typed API contract, frontend dashboard, backend integration, and demo path. The next team handoff is to replace mock ML/RAG services with trained models and a real vector retrieval pipeline.
+> The current prototype now covers the descriptive dashboard, model-backed prediction path, exercise recommendation, a structured rule-based plan generator, and grounded chat explanation. The biggest remaining product gap is adding the final Tableau embeds and finishing local verification/screenshots.
 
 ## Known limitations to mention
 
 - It is not medical advice.
-- ML predictions are still placeholder until model artifacts are added.
-- RAG chat is grounded mock logic until ChromaDB and LLM integration are completed.
+- ML predictions are backed by saved Week 2 model artifacts.
+- RAG chat is still retrieval-grounded until the final vector/LLM assistant is completed.
+- The Gym Membership and Lifestyle tabs are implemented in React, but Tableau embedding from the proposal is still not implemented.
+- The plan generator is improved, but still may need final tuning after local demo inspection.
 - No login or database is included because the MVP does not need saved user history.

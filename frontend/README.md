@@ -6,7 +6,7 @@ React + Vite frontend for the Smart Workout DSS/BIS prototype.
 
 ```powershell
 cd C:\Users\Windows\Desktop\125970-125934-125843\frontend
-npm install
+cmd /c npm install
 ```
 
 ## Run
@@ -14,15 +14,16 @@ npm install
 Start the backend first:
 
 ```powershell
-cd C:\Users\Windows\Desktop\125970-125934-125843\backend
-py -m uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload
+cd C:\Users\Windows\Desktop\125970-125934-125843
+$env:PYTHONPATH = "backend"
+python -m uvicorn app.main:app --app-dir backend --host 127.0.0.1 --port 8000 --reload
 ```
 
 Then start frontend:
 
 ```powershell
 cd C:\Users\Windows\Desktop\125970-125934-125843\frontend
-npm run dev
+cmd /c npm run dev
 ```
 
 Open:
@@ -30,6 +31,16 @@ Open:
 ```text
 http://127.0.0.1:5173
 ```
+
+Current implemented frontend views:
+
+- `Overview`
+- `Gym Membership`
+- `Lifestyle Profiles`
+- `Profile`
+- `Plan`
+- `RAG Chat`
+- floating bottom-right assistant
 
 ## shadcn/ui
 

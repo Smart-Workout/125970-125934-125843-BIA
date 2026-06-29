@@ -22,6 +22,9 @@ export default function ChatPanel({ plan }: ChatPanelProps) {
     <div className="grid two-column">
       <section className="panel">
         <h3 className="panel-title">RAG Chat</h3>
+        <div className="sequence-note" style={{ marginBottom: 12 }}>
+          This panel explains the generated plan with retrieved evidence. It is retrieval-grounded support, not a final free-form coaching model yet.
+        </div>
         <div className="checkbox-row" style={{ marginBottom: 12 }}>
           {prompts.map((prompt) => (
             <button key={prompt} className="icon-button" type="button" onClick={() => send(prompt, plan)}>
@@ -48,6 +51,15 @@ export default function ChatPanel({ plan }: ChatPanelProps) {
       </section>
       <section className="panel">
         <h3 className="panel-title">Retrieved Snippets</h3>
+        {plan ? (
+          <p className="muted" style={{ marginTop: 0, fontSize: 12 }}>
+            Current plan context: {plan.plan_type} for {plan.weekly_schedule.length} scheduled session{plan.weekly_schedule.length === 1 ? '' : 's'}.
+          </p>
+        ) : (
+          <p className="muted" style={{ marginTop: 0, fontSize: 12 }}>
+            No plan has been generated yet. The chat can still answer general project questions from the RAG corpus.
+          </p>
+        )}
         {lastResponse?.retrieved_snippets.length ? (
           <div className="grid">
             {lastResponse.retrieved_snippets.map((snippet, index) => (

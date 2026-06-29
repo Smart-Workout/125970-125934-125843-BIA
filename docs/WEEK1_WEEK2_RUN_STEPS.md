@@ -2,6 +2,8 @@
 
 This document explains how to run the Smart Workout project from the Week 1 data foundation stage to the latest Week 2 ML, RAG, and backend API stage.
 
+Last updated: `2026-06-29`
+
 The goal is to make the workflow reproducible for every group member, including anyone who did not build the files originally.
 
 ## 0. Overall Pipeline Concept
@@ -31,7 +33,7 @@ Raw CSV files
 Open PowerShell or the VSCode terminal at the repository root:
 
 ```powershell
-cd "C:\Users\Waranon-021\Desktop\125970-125934-125843-BIA"
+cd "C:\Users\Windows\Desktop\125970-125934-125843"
 ```
 
 Check that the current folder is correct:
@@ -373,13 +375,43 @@ Important endpoints:
 |---|---|---|
 | `/api/v1/health` | GET | Checks that the API is running |
 | `/api/v1/health/readiness` | GET | Checks whether required data assets are available |
-| `/api/v1/dashboard/summary` | GET | Returns dashboard summary data |
+| `/api/v1/dashboard/summary` | GET | Returns overview, GymDB relational, and lifestyle-clustering dashboard data |
 | `/api/v1/workout/preprocess` | POST | Preprocesses a user profile |
+| `/api/v1/workout/predict-calories` | POST | Runs the saved calorie regression model |
+| `/api/v1/workout/predict-intensity` | POST | Runs the saved intensity classification model |
 | `/api/v1/workout/recommend-exercises` | POST | Recommends exercises from ExerciseDB |
-| `/api/v1/workout/generate-plan` | POST | Generates a mock workout plan |
-| `/api/v1/chat` | POST | Runs the retrieval-only RAG chat stub |
+| `/api/v1/workout/generate-plan` | POST | Generates a structured workout plan from readiness, predicted intensity, goal, equipment, and recommended exercises |
+| `/api/v1/chat` | POST | Runs the retrieval-grounded RAG chat endpoint |
 
-## 10. Test the Chat Endpoint
+## 10. Run the Frontend
+
+Open another PowerShell window:
+
+```powershell
+cd "C:\Users\Windows\Desktop\125970-125934-125843\frontend"
+cmd /c npm install
+cmd /c npm run dev
+```
+
+Open:
+
+```text
+http://127.0.0.1:5173
+```
+
+Current main views:
+
+| View | Purpose |
+|---|---|
+| `Overview` | High-level pipeline, dataset KPIs, model/data readiness, and cross-dataset charts |
+| `Gym Membership` | Relational GymDB analytics from the cleaned marts |
+| `Lifestyle Profiles` | Clustering-driven lifestyle and readiness archetypes |
+| `Profile` | User-input form and readiness estimation |
+| `Plan` | Prediction outputs, recommended exercises, and weekly split |
+| `RAG Chat` | Grounded explanation tab |
+| Floating assistant | Bottom-right RAG assistant available across the dashboard |
+
+## 11. Test the Chat Endpoint
 
 Open a second PowerShell terminal and run:
 
@@ -391,26 +423,31 @@ $response | ConvertTo-Json -Depth 10
 Expected result:
 
 ```text
-mock_mode = true
 grounded = true
 retrieved_snippets = 5 items
 ```
 
-Why the answer is still a retrieval preview:
+Why the answer is still retrieval-grounded rather than a full assistant:
 
 ```text
 Week 2 TODO says: retrieval only, no LLM yet
 ```
 
-Therefore, `/chat` is not the final chatbot yet. It proves that the backend can retrieve grounding evidence from ExerciseDB and the curated rule corpus.
+Therefore, `/chat` is not the final chatbot yet. It proves that the backend can retrieve grounding evidence from ExerciseDB and the curated rule corpus and assemble a grounded response.
 
-## 11. Run Backend Tests
+## 12. Run Backend Tests
 
 Run:
 
 ```powershell
 $env:PYTHONPATH = "backend"
 python -m pytest backend\tests -q
+```
+
+Current verified local result:
+
+```text
+12 passed, 2 warnings in 6.09s
 ```
 
 The tests cover:
@@ -421,15 +458,16 @@ The tests cover:
 | Workout preprocess | BMI category and input validation |
 | Exercise recommendation | Real ExerciseDB IDs are used instead of hard-coded mock IDs |
 | Fallback recommendation | Recommendations still work when no equipment is provided |
-| Generate plan | The plan endpoint still returns a response |
+| Generate plan | The plan endpoint returns a structured non-mock weekly split with populated exercises |
 | Dashboard summary | Dashboard payload still contains KPI and chart labels |
+| Chat | Grounded answers and retrieved snippets are returned |
 
-## 12. Recommended Full Rerun Order
+## 13. Recommended Full Rerun Order
 
 If a teammate starts from a fresh local copy, use this order:
 
 ```powershell
-cd "C:\Users\Waranon-021\Desktop\125970-125934-125843-BIA"
+cd "C:\Users\Windows\Desktop\125970-125934-125843"
 python -m venv .venv
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy RemoteSigned
 .\.venv\Scripts\Activate.ps1
@@ -461,7 +499,15 @@ $env:PYTHONPATH = "backend"
 python -m uvicorn app.main:app --app-dir backend --reload --host 127.0.0.1 --port 8000
 ```
 
-## 13. Troubleshooting
+Then run the frontend:
+
+```powershell
+cd frontend
+cmd /c npm install
+cmd /c npm run dev
+```
+
+## 14. Troubleshooting
 
 ### `No module named app`
 
@@ -491,10 +537,6 @@ Fix:
 ```powershell
 python -m pip install -r backend\requirements.txt
 ```
-
-### `/api/v1/chat` returns `mock_mode = true`
-
-This is expected. Week 2 only implements retrieval. Final LLM answer generation is not connected yet.
 
 ### `/api/v1/chat` returns `grounded = false`
 
@@ -534,7 +576,25 @@ Then open:
 http://127.0.0.1:8001/docs
 ```
 
-## 14. Git Check Before Commit
+### Frontend cannot open `127.0.0.1:5173`
+
+Possible causes:
+
+```text
+frontend dev server is not running
+npm dependencies were not installed
+another process is already using the port
+```
+
+Fix:
+
+```powershell
+cd frontend
+cmd /c npm install
+cmd /c npm run dev
+```
+
+## 15. Git Check Before Commit
 
 Check changed files:
 
@@ -573,7 +633,7 @@ __pycache__/
 .ipynb_checkpoints/
 ```
 
-## 15. Current Week 2 Meaning
+## 16. Current Project Meaning
 
 Current project state:
 
@@ -585,15 +645,17 @@ Week 2:
 ML training works.
 RAG retrieval works.
 Backend API runs locally.
-Chat endpoint retrieves evidence but does not generate final LLM answers yet.
+Frontend dashboard runs locally.
+Plan generation is now rule-based and more complete than the older prototype.
+Chat endpoint retrieves evidence and assembles grounded answers, but does not generate final LLM answers yet.
 ```
 
 Recommended next tasks:
 
 ```text
-1. Integrate saved .joblib models into predict-calories and predict-intensity endpoints.
-2. Improve /chat from retrieval-only into retrieval + LLM answer generation.
-3. Add frontend screens that call backend endpoints.
-4. Add model input mapping from user profile to training feature schema.
+1. Add Tableau embedding to the final dashboard.
+2. Capture final frontend screenshots and live demo evidence.
+3. Decide whether to keep the current retrieval-grounded assistant for submission or add an external LLM API as a final enhancement step.
+4. Improve /chat from retrieval-grounded response assembly into retrieval + LLM answer generation if time remains.
 5. Expand RAG evaluation beyond 10 manual queries.
 ```

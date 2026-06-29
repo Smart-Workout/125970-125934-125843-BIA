@@ -53,13 +53,37 @@ def test_recommend_exercises_no_equipment_uses_fallback(client: TestClient) -> N
     assert response.json()["recommendations"]                               # Fallback should still return recommendation candidates.
 
 
+def test_predict_intensity_uses_saved_model(client: TestClient) -> None:
+    response = client.post("/api/v1/workout/predict-intensity", json=PROFILE)
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["mock_mode"] is False
+    assert payload["model_name"] == "XGBoost Classifier"
+    assert payload["predicted_class"] in {"Low", "Medium", "High"}
+    assert isinstance(payload["class_probabilities"], dict)
+
+
+def test_predict_calories_uses_saved_model(client: TestClient) -> None:
+    response = client.post("/api/v1/workout/predict-calories", json=PROFILE)
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["mock_mode"] is False
+    assert payload["model_name"] == "Random Forest Regressor"
+    assert payload["unit"] == "kcal_per_hour"
+    assert payload["prediction"] > 0
+
+
 def test_generate_plan(client: TestClient) -> None:
     response = client.post(
         "/api/v1/workout/generate-plan",                                    # Plan endpoint combines profile and intensity.
         json={"profile": PROFILE, "predicted_intensity": "Medium"},         # Medium intensity checks the standard plan rule path.
     )
     assert response.status_code == 200                                      # Valid plan request should succeed.
-    assert response.json()["plan_id"] == "mock-plan-001"                    # Current Week 2 API still returns a mock plan identifier.
+    payload = response.json()
+    assert payload["mock_mode"] is False
+    assert payload["plan_id"].startswith("plan-")
+    assert len(payload["weekly_schedule"]) == PROFILE["sessions_per_week"]
+    assert all(day["exercises"] for day in payload["weekly_schedule"])
 
 
 def test_dashboard_summary(client: TestClient) -> None:
@@ -68,3 +92,5 @@ def test_dashboard_summary(client: TestClient) -> None:
     payload = response.json()                                               # Payload is inspected for key BI fields.
     assert payload["kpis"]["raw_dataset_count"] == 4                        # Existing Week 1 contract is preserved for current tests.
     assert payload["body_part_coverage"]["labels"]                          # Chart labels prove dashboard aggregation returns usable data.
+    assert payload["relational_membership"]["kpis"]["active_members"] > 0   # GymDB relational view should expose active member counts.
+    assert payload["lifestyle_profiles"]["profile_cards"]                   # Lifestyle clustering view should expose cluster summaries.

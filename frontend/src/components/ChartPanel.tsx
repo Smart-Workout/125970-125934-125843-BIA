@@ -1,10 +1,10 @@
-import { Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
+import { Bar, BarChart, CartesianGrid, Cell, Line, LineChart, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { ChartData } from '../types/dashboard.types'
 
 interface ChartPanelProps {
   title: string
   data?: ChartData
-  type?: 'bar' | 'pie'
+  type?: 'bar' | 'pie' | 'line'
   loading?: boolean
 }
 
@@ -34,6 +34,14 @@ export default function ChartPanel({ title, data, type = 'bar', loading }: Chart
               </Pie>
               <Tooltip />
             </PieChart>
+          ) : type === 'line' ? (
+            <LineChart data={chartData} margin={{ top: 8, right: 8, left: -16, bottom: 8 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#e4ebf2" />
+              <XAxis dataKey="label" tick={{ fontSize: 11 }} />
+              <YAxis tick={{ fontSize: 11 }} />
+              <Tooltip />
+              <Line type="monotone" dataKey="value" stroke="#176b87" strokeWidth={2.5} dot={{ r: 3 }} />
+            </LineChart>
           ) : (
             <BarChart data={chartData} margin={{ top: 8, right: 8, left: -16, bottom: 8 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#e4ebf2" />

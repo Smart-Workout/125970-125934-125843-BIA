@@ -4,6 +4,20 @@
 **Implementation window:** 23 Jun – 20 Jul 2026 (4 weeks)
 **Goal:** Working prototype + evaluated models + demo + final report
 
+Status note updated: `2026-06-29`
+
+---
+
+## Deferred proposal items
+
+Checked on: `2026-06-29`
+
+- [x] Strengthen the rule-based plan generator in `backend/app/services/workout_service.py` so the weekly split, exercise variation, and plan assembly move beyond the earlier fixed-template prototype.
+- [ ] Implement Tableau embedding, or formally remove it from final scope with instructor approval if React charts remain the final dashboard approach.
+- [x] Re-run the backend test suite in a normal local Python environment. Verified on `2026-06-29`: `12 passed, 2 warnings in 6.09s`.
+- [ ] Capture final local screenshots for `Overview`, `Gym Membership`, `Lifestyle Profiles`, `Profile`, `Plan`, and the floating assistant.
+- [ ] Decide whether the current retrieval-grounded assistant is final for submission, or whether to add an external LLM API as the next enhancement step.
+
 ---
 
 ## BIA-Inspired Smart Workout Implementation Outline
@@ -165,9 +179,9 @@ User form input
   - target body part
   - available equipment
   - preferred schedule
-- [ ] `POST /api/v1/workout/predict-calories` returns calorie-burn-rate prediction, model name, and confidence/metric note.
-- [ ] `POST /api/v1/workout/predict-intensity` returns Low/Mid/High intensity class and class probabilities.
-- [ ] `POST /api/v1/workout/recommend-exercises` returns filtered ExerciseDB exercises by body part, equipment, target muscle, and difficulty if available.
+- [x] `POST /api/v1/workout/predict-calories` returns calorie-burn-rate prediction, model name, and confidence/metric note.
+- [x] `POST /api/v1/workout/predict-intensity` returns Low/Mid/High intensity class and class probabilities.
+- [x] `POST /api/v1/workout/recommend-exercises` returns filtered ExerciseDB exercises by body part, equipment, target muscle, and difficulty if available.
 - [ ] `POST /api/v1/workout/generate-plan` returns the final daily/weekly plan:
   - split name
   - selected exercises
@@ -177,26 +191,26 @@ User form input
   - safety notes
   - retrieved RAG snippets used for explanation
 - [ ] `POST /api/v1/rag/search` returns top-k retrieved snippets with metadata.
-- [ ] `POST /api/v1/chat` answers user questions using retrieved context and current plan JSON.
+- [x] `POST /api/v1/chat` answers user questions using retrieved context and current plan JSON.
 
 ### Backend service outline
 - [ ] `data_service.py`: load raw/processed CSV files, cache dataframes, and validate required columns.
 - [ ] `preprocessing_service.py`: standardize equipment, parse ExerciseDB list-like columns, split blood pressure, compute BMI, and convert frontend input into model-ready features.
-- [ ] `analytics_service.py`: produce chart-ready descriptive analytics and summary cards for dataset size, exercise count, equipment count, and user archetypes.
+- [x] `analytics_service.py`: produce chart-ready descriptive analytics and summary cards for dataset size, exercise count, equipment count, and user archetypes.
 - [ ] `readiness_service.py`: convert sleep, stress, BMI, heart rate, and blood pressure into Low/Mid/High readiness with explanation factors.
-- [ ] `ml_service.py`: load saved `.joblib` models, run calorie regression and intensity classification, and return predictions with model metadata.
-- [ ] `exercise_service.py`: filter exercises by body part and equipment, rank by match quality, and provide substitutions.
+- [x] `ml_service.py`: load saved `.joblib` models, run calorie regression and intensity classification, and return predictions with model metadata.
+- [x] `exercise_service.py`: filter exercises by body part and equipment, rank by match quality, and provide substitutions.
 - [ ] `plan_service.py`: combine readiness, predicted intensity, schedule, and recommended exercises into structured daily/weekly plan JSON.
-- [ ] `rag_service.py`: ingest ExerciseDB instructions and `RAG_CORPUS.md`, retrieve top-k snippets, and return source/category metadata.
-- [ ] `chat_service.py`: build prompt from retrieved snippets and current plan; support Q&A first, then Tier 1 deterministic equipment substitution.
+- [x] `rag_service.py`: ingest ExerciseDB instructions and `RAG_CORPUS.md`, retrieve top-k snippets, and return source/category metadata.
+- [x] `chat_service.py`: build prompt from retrieved snippets and current plan; support Q&A first, then Tier 1 deterministic equipment substitution.
 
 ### Frontend screen outline
-- [ ] `DashboardPage.tsx`
+- [x] `DashboardPage.tsx`
   - top navigation with tabs
   - global refresh button
   - empty state before user creates a plan
   - error banner if backend call fails
-- [ ] Tab 1: `Overview`
+- [x] Tab 1: `Overview`
   - KPI cards: dataset rows, available exercises, equipment count, model status
   - charts: workout type distribution, body part coverage, equipment coverage, calorie burn distribution
   - short system pipeline visual: input -> ML -> recommendation -> plan -> dashboard
@@ -815,7 +829,7 @@ Use this as the exact implementation checklist when we start building. The frien
 - [x] Embed with `all-MiniLM-L6-v2` sentence-transformer
 - [x] Decide chunk strategy (full instruction set vs sentence-level)
 - [x] Test retrieval with 10 sample queries; verify top-5 are relevant
-- [x] Build `/chat` endpoint stub (retrieval only, no LLM yet)
+- [x] Build `/chat` endpoint with retrieval-grounded answers and snippet evidence (no final LLM layer yet)
 
 ### Tableu Dashboard page 1 (Yolanda)
 - [ ]
