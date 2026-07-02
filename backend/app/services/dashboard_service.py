@@ -107,6 +107,10 @@ def _build_lifestyle_profiles_section() -> LifestyleProfilesSection:
             labels=labels,
             values=[round(_to_float(row.get("sleep_duration")), 2) for row in sorted_profiles],
         ),
+        quality_of_sleep_by_cluster=ChartData(
+            labels=labels,
+            values=[round(_to_float(row.get("quality_of_sleep")), 2) for row in sorted_profiles],
+        ),
         activity_by_cluster=ChartData(
             labels=labels,
             values=[round(_to_float(row.get("physical_activity_level")), 2) for row in sorted_profiles],
@@ -114,6 +118,10 @@ def _build_lifestyle_profiles_section() -> LifestyleProfilesSection:
         stress_by_cluster=ChartData(
             labels=labels,
             values=[round(_to_float(row.get("stress_level")), 2) for row in sorted_profiles],
+        ),
+        daily_steps_by_cluster=ChartData(
+            labels=labels,
+            values=[round(_to_float(row.get("daily_steps")), 2) for row in sorted_profiles],
         ),
         profile_cards=[
             LifestyleProfileCard(

@@ -89,8 +89,25 @@ export default function DashboardPage() {
   const dominantCluster = lifestyle?.profile_cards.length
     ? [...lifestyle.profile_cards].sort((a, b) => b.record_count - a.record_count)[0]
     : null
+  const lifestyleClusterCount = lifestyle?.profile_cards.length ?? 0
+  const lifestyleRecordTotal = lifestyle?.profile_cards.reduce((sum, card) => sum + card.record_count, 0) ?? 0
   const totalScheduledExercises = plan?.weekly_schedule.reduce((sum, day) => sum + day.exercises.length, 0) ?? 0
   const firstFocus = plan?.weekly_schedule[0]?.focus ?? null
+
+  const [membershipViewSlicer, setMembershipViewSlicer] = useState<'subscriptions' | 'gymType' | 'activity'>('gymType')
+  const [membershipLocationFilter, setMembershipLocationFilter] = useState('All')
+  const [selectedLocationId, setSelectedLocationId] = useState<string | null>(null)
+  const membershipLocations = relational?.top_locations ?? []
+  const membershipLocationOptions = ['All', ...Array.from(new Set(membershipLocations.map((row) => row.location)))]
+  const filteredMembershipLocations = membershipLocationFilter === 'All'
+    ? membershipLocations
+    : membershipLocations.filter((row) => row.location === membershipLocationFilter)
+  const membershipSliderData = membershipViewSlicer === 'subscriptions'
+    ? relational?.subscription_mix
+    : membershipViewSlicer === 'gymType'
+      ? relational?.gym_type_session_mix
+      : relational?.monthly_activity
+  const selectedLocation = membershipLocations.find((row) => row.gym_id === selectedLocationId)
 
   return (
     <div className="app-shell">
@@ -208,11 +225,34 @@ export default function DashboardPage() {
                 </div>
               </div>
             </section>
+            <section className="panel executive-summary-panel">
+              <h3 className="panel-title">Executive Summary</h3>
+              <p className="muted" style={{ margin: '0 0 12px', fontSize: 13 }}>
+                This section is designed as a decision support brief: it identifies the biggest business risk, the recommended operational response, and the expected outcome.
+              </p>
+              <ul className="executive-report-list">
+                <li>
+                  <strong>Problem:</strong> Demand is concentrated at the highest-utilization gym while the largest lifestyle cluster shows elevated stress, creating a retention and recovery risk.
+                </li>
+                <li>
+                  <strong>Action:</strong> Target recovery and wellness programming for Cluster {dominantCluster?.cluster_id ?? 'X'} and allocate resources to the top-performing location ({topLocation?.location ?? 'N/A'}).
+                </li>
+                <li>
+                  <strong>Result:</strong> Reduce churn risk, improve member readiness, and align high-demand capacity with the most vulnerable lifestyle cohort.
+                </li>
+                <li>
+                  <strong>Key KPI focus:</strong> active members, check-in frequency, top location utilization, and cluster readiness gap.
+                </li>
+                <li>
+                  <strong>Biggest opportunity:</strong> Convert the largest, stress-elevated lifestyle cohort into a more resilient training segment with recovery-focused programming.
+                </li>
+              </ul>
+            </section>
             <div className="grid kpi-grid">
               <KPICard title="Exercises" value={dashboard.data?.kpis.exercise_count ?? 0} detail="ExerciseDB rows" icon="exercise" loading={dashboard.loading} />
-              <KPICard title="Datasets" value={dashboard.data?.kpis.raw_dataset_count ?? 0} detail="Raw data sources" icon="dataset" loading={dashboard.loading} />
-              <KPICard title="Backend" value={backendOnline ? 'Online' : 'Offline'} detail={health.health?.version ?? 'Waiting'} icon="server" loading={health.loading} />
-              <KPICard title="Models Ready" value={`${modelReadyCount}/2`} detail="Calorie and intensity artifacts" icon="model" loading={health.loading} />
+              <KPICard title="Active Members" value={relational?.kpis.active_members ?? 0} detail="Member dimension" icon="dataset" loading={dashboard.loading} />
+              <KPICard title="Avg Check-ins" value={relational?.kpis.avg_checkins_per_member ?? 0} detail="Per member" icon="exercise" loading={dashboard.loading} />
+              <KPICard title="Gym Locations" value={relational?.kpis.gym_locations ?? 0} detail="Locations covered" icon="plan" loading={dashboard.loading} />
             </div>
             <section className="panel">
               <h3 className="panel-title">Current Implementation Status</h3>
@@ -244,6 +284,24 @@ export default function DashboardPage() {
               <ChartPanel title="Equipment Coverage" data={dashboard.data?.equipment_coverage} loading={dashboard.loading} />
               <ChartPanel title="Nutrition Macro Summary" data={dashboard.data?.nutrition_macro_summary} type="pie" loading={dashboard.loading} />
             </div>
+            <section className="panel assumptions-panel">
+              <h3 className="panel-title">Data provenance & assumptions</h3>
+              <ul className="executive-report-list">
+                <li>Source data includes cleaned GymDB membership, ExerciseDB workout metadata, sleep/lifestyle cluster profiles, and nutrition datasets.</li>
+                <li>The lifestyle cluster analysis is built on 374 records across 4 clusters.</li>
+                <li>Clusters were selected using silhouette analysis to identify stable groupings and support readiness segmentation.</li>
+                <li>Assumes that self-reported lifestyle inputs are accurate and that current gym usage patterns reflect the available sample.</li>
+                <li>Geographic analytics and location interpolation are not yet implemented in this release.</li>
+              </ul>
+            </section>
+            <section className="panel limitations-panel">
+              <h3 className="panel-title">Limitations</h3>
+              <ul className="executive-report-list">
+                <li>This dashboard cannot prove causality between lifestyle clusters and membership churn.</li>
+                <li>Model predictions rely on historical sample data and may not reflect future seasonal shifts.</li>
+                <li>Cluster separation is indicative but not a full external validation of segment behavior.</li>
+              </ul>
+            </section>
           </div>
         )}
 
@@ -303,17 +361,108 @@ export default function DashboardPage() {
                 </div>
               </section>
               <section className="panel placeholder-panel">
-                <h3 className="panel-title">Tableau Embed Placeholder</h3>
-                <p className="muted" style={{ marginTop: 0 }}>
-                  Reserved for the final embedded Tableau membership dashboard. Current React charts are used for the working prototype and validation pass.
-                </p>
+                <h3 className="panel-title">Geographic Visualization Placeholder</h3>
+                <div className="placeholder-map-box">
+                  <p>Map-based gym utilization, location drilldown, and regional membership insights will appear here.</p>
+                </div>
               </section>
             </div>
+            <section className="panel">
+              <h3 className="panel-title">Membership Analytics Controls</h3>
+              <p className="muted" style={{ margin: '0 0 14px', fontSize: 13 }}>
+                Use the slicer to switch between alternative membership views. The active location filter narrows the gym rows below, and clicking a row highlights that gym for drilldown.
+              </p>
+              <div className="filter-bar">
+                <div className="filter-control">
+                  <label htmlFor="membership-slicer">Slicer</label>
+                  <select
+                    id="membership-slicer"
+                    value={membershipViewSlicer}
+                    onChange={(event) => setMembershipViewSlicer(event.target.value as 'gymType' | 'activity')}
+                  >
+                    <option value="gymType">Sessions by Gym Type</option>
+                    <option value="activity">Check-in Trend</option>
+                  </select>
+                </div>
+                <div className="filter-control">
+                  <label htmlFor="membership-location">Location Filter</label>
+                  <select
+                    id="membership-location"
+                    value={membershipLocationFilter}
+                    onChange={(event) => {
+                      setMembershipLocationFilter(event.target.value)
+                      setSelectedLocationId(null)
+                    }}
+                  >
+                    {membershipLocationOptions.map((location) => (
+                      <option key={location} value={location}>{location}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              <div className="insight-list">
+                <div className="insight-item">
+                  <p className="insight-label">Current drilldown</p>
+                  <p className="insight-value">
+                    {selectedLocation
+                      ? `${selectedLocation.location} (${selectedLocation.gym_type}) — ${selectedLocation.session_count.toLocaleString()} sessions`
+                      : 'Select a location row below to drill into that gym.'}
+                  </p>
+                </div>
+                <div className="insight-item">
+                  <p className="insight-label">Active filter</p>
+                  <p className="insight-value">{membershipLocationFilter}</p>
+                </div>
+              </div>
+            </section>
+            <section className="panel">
+              <h3 className="panel-title">Membership Slicer View</h3>
+              <ChartPanel
+                title={
+                  membershipViewSlicer === 'subscriptions'
+                    ? 'Subscription Mix'
+                    : membershipViewSlicer === 'gymType'
+                      ? 'Sessions by Gym Type'
+                      : 'Check-in Volume Over Time'
+                }
+                data={membershipSliderData}
+                type={membershipViewSlicer === 'subscriptions' ? 'pie' : membershipViewSlicer === 'activity' ? 'line' : 'bar'}
+                loading={dashboard.loading}
+              />
+            </section>
             <div className="grid two-column">
-              <ChartPanel title="Check-in Volume Over Time" data={relational?.monthly_activity} type="line" loading={dashboard.loading} />
-              <ChartPanel title="Subscription Mix" data={relational?.subscription_mix} type="pie" loading={dashboard.loading} />
-              <ChartPanel title="Sessions by Gym Type" data={relational?.gym_type_session_mix} loading={dashboard.loading} />
-              <ChartPanel title="Avg Calories by Workout Type" data={relational?.workout_avg_calories} loading={dashboard.loading} />
+              <ChartPanel
+                title="Check-in Volume Over Time"
+                type="line"
+                data={relational?.monthly_activity}
+                loading={dashboard.loading}
+                xAxisLabel="Month"
+                yAxisLabel="Session count"
+                description="Shows how member visits change across months."
+              />
+              <ChartPanel
+                title="Subscription Mix"
+                type="pie"
+                data={relational?.subscription_mix}
+                loading={dashboard.loading}
+                description="Breakdown of active members by subscription plan."
+              />
+              <ChartPanel
+                title="Sessions by Gym Type"
+                data={relational?.gym_type_session_mix}
+                loading={dashboard.loading}
+                xAxisLabel="Gym type"
+                yAxisLabel="Session count"
+                description="Compare usage across gym equipment and class categories."
+              />
+              <ChartPanel
+                title="Avg Calories by Workout Type"
+                data={relational?.workout_avg_calories}
+                loading={dashboard.loading}
+                xAxisLabel="Workout type"
+                yAxisLabel="Avg calories/session"
+                description="Average energy burned for each workout category."
+              />
             </div>
             <section className="panel">
               <h3 className="panel-title">Top Location Utilization</h3>
@@ -330,8 +479,12 @@ export default function DashboardPage() {
                       </tr>
                     </thead>
                     <tbody>
-                      {relational.top_locations.map((row) => (
-                        <tr key={row.gym_id}>
+                      {filteredMembershipLocations.map((row) => (
+                        <tr
+                          key={row.gym_id}
+                          className={selectedLocationId === row.gym_id ? 'table-row-selected' : 'clickable-row'}
+                          onClick={() => setSelectedLocationId(row.gym_id)}
+                        >
                           <td>{row.location}</td>
                           <td>{row.gym_type}</td>
                           <td>{row.session_count.toLocaleString()}</td>
@@ -354,6 +507,9 @@ export default function DashboardPage() {
             <div className="grid two-column">
               <section className="panel">
                 <h3 className="panel-title">Cluster Summary</h3>
+                <p className="muted" style={{ margin: '0 0 12px', fontSize: 13 }}>
+                  Clusters were created using K-Means on sleep, activity, stress, and BMI patterns. The selected `k` value is supported by silhouette score analysis and is shown in the Silhouette Scores panel below.
+                </p>
                 <div className="insight-list">
                   <div className="insight-item">
                     <p className="insight-label">Largest lifestyle archetype</p>
@@ -362,17 +518,21 @@ export default function DashboardPage() {
                     </p>
                   </div>
                   <div className="insight-item">
-                    <p className="insight-label">Readiness implication</p>
+                    <p className="insight-label">Cluster coverage</p>
+                    <p className="insight-value">{lifestyleRecordTotal.toLocaleString()} records across {lifestyleClusterCount} clusters</p>
+                  </div>
+                  <div className="insight-item">
+                    <p className="insight-label">Cluster rationale</p>
                     <p className="muted" style={{ margin: 0 }}>
-                      The clustering layer explains why the system treats readiness as a pre-prediction estimation step before calorie and intensity inference.
+                      These segments are intended to support readiness-based personalization and are not presented as causal proof.
                     </p>
                   </div>
                 </div>
               </section>
               <section className="panel placeholder-panel">
-                <h3 className="panel-title">Tableau Embed Placeholder</h3>
+                <h3 className="panel-title">Drilldown & Filter Placeholder</h3>
                 <p className="muted" style={{ marginTop: 0 }}>
-                  Reserved for the final lifestyle-profile visual story in Tableau once the embedded dashboard layer is added.
+                  This panel is reserved for the interactive drilldown and slicer experience for lifestyle profiling.
                 </p>
               </section>
             </div>
@@ -386,7 +546,7 @@ export default function DashboardPage() {
                       <div key={card.cluster_id} className="cluster-card">
                         <p className="cluster-card-title">Cluster {card.cluster_id}: {card.label}</p>
                         <p className="muted" style={{ margin: '6px 0 0' }}>
-                          Readiness {card.readiness_score} | Sleep {card.sleep_duration}h | Activity {card.physical_activity_level} | Stress {card.stress_level}
+                          Readiness score {card.readiness_score} | Sleep {card.sleep_duration}h | Activity {card.physical_activity_level} | Stress {card.stress_level}/10
                         </p>
                         <p className="muted" style={{ margin: '6px 0 0', fontSize: 12 }}>
                           {card.record_count} records
@@ -399,11 +559,30 @@ export default function DashboardPage() {
                 )}
               </section>
             </div>
+            <section className="panel">
+              <h3 className="panel-title">How to Read Lifestyle Profiles</h3>
+              <div className="insight-list">
+                <div className="insight-item">
+                  <p className="insight-label">Readiness score</p>
+                  <p className="insight-value">A composite wellness score derived from sleep, activity, stress, and BMI. Higher values mean better readiness for training.</p>
+                </div>
+                <div className="insight-item">
+                  <p className="insight-label">Stress level</p>
+                  <p className="insight-value">A 1–10 scale. Higher values mean more stress, which typically lowers recovery readiness.</p>
+                </div>
+                <div className="insight-item">
+                  <p className="insight-label">Cluster meaning</p>
+                  <p className="insight-value">Each cluster groups similar lifestyle profiles together. Use the cards and charts to compare average sleep, activity, and stress for each group.</p>
+                </div>
+              </div>
+            </section>
             <div className="grid three-column">
-              <ChartPanel title="Silhouette Scores" data={lifestyle?.silhouette_scores} loading={dashboard.loading} />
-              <ChartPanel title="Sleep Duration by Cluster" data={lifestyle?.sleep_duration_by_cluster} loading={dashboard.loading} />
-              <ChartPanel title="Activity by Cluster" data={lifestyle?.activity_by_cluster} loading={dashboard.loading} />
-              <ChartPanel title="Stress by Cluster" data={lifestyle?.stress_by_cluster} loading={dashboard.loading} />
+              <ChartPanel title="Silhouette Scores" data={lifestyle?.silhouette_scores} loading={dashboard.loading} xAxisLabel="k value" yAxisLabel="Silhouette" description="Clustering quality for different k values. Higher is better." />
+              <ChartPanel title="Sleep Duration by Cluster" data={lifestyle?.sleep_duration_by_cluster} loading={dashboard.loading} xAxisLabel="Cluster" yAxisLabel="Average hours" description="Average nightly sleep duration for each cluster." />
+              <ChartPanel title="Quality of Sleep by Cluster" data={lifestyle?.quality_of_sleep_by_cluster} loading={dashboard.loading} xAxisLabel="Cluster" yAxisLabel="Sleep quality score" description="Average sleep quality score for each cluster." />
+              <ChartPanel title="Activity by Cluster" data={lifestyle?.activity_by_cluster} loading={dashboard.loading} xAxisLabel="Cluster" yAxisLabel="Average activity level" description="Average physical activity level for each cluster." />
+              <ChartPanel title="Stress by Cluster" data={lifestyle?.stress_by_cluster} loading={dashboard.loading} xAxisLabel="Cluster" yAxisLabel="Average stress level" description="Average stress score per cluster, on a 1–10 scale." />
+              <ChartPanel title="Daily Steps by Cluster" data={lifestyle?.daily_steps_by_cluster} loading={dashboard.loading} xAxisLabel="Cluster" yAxisLabel="Average daily steps" description="Average daily steps for each cluster, showing overall activity volume." />
             </div>
           </div>
         )}

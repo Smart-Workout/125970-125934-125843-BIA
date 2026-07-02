@@ -1,4 +1,4 @@
-import { CartesianGrid, ResponsiveContainer, Scatter, ScatterChart, Tooltip, XAxis, YAxis, ZAxis } from 'recharts'
+import { CartesianGrid, Legend, ResponsiveContainer, Scatter, ScatterChart, Tooltip, XAxis, YAxis, ZAxis } from 'recharts'
 import { LifestyleScatterPoint } from '../types/dashboard.types'
 
 interface LifestyleScatterPanelProps {
@@ -13,7 +13,10 @@ export default function LifestyleScatterPanel({ points, loading }: LifestyleScat
 
   return (
     <section className="panel">
-      <h3 className="panel-title">Cluster Scatter: Sleep x Activity</h3>
+      <h3 className="panel-title">Lifestyle Cluster Scatter</h3>
+      <p className="muted" style={{ margin: '0 0 12px', fontSize: 13 }}>
+        Each point is a lifestyle archetype grouping. X axis is sleep hours, Y axis is physical activity level, and point size is readiness score.
+      </p>
       {loading ? (
         <p className="muted">Loading clustering view...</p>
       ) : chartData.length === 0 ? (
@@ -22,10 +25,11 @@ export default function LifestyleScatterPanel({ points, loading }: LifestyleScat
         <ResponsiveContainer width="100%" height={260}>
           <ScatterChart margin={{ top: 8, right: 12, left: 0, bottom: 8 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#e4ebf2" />
-            <XAxis type="number" dataKey="sleep_duration" name="Sleep hours" tick={{ fontSize: 11 }} />
-            <YAxis type="number" dataKey="physical_activity_level" name="Activity" tick={{ fontSize: 11 }} />
+            <XAxis type="number" dataKey="sleep_duration" name="Sleep hours" label={{ value: 'Sleep hours', position: 'insideBottom', offset: -6, fontSize: 12 }} tick={{ fontSize: 11 }} />
+            <YAxis type="number" dataKey="physical_activity_level" name="Activity" label={{ value: 'Activity level', angle: -90, position: 'insideLeft', dy: -12, fontSize: 12 }} tick={{ fontSize: 11 }} />
             <ZAxis type="number" dataKey="readiness_score" range={[50, 220]} />
             <Tooltip cursor={{ strokeDasharray: '3 3' }} />
+            <Legend verticalAlign="top" height={28} />
             {[0, 1, 2, 3, 4].map((clusterId) => (
               <Scatter
                 key={clusterId}

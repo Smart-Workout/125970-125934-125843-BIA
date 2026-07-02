@@ -586,6 +586,27 @@ textarea {
   line-height: 1.5;
 }
 
+.executive-summary-panel {
+  border-color: #cbd7e3;
+  background: #ffffff;
+}
+
+.executive-report-list {
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 10px;
+}
+
+.executive-report-list li {
+  font-size: 13px;
+  color: #334155;
+}
+
+.executive-report-list li strong {
+  color: #0f172a;
+}
+
 .plan-summary {
   padding: 14px;
   border: 1px solid #d9e2ec;
@@ -596,6 +617,42 @@ textarea {
 .placeholder-panel {
   background: linear-gradient(180deg, #fbfdff 0%, #f4f9fb 100%);
   border-style: dashed;
+}
+
+.filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.filter-control {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1 1 220px;
+}
+
+.placeholder-map-box {
+  min-height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #cbd7e3;
+  border-radius: 12px;
+  background: #fff;
+  padding: 18px;
+  text-align: center;
+  color: #475569;
+}
+
+.clickable-row {
+  cursor: pointer;
+}
+
+.table-row-selected {
+  cursor: pointer;
+  background: #eaf5ff;
 }
 
 .focus-chip-row {
