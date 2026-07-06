@@ -1,0 +1,256 @@
+
+\documentclass[12pt,a4paper,oneside]{report}
+
+% ---------- Packages ----------
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{mathptmx}
+\usepackage{geometry}
+\usepackage{setspace}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{longtable}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{threeparttable}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage{tocloft}
+\usepackage{etoolbox}
+\usepackage{xstring}
+\usepackage{chngcntr}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{url}
+
+% ---------- Page and text format ----------
+\geometry{left=1.25in,right=1in,top=1in,bottom=1in}
+\onehalfspacing
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.55em}
+\renewcommand{\arraystretch}{1.15}
+\setlist[itemize]{topsep=0.2em,itemsep=0.15em,leftmargin=1.3em}
+\setlist[enumerate]{topsep=0.2em,itemsep=0.15em,leftmargin=1.5em}
+\graphicspath{{figures/}}
+\hypersetup{hidelinks}
+\sloppy
+
+% Keep generated table/figure lists compact by making chapter-gap addvspace commands harmless.
+\renewcommand{\addvspace}[1]{}
+
+% ---------- Numbering and headings ----------
+\counterwithout{figure}{chapter}
+\counterwithout{table}{chapter}
+\renewcommand{\contentsname}{CONTENTS}
+\renewcommand{\listtablename}{LIST OF TABLES}
+\renewcommand{\listfigurename}{LIST OF FIGURES}
+
+% ---------- Contents, tables, and figures lists ----------
+% Keep TOC/LOT/LOF entries close to the left margin and remove large chapter gaps.
+\setlength{\cftchapindent}{0pt}
+\setlength{\cftsecindent}{1.35em}
+\setlength{\cftsubsecindent}{2.75em}
+\setlength{\cftchapnumwidth}{2.0em}
+\setlength{\cftsecnumwidth}{2.7em}
+\setlength{\cftsubsecnumwidth}{3.4em}
+\setlength{\cftfigindent}{0pt}
+\setlength{\cfttabindent}{0pt}
+\setlength{\cftfignumwidth}{2.6em}
+\setlength{\cfttabnumwidth}{2.6em}
+\setlength{\cftbeforechapskip}{0pt}
+\setlength{\cftbeforesecskip}{0pt}
+\setlength{\cftbeforesubsecskip}{0pt}
+\setlength{\cftbeforefigskip}{0pt}
+\setlength{\cftbeforetabskip}{0pt}
+\renewcommand{\cftchapfont}{\normalfont}
+\renewcommand{\cftchappagefont}{\normalfont}
+\renewcommand{\cftfigfont}{\normalfont}
+\renewcommand{\cftfigpagefont}{\normalfont}
+\renewcommand{\cfttabfont}{\normalfont}
+\renewcommand{\cfttabpagefont}{\normalfont}
+\renewcommand{\cftchapleader}{\cftdotfill{\cftdotsep}}
+% The report class writes \addvspace commands into LOF/LOT at chapter boundaries.
+% Suppress those commands only while printing the lists.
+\makeatletter
+\let\orig@listoffigures\listoffigures
+\renewcommand{\listoffigures}{%
+  \begingroup
+  \renewcommand{\addvspace}[1]{}%
+  \orig@listoffigures
+  \endgroup}
+\let\orig@listoftables\listoftables
+\renewcommand{\listoftables}{%
+  \begingroup
+  \renewcommand{\addvspace}[1]{}%
+  \orig@listoftables
+  \endgroup}
+\makeatother
+
+% Prevent report.cls from writing chapter-boundary vertical gaps into LIST OF TABLES/FIGURES.
+\makeatletter
+\let\orig@addtocontents\addtocontents
+\renewcommand{\addtocontents}[2]{%
+  \begingroup
+  \edef\tempcontents{\detokenize{#2}}%
+  \IfSubStr{\tempcontents}{addvspace}{\endgroup}{\endgroup\orig@addtocontents{#1}{#2}}%
+}
+\makeatother
+\titleformat{\chapter}[display]
+  {\normalfont\bfseries\centering\Large}
+  {CHAPTER \thechapter}
+  {0.6em}
+  {\MakeUppercase}
+\titlespacing*{\chapter}{0pt}{-0.1in}{0.25in}
+\titleformat{\section}{\normalfont\bfseries\large}{\thesection}{0.7em}{}
+\titleformat{\subsection}{\normalfont\bfseries\normalsize}{\thesubsection}{0.7em}{}
+
+% ---------- Captions ----------
+\captionsetup{font={small,bf,it},labelfont={bf,it},textfont={bf,it},justification=justified,singlelinecheck=false}
+\captionsetup[table]{position=top,skip=0.25em,justification=raggedright,singlelinecheck=false}
+\captionsetup[figure]{position=bottom,skip=0.35em,justification=centering,singlelinecheck=false}
+\newcommand{\fignote}[1]{\vspace{0.2em}\begin{minipage}{0.94\linewidth}\footnotesize #1\end{minipage}}
+\newcommand{\tabnote}[1]{\begin{tablenotes}[flushleft]\footnotesize\item #1\end{tablenotes}}
+\newcommand{\tabnotetext}[1]{\vspace{0.25em}\begin{minipage}{0.95\linewidth}\footnotesize #1\end{minipage}}
+
+% ---------- Metadata ----------
+\newcommand{\reporttitle}{Smart Workout: A RAG-Assisted Decision Support and
+Business Intelligence System for Personalized Weight Training}
+
+\newcommand{\studentname}{Aye Khin Khin Hpone }
+\newcommand{\studentid}{st125970}
+\newcommand{\studentnameii}{Waranon Neamtuptim}
+\newcommand{\studentidii}{st125934}
+\newcommand{\studentnameiii}{Jirapat Datephanyawat}
+\newcommand{\studentidiii}{st125843}
+\newcommand{\degreeprogram}{AT82.04: Business Intelligence and Analytics \\
+Intersem 2026}
+\newcommand{\submissiondate}{5 July 2026}
+
+
+\begin{document}
+
+% ==================== TITLE PAGE ====================
+\begin{titlepage}
+\thispagestyle{empty}
+\singlespacing
+\centering
+
+{\bfseries\Large \reporttitle\par}
+\vspace{0.45in}
+
+Final report
+
+{by\par}
+\vspace{0.20in}
+
+{\bfseries
+\studentname\ (\studentid)\par
+\studentnameii\ (\studentidii)\par
+\studentnameiii\ (\studentidiii)\par
+}
+
+\vspace{0.42in}
+
+\begin{minipage}{0.82\textwidth}
+\centering
+
+
+\textbf{\degreeprogram}
+\end{minipage}
+\vspace{0.42in}
+
+Dr. Vatcharaporn Esichaikul\\
+TA: Anushka Ojha
+
+\vfill
+{Asian Institute of Technology\par}
+{Faculty of Advanced Science and Technology (FAST)\par}
+{Thailand\par}
+{\submissiondate\par}
+\end{titlepage}
+
+% ==================== FRONT MATTER ====================
+\pagenumbering{roman}
+
+\chapter*{ABSTRACT}
+\addcontentsline{toc}{chapter}{ABSTRACT}
+\clearpage
+
+
+\newgeometry{left=1.0in,right=0.9in,top=1in,bottom=1in}
+\tableofcontents
+\clearpage
+\listoftables
+\clearpage
+\listoffigures
+\clearpage
+\restoregeometry
+
+% ==================== MAIN MATTER ====================
+\pagenumbering{arabic}
+
+% ==================== CHAPTER 1 ====================
+\chapter{Introduction}
+\section{Background of the Study}
+Weight training is widely practiced for strength and fitness, yet many gym users struggle to plan effectively: they
+are uncertain which exercises suit a given body part, how to adapt to available equipment, how to structure a
+weekly timetable, and whether their physical condition supports a particular plan. Most decisions rely on generic
+online routines that ignore personal factors — age, sleep, BMI, physiological indicators, equipment, schedule —
+producing a mismatch between plan and readiness. This project proposes Smart Workout, a combined Decision
+Support System (DSS) and Business Intelligence System (BIS) (Power, 2002; Chaudhuri et al., 2011) that
+unifies multi-source real-world data, a Retrieval-Augmented Generation (RAG) knowledge layer, and supervised
+ML models within an interactive web dashboard, transforming user-provided inputs into descriptive insight,
+predictive outcome estimates, and prescriptive training plans while preserving human oversight. The primary
+target users are gym members seeking personalized training guidance; fitness coaches constitute a secondary
+audience using the dashboard for decision-support reference.
+
+\section{Objectives of the Study}
+
+The project is expected to deliver a functional DSS/BIS prototype that fulfils the following objectives, explicitly covering the descriptive, predictive, and prescriptive analytics layers required of a BI system:
+\begin{itemize}
+    \item \textbf{Data collection \& preparation:} clean and standardize multi-source public datasets (gym membership and check-in records, exercise catalogue, gym-member workout tracking, sleep \& lifestyle, daily nutrition; details in \S4) alongside structured user input.
+    \item \textbf{Descriptive analytics:} segment users into lifestyle profiles via clustering; present a relational gym membership view (member activity, subscription trends, usage analytics) as an interactive dashboard; and present cross-dataset insights (calorie-burn patterns, exercise coverage, nutrition macro mix).
+    \item \textbf{Predictive analytics:} train and compare multiple candidate models per task via cross-validation: (a) calorie-burn-rate regression (kcal/hr); (b) Workout-intensity 3-class classification (Low/Mid/High).
+    \item \textbf{Prescriptive analytics:} generate a daily/weekly training plan via a rule-based engine conditioned on the predicted intensity, readiness, target body part, and available equipment; the predicted calorie-burn rate is displayed alongside the plan. A rule-derived Training Readiness band (computed from user input; rules drawn from the Sleep Health dataset) guides the plan generator (see \S5).
+    \item \textbf{RAG knowledge retrieval \& AI chat assistant:} retrieve exercise instructions, equipment-substitution rules, and scheduling guidance via an interactive chat interface (RAG retrieval is core; LLM chat is a planned extension).
+    \item \textbf{BI dashboard:} React-based dashboard (with embedded Tableau views) presenting a relational gym membership view, multi-dataset descriptive analytics, personalized predictions, prescribed plan, RAG-sourced explanation, and embedded chat.
+\end{itemize}
+
+% ==================== CHAPTER 2 ====================
+\chapter{Problem Definition}
+
+
+% ==================== CHAPTER 3 ====================
+\chapter{Methodology and SuperDecisions Implementation}
+
+\section{AHP Model Structure}
+
+
+% ==================== CHAPTER 4 ====================
+\chapter{Results and Discussion}
+
+\section{Final Synthesised Ranking}
+
+
+% ==================== CHAPTER 5 ====================
+\chapter{Sensitivity Analysis}
+
+
+% ==================== CHAPTER 6 ====================
+\chapter{Conclusion}
+
+
+% ==================== REFERENCES ====================
+\chapter*{References}
+% \addcontentsline{toc}{chapter}{References}
+
+% \begin{enumerate}[label={\arabic*.}]
+%     \item Saaty, T. L. (1980). \textit{The Analytic Hierarchy Process}. McGraw-Hill.
+%     \item Creative Decisions Foundation. (2019). \textit{SuperDecisions Version 2.10}. Software used for AHP model implementation.
+%     \item Booking.com. (2026). Hotel review category scores for Naina Resort \& Spa, Sawaddi Patong Resort \& Spa by Tolani, Novotel Phuket Vintage Park Resort, Grand Mercure Phuket Patong, and M\"ovenpick Myth Hotel Patong Phuket. Data collected from screenshots on 30 June 2026. \url{https://www.booking.com/}
+% \end{enumerate}
+
+\end{document}
