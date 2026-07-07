@@ -1,9 +1,11 @@
 import { useState } from 'react'
 import { Activity, Building2, Dumbbell, Home, LayoutDashboard, MessageSquare, RefreshCw, Target, UserRound, Users } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
+import CalendarHeatmap from '../components/CalendarHeatmap'
 import ChartPanel from '../components/ChartPanel'
 import ChatPanel from '../components/ChatPanel'
 import DecisionMappingPanel from '../components/DecisionMappingPanel'
+import DistributionPanel from '../components/DistributionPanel'
 import EngagementScatter from '../components/EngagementScatter'
 import ExerciseTable from '../components/ExerciseTable'
 import FloatingChatAssistant from '../components/FloatingChatAssistant'
@@ -13,6 +15,8 @@ import Neo4JSourceGraph from '../components/Neo4JSourceGraph'
 import PlanCard from '../components/PlanCard'
 import ProbabilityBars from '../components/ProbabilityBars'
 import ProfileForm from '../components/ProfileForm'
+import RadarProfilePanel from '../components/RadarProfilePanel'
+import SankeyJourneyPanel from '../components/SankeyJourneyPanel'
 import ShapImpactPanel from '../components/ShapImpactPanel'
 import UsageHeatmap from '../components/UsageHeatmap'
 import { useDashboard } from '../hooks/useDashboard'
@@ -555,6 +559,22 @@ export default function DashboardPage({ initialAudience = 'user' }: DashboardPag
                   <UsageHeatmap cells={executive?.usage_heatmap} />
                   <EngagementScatter points={executive?.engagement_scatter} />
                 </div>
+                <div className="grid two-column">
+                  <CalendarHeatmap days={executive?.calendar_heatmap} />
+                  <SankeyJourneyPanel graph={executive?.journey_sankey} />
+                </div>
+                <div className="grid two-column">
+                  <DistributionPanel
+                    title="Box Plot + Histogram: Calorie Burn Distribution"
+                    subtitle="Validates whether average calories are representative or driven by outliers."
+                    summary={executive?.calorie_distribution}
+                  />
+                  <DistributionPanel
+                    title="Box Plot + Histogram: Visit Duration Distribution"
+                    subtitle="Shows spread of session duration for staffing, class length, and usage-quality decisions."
+                    summary={executive?.duration_distribution}
+                  />
+                </div>
               </div>
             )}
 
@@ -914,6 +934,9 @@ export default function DashboardPage({ initialAudience = 'user' }: DashboardPag
             </div>
             <div className="grid two-column">
               <LifestyleScatterPanel points={lifestyle?.scatter_points} loading={dashboard.loading} />
+              <RadarProfilePanel metrics={lifestyle?.radar_metrics} />
+            </div>
+            <div className="grid two-column">
               <section className="panel">
                 <h3 className="panel-title">User Cluster Personas</h3>
                 {lifestyle?.profile_cards.length ? (

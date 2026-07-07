@@ -75,6 +75,7 @@ class LifestyleProfilesSection(BaseModel):
     activity_by_cluster: ChartData
     stress_by_cluster: ChartData
     daily_steps_by_cluster: ChartData
+    radar_metrics: list["RadarMetric"]
     profile_cards: list[LifestyleProfileCard]
     scatter_points: list[LifestyleScatterPoint]
 
@@ -92,6 +93,10 @@ class ExecutiveSummarySection(BaseModel):
     location_mix: ChartData
     workout_mix: ChartData
     usage_heatmap: list["UsageHeatmapCell"]
+    calendar_heatmap: list["CalendarHeatmapDay"]
+    calorie_distribution: "DistributionSummary"
+    duration_distribution: "DistributionSummary"
+    journey_sankey: "SankeyGraph"
     engagement_scatter: list["EngagementScatterPoint"]
 
 
@@ -168,6 +173,25 @@ class UsageHeatmapCell(BaseModel):
     session_count: int
 
 
+class CalendarHeatmapDay(BaseModel):
+    date: str
+    month: str
+    weekday: str
+    session_count: int
+
+
+class DistributionSummary(BaseModel):
+    metric: str
+    unit: str
+    min_value: float
+    q1: float
+    median: float
+    q3: float
+    max_value: float
+    outlier_count: int
+    histogram: ChartData
+
+
 class EngagementScatterPoint(BaseModel):
     user_id: str
     workout_type: str
@@ -182,6 +206,34 @@ class ModelFeatureImpact(BaseModel):
     impact: float
     direction: str
     explanation: str
+
+
+class SankeyNode(BaseModel):
+    id: str
+    label: str
+    group: str
+
+
+class SankeyLink(BaseModel):
+    source: str
+    target: str
+    value: int
+    label: str
+
+
+class SankeyGraph(BaseModel):
+    nodes: list[SankeyNode]
+    links: list[SankeyLink]
+
+
+class RadarMetric(BaseModel):
+    cluster_id: int
+    label: str
+    sleep_score: float
+    activity_score: float
+    stress_score: float
+    readiness_score: float
+    recovery_score: float
 
 
 class DashboardWorkspaceSection(BaseModel):
