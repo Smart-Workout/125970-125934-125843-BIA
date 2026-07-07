@@ -1,4 +1,5 @@
 import { FormEvent, useState } from 'react'
+import FormattedText from './FormattedText'
 import { useChat } from '../hooks/useChat'
 import { GeneratedPlanResponse } from '../types/workout.types'
 
@@ -40,11 +41,11 @@ export default function ChatPanel({ plan }: ChatPanelProps) {
           </button>
         </form>
         {error && <p className="error-banner">{error}</p>}
-        <div className="grid" style={{ marginTop: 14 }}>
+        <div className="chat-message-list">
           {messages.map((item, index) => (
-            <div key={`${item.role}-${index}`} className="panel" style={{ background: item.role === 'user' ? '#f8fafc' : '#f4f9fb' }}>
-              <p style={{ margin: 0, fontWeight: 750 }}>{item.role === 'user' ? 'You' : 'Smart Workout'}</p>
-              <p style={{ margin: '6px 0 0' }}>{item.text}</p>
+            <div key={`${item.role}-${index}`} className={`chat-message ${item.role}`}>
+              <p className="chat-message-author">{item.role === 'user' ? 'You' : 'Smart Workout'}</p>
+              <FormattedText text={item.text} />
             </div>
           ))}
         </div>
@@ -64,9 +65,9 @@ export default function ChatPanel({ plan }: ChatPanelProps) {
           <div className="grid">
             {lastResponse.retrieved_snippets.map((snippet, index) => (
               <div key={`${snippet.source}-${index}`} className="snippet">
-                <p style={{ margin: 0, fontSize: 12, fontWeight: 780 }}>{snippet.category}</p>
-                <p className="muted" style={{ margin: '3px 0 8px', fontSize: 12 }}>{snippet.source}</p>
-                <p style={{ margin: 0 }}>{snippet.text}</p>
+                <p className="snippet-title">{snippet.category}</p>
+                <p className="muted snippet-source">{snippet.source}</p>
+                <FormattedText text={snippet.text} />
               </div>
             ))}
           </div>

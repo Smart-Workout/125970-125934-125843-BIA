@@ -1,4 +1,5 @@
 import { GeneratedPlanResponse } from '../types/workout.types'
+import FormattedText from './FormattedText'
 
 interface PlanCardProps {
   plan?: GeneratedPlanResponse | null
@@ -79,7 +80,7 @@ export default function PlanCard({ plan }: PlanCardProps) {
                 <span className="status-chip ready">{snippet.category}</span>
                 <span className="rag-source">{snippet.source}</span>
               </div>
-              <p className="rag-snippet-text">{snippet.text}</p>
+              <FormattedText text={snippet.text} />
             </article>
           ))}
         </div>

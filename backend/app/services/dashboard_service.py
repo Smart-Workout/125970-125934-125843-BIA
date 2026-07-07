@@ -4,9 +4,11 @@ import json
 from app.core.config import settings
 from app.schemas.common import ChartData
 from app.schemas.dashboard import (
+    CalendarHeatmapDay,
     DashboardSummaryResponse,
     DashboardFilterOptions,
     DashboardWorkspaceSection,
+    DistributionSummary,
     EngagementScatterPoint,
     ExecutiveSummarySection,
     ExercisePlanDashboardSection,
@@ -16,8 +18,12 @@ from app.schemas.dashboard import (
     ModelFeatureImpact,
     NutritionFoodItem,
     NutritionPlanSection,
+    RadarMetric,
     RelationalLocationRow,
     RelationalMembershipSection,
+    SankeyGraph,
+    SankeyLink,
+    SankeyNode,
     SourceGraph,
     SourceGraphEdge,
     SourceGraphNode,
@@ -254,6 +260,21 @@ def _build_lifestyle_profiles_section() -> LifestyleProfilesSection:
 
     sorted_profiles = sorted(profile_rows, key=lambda row: _to_int(row.get("archetype_cluster")))
     labels = [f"Cluster {row.get('archetype_cluster', '?')}" for row in sorted_profiles]
+    radar_metrics = [
+        RadarMetric(
+            cluster_id=_to_int(row.get("archetype_cluster")),
+            label=row.get("suggested_archetype_label", "Lifestyle archetype"),
+            sleep_score=round(min((_to_float(row.get("sleep_duration")) / 9) * 100, 100), 1),
+            activity_score=round(min(_to_float(row.get("physical_activity_level")), 100), 1),
+            stress_score=round(max(0, 100 - (_to_float(row.get("stress_level")) * 10)), 1),
+            readiness_score=round(min((_to_float(row.get("readiness_score")) / 10) * 100, 100), 1),
+            recovery_score=round(
+                min(((_to_float(row.get("quality_of_sleep")) * 8) + max(0, 100 - (_to_float(row.get("heart_rate")) - 55) * 2)) / 2, 100),
+                1,
+            ),
+        )
+        for row in sorted_profiles
+    ]
 
     return LifestyleProfilesSection(
         silhouette_scores=ChartData(
@@ -280,6 +301,7 @@ def _build_lifestyle_profiles_section() -> LifestyleProfilesSection:
             labels=labels,
             values=[round(_to_float(row.get("daily_steps")), 2) for row in sorted_profiles],
         ),
+        radar_metrics=radar_metrics,
         profile_cards=[
             LifestyleProfileCard(
                 cluster_id=_to_int(row.get("archetype_cluster")),
@@ -339,6 +361,67 @@ def _average(values: list[float]) -> float:
     return round(sum(values) / len(values), 2) if values else 0.0
 
 
+def _percentile(sorted_values: list[float], percentile: float) -> float:
+    if not sorted_values:
+        return 0.0
+    if len(sorted_values) == 1:
+        return round(sorted_values[0], 2)
+    position = (len(sorted_values) - 1) * percentile
+    lower = int(position)
+    upper = min(lower + 1, len(sorted_values) - 1)
+    weight = position - lower
+    return round(sorted_values[lower] * (1 - weight) + sorted_values[upper] * weight, 2)
+
+
+def _build_distribution(values: list[float], metric: str, unit: str, bin_count: int = 8) -> DistributionSummary:
+    clean_values = sorted(value for value in values if value > 0)
+    if not clean_values:
+        return DistributionSummary(
+            metric=metric,
+            unit=unit,
+            min_value=0,
+            q1=0,
+            median=0,
+            q3=0,
+            max_value=0,
+            outlier_count=0,
+            histogram=ChartData(labels=[], values=[]),
+        )
+
+    min_value = round(clean_values[0], 2)
+    max_value = round(clean_values[-1], 2)
+    q1 = _percentile(clean_values, 0.25)
+    median = _percentile(clean_values, 0.5)
+    q3 = _percentile(clean_values, 0.75)
+    iqr = q3 - q1
+    outlier_limit = q3 + (1.5 * iqr)
+    outlier_count = sum(1 for value in clean_values if value > outlier_limit)
+    width = (max_value - min_value) / bin_count if max_value > min_value else 1
+    buckets = [0 for _ in range(bin_count)]
+    labels = []
+
+    for value in clean_values:
+        index = min(int((value - min_value) / width), bin_count - 1)
+        buckets[index] += 1
+
+    for index in range(bin_count):
+        start = min_value + (width * index)
+        end = min_value + (width * (index + 1))
+        labels.append(f"{round(start)}-{round(end)}")
+
+    return DistributionSummary(
+        metric=metric,
+        unit=unit,
+        min_value=min_value,
+        q1=q1,
+        median=median,
+        q3=q3,
+        max_value=max_value,
+        outlier_count=outlier_count,
+        histogram=ChartData(labels=labels, values=[float(value) for value in buckets]),
+    )
+
+
 def _parse_locations(value: str | None) -> set[str] | None:
     if not value:
         return None
@@ -359,6 +442,61 @@ def _build_filter_options(session_rows: list[dict[str, str]]) -> DashboardFilter
         locations=sorted({row.get("location", "") for row in session_rows if row.get("location")}),
         genders=sorted({row.get("gender", "") for row in session_rows if row.get("gender")}),
     )
+
+
+def _build_calendar_heatmap(filtered_rows: list[dict[str, str]]) -> list[CalendarHeatmapDay]:
+    day_counts: Counter[tuple[str, str, str]] = Counter()
+    for row in filtered_rows:
+        date = row.get("session_date") or ""
+        if not date:
+            continue
+        day_counts[(date, row.get("session_month") or "Unknown", row.get("session_weekday") or "Unknown")] += 1
+
+    return [
+        CalendarHeatmapDay(date=date, month=month, weekday=weekday, session_count=count)
+        for (date, month, weekday), count in sorted(day_counts.items())[-90:]
+    ]
+
+
+def _build_journey_sankey(filtered_rows: list[dict[str, str]]) -> SankeyGraph:
+    subscription_to_location: Counter[tuple[str, str]] = Counter()
+    location_to_workout: Counter[tuple[str, str]] = Counter()
+    workout_to_intensity: Counter[tuple[str, str]] = Counter()
+
+    for row in filtered_rows:
+        subscription = row.get("subscription_plan") or "Unknown plan"
+        location = row.get("location") or "Unknown location"
+        workout = row.get("workout_type") or "Unknown workout"
+        calories = _to_float(row.get("calories_burned"))
+        duration = _to_float(row.get("duration_minutes"))
+        calories_per_minute = calories / duration if duration else 0.0
+        if calories_per_minute >= 8.5:
+            intensity = "High burn"
+        elif calories_per_minute >= 5.5:
+            intensity = "Medium burn"
+        else:
+            intensity = "Low burn"
+
+        subscription_to_location[(f"plan:{subscription}", f"location:{location}")] += 1
+        location_to_workout[(f"location:{location}", f"workout:{workout}")] += 1
+        workout_to_intensity[(f"workout:{workout}", f"intensity:{intensity}")] += 1
+
+    links: list[SankeyLink] = []
+    for source, target_counter in [
+        ("subscription", subscription_to_location),
+        ("location", location_to_workout),
+        ("workout", workout_to_intensity),
+    ]:
+        for (start, end), value in target_counter.most_common(8):
+            links.append(SankeyLink(source=start, target=end, value=value, label=source))
+
+    node_ids = {link.source for link in links} | {link.target for link in links}
+    nodes = [
+        SankeyNode(id=node_id, label=node_id.split(":", 1)[1], group=node_id.split(":", 1)[0])
+        for node_id in sorted(node_ids)
+    ]
+
+    return SankeyGraph(nodes=nodes, links=links)
 
 
 def _build_executive_summary(filtered_rows: list[dict[str, str]]) -> ExecutiveSummarySection:
@@ -403,6 +541,10 @@ def _build_executive_summary(filtered_rows: list[dict[str, str]]) -> ExecutiveSu
             UsageHeatmapCell(weekday=weekday, hour=hour, session_count=count)
             for (weekday, hour), count in sorted(heatmap_counts.items())
         ],
+        calendar_heatmap=_build_calendar_heatmap(filtered_rows),
+        calorie_distribution=_build_distribution(calories, "Calories burned per session", "kcal"),
+        duration_distribution=_build_distribution(durations, "Visit duration per session", "minutes"),
+        journey_sankey=_build_journey_sankey(filtered_rows),
         engagement_scatter=[
             EngagementScatterPoint(
                 user_id=user_id,

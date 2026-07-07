@@ -76,10 +76,9 @@ export interface LifestyleScatterPoint {
 export interface LifestyleProfilesSection {
   silhouette_scores: ChartData
   sleep_duration_by_cluster: ChartData
-  quality_of_sleep_by_cluster: ChartData
   activity_by_cluster: ChartData
   stress_by_cluster: ChartData
-  daily_steps_by_cluster: ChartData
+  radar_metrics: RadarMetric[]
   profile_cards: LifestyleProfileCard[]
   scatter_points: LifestyleScatterPoint[]
 }
@@ -110,6 +109,10 @@ export interface ExecutiveSummarySection {
   location_mix: ChartData
   workout_mix: ChartData
   usage_heatmap: UsageHeatmapCell[]
+  calendar_heatmap: CalendarHeatmapDay[]
+  calorie_distribution: DistributionSummary
+  duration_distribution: DistributionSummary
+  journey_sankey: SankeyGraph
   engagement_scatter: EngagementScatterPoint[]
 }
 
@@ -183,6 +186,25 @@ export interface UsageHeatmapCell {
   session_count: number
 }
 
+export interface CalendarHeatmapDay {
+  date: string
+  month: string
+  weekday: string
+  session_count: number
+}
+
+export interface DistributionSummary {
+  metric: string
+  unit: string
+  min_value: number
+  q1: number
+  median: number
+  q3: number
+  max_value: number
+  outlier_count: number
+  histogram: ChartData
+}
+
 export interface EngagementScatterPoint {
   user_id: string
   workout_type: string
@@ -215,6 +237,34 @@ export interface SourceGraph {
   title: string
   nodes: SourceGraphNode[]
   edges: SourceGraphEdge[]
+}
+
+export interface SankeyNode {
+  id: string
+  label: string
+  group: string
+}
+
+export interface SankeyLink {
+  source: string
+  target: string
+  value: number
+  label: string
+}
+
+export interface SankeyGraph {
+  nodes: SankeyNode[]
+  links: SankeyLink[]
+}
+
+export interface RadarMetric {
+  cluster_id: number
+  label: string
+  sleep_score: number
+  activity_score: number
+  stress_score: number
+  readiness_score: number
+  recovery_score: number
 }
 
 export interface DashboardWorkspaceSection {
