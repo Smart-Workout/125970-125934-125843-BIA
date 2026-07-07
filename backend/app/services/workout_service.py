@@ -8,10 +8,12 @@ from app.schemas.workout import (
     GeneratedPlanResponse,
     GeneratePlanRequest,
     IntensityPredictionResponse,
+    RecommendationMapping,
     PlanDay,
     PlanExercise,
     PreprocessResponse,
     ProcessedProfile,
+    ReadinessFactorScore,
     ReadinessResult,
     UserProfileRequest,
 )
@@ -244,6 +246,74 @@ def _training_rule(goal: str, predicted_intensity: str, readiness_band: str) -> 
     return sets, reps, rest_seconds
 
 
+def _decision_mapping(
+    readiness_score: int,
+    readiness_band: str,
+    predicted_intensity: str,
+    exercise_target_per_session: int,
+    sets_per_exercise: int,
+    reps: str,
+    rest_seconds: int,
+) -> RecommendationMapping:
+    intensity_score = {"Low": 40, "Medium": 65, "High": 90}.get(predicted_intensity, 65)
+    raw_score = round((readiness_score * 0.6) + (intensity_score * 0.4))
+    cap_score = raw_score
+    readiness_cap_applied = False
+
+    if readiness_band == "Low" and raw_score > 54:
+        cap_score = 54
+        readiness_cap_applied = True
+    elif readiness_band == "Medium" and raw_score > 84:
+        cap_score = 84
+        readiness_cap_applied = True
+
+    if readiness_band == "High" and predicted_intensity == "High" and cap_score >= 85:
+        recommendation_level = "Performance / Advanced"
+    elif cap_score < 55:
+        recommendation_level = "Recovery / Light"
+    elif cap_score < 70:
+        recommendation_level = "Foundation / Controlled"
+    else:
+        recommendation_level = "Progressive / Standard"
+
+    if readiness_band == "Low":
+        volume_multiplier = 0.75
+        primary_action = "Reduce sets or exercise count, keep movement controlled, and extend rest."
+    elif readiness_band == "High" and predicted_intensity == "High":
+        volume_multiplier = 1.15
+        primary_action = "Allow the full high-intensity plan with the highest safe volume."
+    elif predicted_intensity == "High":
+        volume_multiplier = 1.05
+        primary_action = "Use higher workload, but keep readiness checks active before adding volume."
+    elif predicted_intensity == "Low":
+        volume_multiplier = 0.90
+        primary_action = "Prioritize technique, lower impact choices, and gradual progression."
+    else:
+        volume_multiplier = 1.00
+        primary_action = "Use the standard progression for the selected goal and focus area."
+
+    return RecommendationMapping(
+        readiness_score=readiness_score,
+        readiness_band=readiness_band,
+        predicted_intensity=predicted_intensity,
+        intensity_score=intensity_score,
+        combined_training_score=cap_score,
+        recommendation_level=recommendation_level,
+        volume_multiplier=volume_multiplier,
+        exercise_target_per_session=exercise_target_per_session,
+        sets_per_exercise=sets_per_exercise,
+        reps=reps,
+        rest_seconds=rest_seconds,
+        readiness_cap_applied=readiness_cap_applied,
+        primary_action=primary_action,
+        rationale=[
+            "Final score = 60% readiness score + 40% predicted intensity score.",
+            "Readiness can cap the recommendation when recovery or safety signals are low.",
+            "Intensity selects the workload target, while readiness adjusts volume, rest, and exercise count.",
+        ],
+    )
+
+
 def _safety_notes(profile: ProcessedProfile, readiness: ReadinessResult, predicted_intensity: str, equipment: list[str]) -> list[str]:
     notes = [
         "This system provides decision support only and is not medical advice.",
@@ -268,37 +338,62 @@ def _readiness(
 ) -> ReadinessResult:
     score = 100
     factors: list[str] = []
+    score_breakdown: list[ReadinessFactorScore] = []
 
     if sleep_hours < 6:
         score -= 25
-        factors.append("Sleep is below 6 hours, so training volume should be reduced.")
+        detail = "Sleep is below 6 hours, so training volume should be reduced."
+        factors.append(detail)
+        score_breakdown.append(ReadinessFactorScore(signal="sleep_hours", label="Sleep", impact=-25, detail=detail))
     else:
-        factors.append("Sleep duration is acceptable.")
+        detail = "Sleep duration is acceptable."
+        factors.append(detail)
+        score_breakdown.append(ReadinessFactorScore(signal="sleep_hours", label="Sleep", impact=0, detail=detail))
 
     if stress_level >= 8:
         score -= 15
-        factors.append("Stress level is high.")
+        detail = "Stress level is high."
+        factors.append(detail)
+        score_breakdown.append(ReadinessFactorScore(signal="stress_level", label="Stress", impact=-15, detail=detail))
     elif stress_level >= 5:
         score -= 8
-        factors.append("Stress level is moderate.")
+        detail = "Stress level is moderate."
+        factors.append(detail)
+        score_breakdown.append(ReadinessFactorScore(signal="stress_level", label="Stress", impact=-8, detail=detail))
     else:
-        factors.append("Stress level is low.")
+        detail = "Stress level is low."
+        factors.append(detail)
+        score_breakdown.append(ReadinessFactorScore(signal="stress_level", label="Stress", impact=0, detail=detail))
 
     if systolic_bp >= 140 or diastolic_bp >= 90:
         score -= 20
-        factors.append("Blood pressure is elevated; avoid maximal heavy lifting.")
+        detail = "Blood pressure is elevated; avoid maximal heavy lifting."
+        factors.append(detail)
+        score_breakdown.append(ReadinessFactorScore(signal="blood_pressure", label="Blood pressure", impact=-20, detail=detail))
     else:
-        factors.append("Blood pressure is in normal training range.")
+        detail = "Blood pressure is in normal training range."
+        factors.append(detail)
+        score_breakdown.append(ReadinessFactorScore(signal="blood_pressure", label="Blood pressure", impact=0, detail=detail))
 
     if resting_heart_rate > 90:
         score -= 15
-        factors.append("Resting heart rate is high; reduce intensity today.")
+        detail = "Resting heart rate is high; reduce intensity today."
+        factors.append(detail)
+        score_breakdown.append(ReadinessFactorScore(signal="resting_heart_rate", label="Resting HR", impact=-15, detail=detail))
     else:
-        factors.append("Resting heart rate is within normal training range.")
+        detail = "Resting heart rate is within normal training range."
+        factors.append(detail)
+        score_breakdown.append(ReadinessFactorScore(signal="resting_heart_rate", label="Resting HR", impact=0, detail=detail))
 
     if bmi >= 30:
         score -= 10
-        factors.append("BMI is above 30; use controlled, lower-impact progression.")
+        detail = "BMI is above 30; use controlled, lower-impact progression."
+        factors.append(detail)
+        score_breakdown.append(ReadinessFactorScore(signal="bmi", label="BMI", impact=-10, detail=detail))
+    else:
+        detail = "BMI does not require a low-impact readiness cap."
+        factors.append(detail)
+        score_breakdown.append(ReadinessFactorScore(signal="bmi", label="BMI", impact=0, detail=detail))
 
     score = max(0, min(100, score))
     if score >= 80:
@@ -308,7 +403,7 @@ def _readiness(
     else:
         band = "Low"
 
-    return ReadinessResult(band=band, score=score, factors=factors)
+    return ReadinessResult(band=band, score=score, factors=factors, score_breakdown=score_breakdown)
 
 
 def preprocess_profile(payload: UserProfileRequest) -> PreprocessResponse:
@@ -350,15 +445,17 @@ def preprocess_profile(payload: UserProfileRequest) -> PreprocessResponse:
 def predict_calories(payload: UserProfileRequest) -> CaloriePredictionResponse:
     processed = preprocess_profile(payload).processed_profile
     predicted_intensity, _, intensity_bundle = ml_service.predict_intensity(processed)
-    prediction, calorie_bundle = ml_service.predict_calories(processed, intensity_band=predicted_intensity)
+    model_rate, calorie_bundle = ml_service.predict_calories(processed, intensity_band=predicted_intensity)
+    assumed_session_hours = {"Low": 0.55, "Medium": 0.70, "High": 0.85}.get(predicted_intensity, 0.70)
+    session_prediction = model_rate * assumed_session_hours
     return CaloriePredictionResponse(
         mock_mode=False,
-        prediction=round(prediction, 1),
-        unit="kcal_per_hour",
+        prediction=round(session_prediction, 1),
+        unit="kcal_per_planned_session",
         model_name=calorie_bundle.name,
         confidence_note=(
-            "Prediction produced by the saved Week 2 regression pipeline. "
-            "User form values are translated into the model feature space using proxy fields."
+            "Prediction is displayed as an estimated planned-session burn. "
+            "The saved Week 2 regression model estimates burn rate, then the dashboard scales it by an intensity-based session duration."
         ),
         input_summary={
             "target_body_part": payload.target_body_part,
@@ -366,6 +463,8 @@ def predict_calories(payload: UserProfileRequest) -> CaloriePredictionResponse:
             "sessions_per_week": payload.sessions_per_week,
             "predicted_intensity_proxy": predicted_intensity,
             "intensity_model": intensity_bundle.name,
+            "model_rate_kcal_per_hour": round(model_rate, 1),
+            "assumed_session_hours": assumed_session_hours,
         },
     )
 
@@ -380,6 +479,7 @@ def predict_intensity(payload: UserProfileRequest) -> IntensityPredictionRespons
         class_probabilities=probabilities,
         model_name=intensity_bundle.name,
         readiness_band=preprocessed.readiness.band,
+        readiness_score=preprocessed.readiness.score,
         explanation=preprocessed.readiness.factors,
     )
 
@@ -407,6 +507,15 @@ def generate_plan(payload: GeneratePlanRequest) -> GeneratedPlanResponse:
     focus_rotation = _rotation_for_profile(profile, readiness_band)
     sets, reps, rest_seconds = _training_rule(profile.goal, payload.predicted_intensity, readiness_band)
     exercises_per_day = _exercise_count(payload.predicted_intensity, readiness_band)
+    decision_mapping = _decision_mapping(
+        readiness_score=preprocessed.readiness.score,
+        readiness_band=readiness_band,
+        predicted_intensity=payload.predicted_intensity,
+        exercise_target_per_session=exercises_per_day,
+        sets_per_exercise=sets,
+        reps=reps,
+        rest_seconds=rest_seconds,
+    )
     seen_ids: set[str] = set()
     schedule: list[PlanDay] = []
     normalized_equipment = _normalize_equipment(payload.profile.available_equipment)
@@ -454,6 +563,7 @@ def generate_plan(payload: GeneratePlanRequest) -> GeneratedPlanResponse:
         plan_type=f"{profile.sessions_per_week}-day {profile.goal} plan for {FOCUS_TITLE_MAP.get(profile.target_body_part, profile.target_body_part.title()).lower()} emphasis",
         readiness_band=readiness_band,
         predicted_intensity=payload.predicted_intensity,
+        decision_mapping=decision_mapping,
         weekly_schedule=schedule,
         safety_notes=_safety_notes(profile, preprocessed.readiness, payload.predicted_intensity, normalized_equipment),
         rag_snippets=rag_snippets or [

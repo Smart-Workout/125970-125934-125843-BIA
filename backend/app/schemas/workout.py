@@ -50,10 +50,18 @@ class ProcessedProfile(BaseModel):
     goal: str
 
 
+class ReadinessFactorScore(BaseModel):
+    signal: str
+    label: str
+    impact: int
+    detail: str
+
+
 class ReadinessResult(BaseModel):
     band: IntensityBand
     score: int
     factors: list[str]
+    score_breakdown: list[ReadinessFactorScore]
 
 
 class PreprocessResponse(BaseModel):
@@ -77,6 +85,7 @@ class IntensityPredictionResponse(BaseModel):
     class_probabilities: dict[str, float]
     model_name: str
     readiness_band: IntensityBand
+    readiness_score: int
     explanation: list[str]
 
 
@@ -119,12 +128,30 @@ class PlanDay(BaseModel):
     exercises: list[PlanExercise]
 
 
+class RecommendationMapping(BaseModel):
+    readiness_score: int
+    readiness_band: IntensityBand
+    predicted_intensity: IntensityBand
+    intensity_score: int
+    combined_training_score: int
+    recommendation_level: str
+    volume_multiplier: float
+    exercise_target_per_session: int
+    sets_per_exercise: int
+    reps: str
+    rest_seconds: int
+    readiness_cap_applied: bool
+    primary_action: str
+    rationale: list[str]
+
+
 class GeneratedPlanResponse(BaseModel):
     mock_mode: bool
     plan_id: str
     plan_type: str
     readiness_band: IntensityBand
     predicted_intensity: IntensityBand
+    decision_mapping: RecommendationMapping
     weekly_schedule: list[PlanDay]
     safety_notes: list[str]
     rag_snippets: list[RetrievedSnippet]
