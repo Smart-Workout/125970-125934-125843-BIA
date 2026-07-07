@@ -219,15 +219,121 @@ The project is expected to deliver a functional DSS/BIS prototype that fulfils t
     \item \textbf{BI dashboard:} React-based dashboard (with embedded Tableau views) presenting a relational gym membership view, multi-dataset descriptive analytics, personalized predictions, prescribed plan, RAG-sourced explanation, and embedded chat.
 \end{itemize}
 
-% ==================== CHAPTER 2 ====================
-\chapter{Problem Definition}
+% \section{Organization of the Study}
 
+% ==================== CHAPTER 2 ====================
+\chapter{Literature Review}
+
+The concept of leveraging data-driven systems to enhance physical training has gained significant traction in recent years. In this chapter, an outline of the foundational theories regarding Decision Support Systems (DSS), Business Intelligence (BI), and modern Machine Learning (ML) techniques will be presented. This review is divided into four primary sections: the architecture of BI systems in fitness, the application of predictive modeling for physiological outcomes, the integration of Retrieval-Augmented Generation (RAG) for knowledge grounding, and the impact of lifestyle factors on training readiness. These discussions provide the necessary theoretical framework to support the development of the Smart Workout system.
+
+\section{Decision Support and Business Intelligence Systems}
+
+Decision Support Systems (DSS) are defined as interactive computer-based systems intended to help decision-makers use communications technologies, data, documents, knowledge, and models to identify and solve problems. According to Power~\cite{power2002}, these systems are essential for managers and individuals to process complex information that exceeds human cognitive limits.
+
+In the context of the fitness industry, Business Intelligence (BI) technology enables the integration of multi-source data to provide actionable insights. Chaudhuri et al.~\cite{chaudhuri2011} emphasize that effective BI systems should support descriptive, predictive, and prescriptive analytics. The proposed Smart Workout system adopts this three-layer approach by transforming raw gym membership and check-in records into descriptive insights, predictive analytics, and prescriptive training recommendations.
+
+\section{Machine Learning in Exercise Analytics}
+
+The predictive layer of the Smart Workout system relies on supervised machine learning models to estimate physiological responses such as calorie-burn rates and workout intensity. Modern research frequently utilizes gradient-boosted trees, such as XGBoost, for high-performance classification and regression tasks. Chen and Guestrin~\cite{chen2016} demonstrated that XGBoost provides a scalable and accurate tree-boosting framework that outperforms traditional linear baselines on complex datasets.
+
+Furthermore, interpretability is a critical requirement for health-related decision support systems to improve user trust and transparency. The SHAP (SHapley Additive exPlanations) method, proposed by Lundberg and Lee~\cite{lundberg2017}, enables feature-attribution analysis by quantifying the contribution of each input feature to a model's prediction. In the proposed Smart Workout system, SHAP is used to explain how factors such as demographics and heart rate influence calorie-burn estimation and workout-intensity recommendations.
+
+\section{Retrieval-Augmented Generation (RAG)}
+
+While large language models (LLMs) possess vast parametric memory, they often struggle with factual accuracy and hallucinations when providing specific instructions. To address this, Lewis et al.~\cite{lewis2020} introduced Retrieval-Augmented Generation (RAG), a technique that retrieves relevant document snippets from a vector store to ground the model's responses. In the Smart Workout system, this technology is used to index exercise catalogues (ExerciseDB) and curated training rules to provide grounded rationale and equipment substitutions. By utilizing sentence embeddings to match user queries with verified fitness data, the system ensures that the prescriptive plans are supported by evidence rather than generated in a vacuum.
+
+\section{Lifestyle Factors and Training Readiness}
+
+Effective physical training cannot be decoupled from an individual's recovery and lifestyle patterns. Research into sleep health and stress levels has shown that these factors significantly influence an individual's readiness to perform high-intensity exercise. The use of K-Means clustering allows for the identification of lifestyle archetypes, which categorize users based on their sleep duration, activity levels, and stress scores. By integrating these descriptive profiles into the prescriptive engine, the system can modulate training volume and load to match the user's current physical condition. This holistic approach ensures that the generated workout plans are not only personalized to users' goals but also adaptive to daily physiological constraints.
+
+\section{Chapter Summary}
+
+Presented in this chapter are the core concepts and technological approaches related to the problem of generic and non-adaptive workout planning. There are several methods to tackle this problem, including traditional coaching and static online routines, but these often fail to account for real-time personal data. Among the discussed methods, the combination of Business Intelligence (BI) layers and Retrieval-Augmented Generation (RAG)-grounded AI has the advantage of providing both high-level analytics and specific, evidence-based guidance. It has been suggested by various researchers that integrating structured data with generative models can significantly improve the reliability of decision support~\cite{power2002,lewis2020}. The following chapter outlines the research methodology and system architecture implemented to realize this integrated framework.
 
 % ==================== CHAPTER 3 ====================
-\chapter{Methodology and SuperDecisions Implementation}
+\chapter{Methodology}
 
-\section{AHP Model Structure}
+This chapter outlines the systematic approach used to develop the Smart Workout Decision Support System (DSS) and Business Intelligence System (BIS). It describes the multi-source data integration process, the machine learning pipeline for predictive modeling, and the architecture of the Retrieval-Augmented Generation (RAG) layer. Furthermore, it explains the development of the rule-based engine and the interactive dashboard interface, demonstrating how raw data is transformed into prescriptive training plans. The following sections present the data-to-decision workflow that forms the foundation of this research.
 
+\section{Research Framework and System Architecture}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\textwidth]{figures/system_architecture.png}
+    \caption{Overall architecture of the proposed Smart Workout Decision Support System.}
+    \label{fig:system_architecture}
+\end{figure}
+
+The Smart Workout system is designed around a three-layer Business Intelligence (BI) framework consisting of descriptive, predictive, and prescriptive analytics. As shown in Figure~\ref{fig:system_architecture}, the process begins with a user input form which is processed via a FastAPI backend. The architecture integrates five distinct datasets to support these layers, ensuring that the system moves beyond mere data visualization to providing actionable guidance. This modular design allows for the independent validation of each stage, from initial data preprocessing to final plan generation and RAG-grounded explanations.
+
+
+\section{Data Sources and Preprocessing}
+
+The research utilizes five real-world public datasets to ground the system in diverse fitness and lifestyle contexts, as summarized in Table~\ref{tab:datasets}. These include the Gym Database Management System for membership analytics (305,013 records), ExerciseDB for cataloging 1,500 exercises, and the Gym Members Exercise Tracking dataset (973 records) for training predictive models. Additionally, the Sleep Health \& Lifestyle and Daily Food Nutrition datasets provide the necessary context for user profiling and nutrition-aware guidance. All raw data underwent rigorous inspection, cleaning, and standardization to ensure consistency across the relational star schema and the vector store used for retrieval.
+
+\begin{table}[htbp]
+\centering
+\small
+\renewcommand{\arraystretch}{1.1}
+\caption{Summary of data sources used in the Smart Workout system.}
+\label{tab:datasets}
+\begin{tabularx}{\linewidth}{p{4.8cm}p{1.3cm}X}
+\toprule
+\textbf{Source table/file} & \textbf{Records} & \textbf{Role in the system} \\
+\midrule
+\href{https://www.kaggle.com/datasets/amoghabhinavms/gym-database-management-system}{Gym DB -- Users} (Amoghabhinavms, n.d.) & 5{,}000 & Member dimension table containing demographics, signup dates, locations, and subscription-plan keys. Supports dashboard filters and member segmentation. \\
+\href{https://www.kaggle.com/datasets/amoghabhinavms/gym-database-management-system}{Gym DB -- Check-in/check-out history} (Amoghabhinavms, n.d.) & 300{,}000 & Central session fact table containing gym visits, workout type, timestamps, duration-derived features, and calories burned. Primary descriptive and warehouse source. \\
+\href{https://www.kaggle.com/datasets/amoghabhinavms/gym-database-management-system}{Gym DB -- Subscription plans} (Amoghabhinavms, n.d.) & 3 & Plan dimension table containing monthly price and feature descriptions. Supports subscription mix and estimated recurring-revenue summaries. \\
+\href{https://www.kaggle.com/datasets/amoghabhinavms/gym-database-management-system}{Gym DB -- Gym locations} (Amoghabhinavms, n.d.) & 10 & Location dimension table containing branch city, gym type, and facilities. Supports utilization analysis and location-level plan constraints. \\
+\href{https://exercisedb.dev/}{ExerciseDB (raw flat)} (ExerciseDB, n.d.) & 1{,}500 & Exercise catalogue (body parts, equipment, target muscles, instructions). Supports the exercise recommender and RAG pipeline. \\
+\href{https://www.kaggle.com/datasets/valakhorasani/gym-members-exercise-dataset}{Gym Members Exercise Tracking} (Khorasani, 2024) & 973 & Workout sessions with calories, BPM, duration, workout type, BMI, experience. Primary ML training data. \\
+\href{https://www.kaggle.com/datasets/uom190346a/sleep-health-and-lifestyle-dataset}{Sleep Health \& Lifestyle} (Tharmalingam, 2023) & 374 & Informs lifestyle clustering and \emph{Training Readiness} rules derived from user input. \\
+\href{https://www.kaggle.com/datasets/adilshamim8/daily-food-and-nutrition-dataset}{Daily Food Nutrition} (Shamim, 2025) & 651 & Macro/calorie context on the dashboard; nutrition-aware snippets embedded in RAG. \\
+\bottomrule
+\end{tabularx}
+
+\end{table}
+
+\section{Data Architecture and Schema Design}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.7\linewidth]{figures/dataset_schema.png}
+    \caption{Integrated data architecture of the Smart Workout system showing connected and isolated datasets.}
+    \label{fig:dataset_schema}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\linewidth]{figures/gym_star_schema.png}
+    \caption{Relational star schema of the Gym Database Management System.}
+    \label{fig:gym_star_schema}
+\end{figure}
+
+
+
+The integration of multi-source datasets within the Smart Workout system requires a structured architectural design to ensure data consistency across the descriptive, predictive, and prescriptive layers. This section details the logical and physical relationships between the various data components, ranging from the core relational gym database to the isolated datasets used for lifestyle clustering and RAG retrieval. The following diagrams illustrate the complexity of the data ecosystem and how independent sources are unified through either hard foreign keys or logical joins to provide a comprehensive user profile.
+
+As shown in Figure~\ref{fig:dataset_schema}, the system utilizes an eight-dataset schema that categorizes information into connected and isolated groups. The connected group forms the primary gym star schema, which tracks user demographics, subscription plans, and check-in history to support membership analytics. Conversely, isolated datasets such as ExerciseDB, Sleep Health \& Lifestyle, and Daily Food Nutrition are integrated via logical joins based on attributes such as workout type, age, and BMI. This design allows the system to combine macro-level lifestyle insights with micro-level exercise instructions to support evidence-based training plan generation.
+
+The core of the descriptive analytics layer is supported by a relational star schema specifically designed for the Gym Database Management System, as illustrated in Figure~\ref{fig:gym_star_schema}. This schema centers on the \texttt{CHECKIN\_CHECKOUT\_HISTORY} fact table, which links to three primary dimension tables: \texttt{USERS\_DATA}, \texttt{SUBSCRIPTION\_PLANS}, and \texttt{GYM\_LOCATIONS}. By utilizing primary and foreign key relationships (e.g., \texttt{user\_id}, \texttt{gym\_id}, and \texttt{subscription\_plan}), the system can efficiently query more than 300,000 session records to identify utilization trends and subscription mix patterns. This relational foundation ensures that the BI dashboard provides a high-fidelity view of gym operations and member behavior.
+
+
+\section{Predictive Modeling Pipeline}
+
+The predictive layer employs a best-of-three model selection strategy for two primary tasks: calorie-burn-rate regression and workout-intensity classification. For the regression task, candidates include Ridge Regression, Random Forest Regressor, and XGBoost Regressor, with selection based on minimizing Root Mean Square Error (RMSE). The classification task evaluates Multinomial Logistic Regression, Random Forest, and XGBoost to categorize intensity into three levels (Low, Mid, High). Models are evaluated using 5-fold cross-validation to ensure generalizability, and SHAP (SHapley Additive exPlanations) is applied to the selected models to provide transparency regarding which physiological features most heavily influence the predictions.
+
+\section{RAG and Prescriptive Plan Generation}
+
+The prescriptive layer combines a rule-based engine with a Retrieval-Augmented Generation (RAG) knowledge layer to generate personalized training plans. The RAG system utilizes ChromaDB and sentence embeddings (all-MiniLM-L6-v2) to index exercise instructions and equipment substitution rules. When a user submits their profile, the rule-based generator integrates the predicted intensity, the calculated training readiness band, and target body parts to filter the ExerciseDB pool. This ensures that the resulting daily or weekly plans are not only specific to the user's goals but are also grounded in verified evidence retrieved from the knowledge base.
+
+\section{System Implementation and Deliverables}
+
+The final implementation is delivered as a full-stack web application utilizing React for the frontend and FastAPI for the backend orchestration. the dashboard features embedded Tableau views for relational membership analytics and lifestyle profiling, alongside custom React components for displaying prediction results and the generated workout plan. Key deliverables of this methodology include the working prototype, the validated machine learning endpoints, and the RAG-assisted chat interface. This integrated technology stack enables the system to provide a seamless transition from descriptive insight to predictive estimation and, ultimately, prescriptive action.
+
+\section{Chapter Summary}
+
+Presented in this chapter is the comprehensive methodology for constructing a data-driven decision support tool for weight training. The methods described, ranging from multi-source data cleaning to the deployment of boosted-tree models and vector databases, address the limitations of generic, non-adaptive training plans identified in earlier chapters. Among these methods, the integration of RAG-grounded AI provides the distinct advantage of delivering evidence-based explanations alongside prescriptive plans. These methodological steps ensure that the results and discussions presented in Chapter 4 are based on a robust, validated, and transparent system architecture.
 
 % ==================== CHAPTER 4 ====================
 \chapter{Results and Discussion}
@@ -236,21 +342,20 @@ The project is expected to deliver a functional DSS/BIS prototype that fulfils t
 
 
 % ==================== CHAPTER 5 ====================
-\chapter{Sensitivity Analysis}
+\chapter{Conclusion and Recommendations}
+\section{Conclusion}
 
+\section{Recommendations}
 
-% ==================== CHAPTER 6 ====================
-\chapter{Conclusion}
+\section{Future Research Directions}
+
 
 
 % ==================== REFERENCES ====================
-\chapter*{References}
-% \addcontentsline{toc}{chapter}{References}
 
-% \begin{enumerate}[label={\arabic*.}]
-%     \item Saaty, T. L. (1980). \textit{The Analytic Hierarchy Process}. McGraw-Hill.
-%     \item Creative Decisions Foundation. (2019). \textit{SuperDecisions Version 2.10}. Software used for AHP model implementation.
-%     \item Booking.com. (2026). Hotel review category scores for Naina Resort \& Spa, Sawaddi Patong Resort \& Spa by Tolani, Novotel Phuket Vintage Park Resort, Grand Mercure Phuket Patong, and M\"ovenpick Myth Hotel Patong Phuket. Data collected from screenshots on 30 June 2026. \url{https://www.booking.com/}
-% \end{enumerate}
+\cleardoublepage
+\bibliographystyle{apalike}
+\bibliography{references}
+
 
 \end{document}

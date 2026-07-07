@@ -426,32 +426,24 @@ export default function DashboardPage({ initialAudience = 'user' }: DashboardPag
                         <span>{displayStartMonth}</span>
                         <span>{displayEndMonth}</span>
                       </div>
-                      <div className="range-track-stack">
-                        <input
-                          aria-label="Start month"
-                          type="range"
-                          min={0}
-                          max={monthMax}
-                          value={displayStartMonthIndex}
-                          disabled={months.length === 0}
-                          onChange={(event) => {
-                            const nextIndex = Math.min(Number(event.target.value), displayEndMonthIndex)
-                            setStartMonth(months[nextIndex] ?? '')
-                          }}
-                        />
-                        <input
-                          aria-label="End month"
-                          type="range"
-                          min={0}
-                          max={monthMax}
-                          value={displayEndMonthIndex}
-                          disabled={months.length === 0}
-                          onChange={(event) => {
-                            const nextIndex = Math.max(Number(event.target.value), displayStartMonthIndex)
-                            setEndMonth(months[nextIndex] ?? '')
-                          }}
-                        />
-                      </div>
+                      <Range
+                        min={0}
+                        max={monthMax}
+                        value={[displayStartMonthIndex, displayEndMonthIndex]}
+                        onChange={(value: number[]) => {
+                          setStartMonth(months[value[0]] ?? '');
+                          setEndMonth(months[value[1]] ?? '');
+                        }}
+                        disabled={months.length === 0}
+                        allowCross={false}
+                        style={{ marginTop: 8 }}
+                        trackStyle={[{ backgroundColor: '#4f46e5' }]}
+                        handleStyle={[
+                          { borderColor: '#4f46e5', backgroundColor: '#4f46e5' },
+                          { borderColor: '#4f46e5', backgroundColor: '#4f46e5' }
+                        ]}
+                        railStyle={{ backgroundColor: '#e5e7eb' }}
+                      />
                     </>
                   ) : (
                     <div className="month-picker">
