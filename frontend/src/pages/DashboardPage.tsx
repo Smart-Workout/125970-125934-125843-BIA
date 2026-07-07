@@ -135,6 +135,21 @@ const clusterDecisionAction = (card: LifestyleProfileCard) => {
   return 'Use balanced progression with normal readiness checks.'
 }
 
+const foodPlanningRole = (category: string) => {
+  const normalized = category.toLowerCase()
+  if (normalized.includes('protein') || normalized.includes('meat') || normalized.includes('egg')) return 'Plan as recovery or muscle-support food.'
+  if (normalized.includes('grain') || normalized.includes('carb')) return 'Plan as training-energy food.'
+  if (normalized.includes('fruit') || normalized.includes('vegetable')) return 'Plan as micronutrient and habit-support food.'
+  if (normalized.includes('drink') || normalized.includes('water')) return 'Plan as hydration support.'
+  return 'Use as a meal-category option for nutrition planning.'
+}
+
+const mostCommonLabel = (chart?: ChartData) => {
+  if (!chart?.values.length) return 'Waiting for data'
+  const index = chart.values.indexOf(Math.max(...chart.values))
+  return chart.labels[index] ?? 'Waiting for data'
+}
+
 interface DashboardPageProps {
   initialAudience?: AudienceMode
 }
@@ -214,8 +229,21 @@ export default function DashboardPage({ initialAudience = 'user' }: DashboardPag
   const dominantCluster = lifestyle?.profile_cards.length
     ? [...lifestyle.profile_cards].sort((a, b) => b.record_count - a.record_count)[0]
     : null
+  const dominantReadinessSegment = dominantCluster ? clusterDecisionLabel(dominantCluster) : null
+  const readinessSegmentDetail = dominantCluster
+    ? `${dominantCluster.label}: readiness ${dominantCluster.readiness_score}/100, stress ${dominantCluster.stress_level}`
+    : 'Use readiness segments to decide whether to push progression, retention support, or recovery-first guidance.'
   const totalScheduledExercises = plan?.weekly_schedule.reduce((sum, day) => sum + day.exercises.length, 0) ?? 0
   const firstFocus = plan?.weekly_schedule[0]?.focus ?? null
+  const nutritionMealTypes = nutrition?.meal_calories.labels.length ?? 0
+  const nutritionCategoryNames = [...new Set(nutrition?.top_protein_foods.map((item) => item.category).filter(Boolean) ?? [])]
+  const nutritionTopMealType = mostCommonLabel(nutrition?.meal_calories)
+  const nutritionTopMacro = mostCommonLabel(nutrition?.macro_mix)
+  const nutritionCategoryMix: ChartData = {
+    labels: nutritionCategoryNames,
+    values: nutritionCategoryNames.map((category) => nutrition?.top_protein_foods.filter((item) => item.category === category).length ?? 0),
+  }
+  const exerciseEquipmentTypes = exerciseDashboard?.equipment_coverage.labels.length ?? 0
   const months = filters?.months ?? []
   const monthMax = Math.max(months.length - 1, 0)
   const startMonthIndex = startMonth && months.includes(startMonth) ? months.indexOf(startMonth) : 0
@@ -260,6 +288,17 @@ export default function DashboardPage({ initialAudience = 'user' }: DashboardPag
     ))
   }
 
+  const setRangeMonth = (field: 'start' | 'end', month: string) => {
+    if (!month) {
+      if (field === 'start') setStartMonth('')
+      else setEndMonth('')
+      return
+    }
+    if (!months.includes(month)) return
+    if (field === 'start') setStartMonth(month)
+    else setEndMonth(month)
+  }
+
   const executivePriorities = [
     {
       label: 'Utilization priority',
@@ -274,18 +313,16 @@ export default function DashboardPage({ initialAudience = 'user' }: DashboardPag
       detail: `${formatNumber(selectedTierMembers)} selected members across ${selectedTierSubscriptions.join(', ') || 'all plans'}`,
     },
     {
-      label: 'Lifestyle risk signal',
-      value: dominantCluster ? `Cluster ${dominantCluster.cluster_id}` : 'Waiting for cluster data',
-      detail: dominantCluster
-        ? `${dominantCluster.label}: readiness ${dominantCluster.readiness_score}/100, stress ${dominantCluster.stress_level}`
-        : 'Use readiness clusters to identify wellness intervention needs.',
+      label: 'Readiness segment focus',
+      value: dominantReadinessSegment ?? 'Waiting for readiness data',
+      detail: readinessSegmentDetail,
     },
     {
-      label: 'Plan readiness signal',
-      value: workout.data ? `${workout.data.plan.decision_mapping.recommendation_level}` : 'Profile not generated',
+      label: 'Plan generation signal',
+      value: workout.data ? `${workout.data.plan.decision_mapping.recommendation_level}` : 'Awaiting sample profile',
       detail: workout.data
         ? `${workout.data.preprocess.readiness.band} readiness, ${workout.data.intensity.predicted_class} intensity, score ${workout.data.plan.decision_mapping.combined_training_score}/100`
-        : 'Generate a client profile on User Side to activate predictive and prescriptive plan signals.',
+        : 'Used by executives as a quality check that prediction outputs can become an actionable weekly plan.',
     },
   ]
 
@@ -422,35 +459,27 @@ export default function DashboardPage({ initialAudience = 'user' }: DashboardPag
                   </div>
                   {monthSelectionMode === 'range' ? (
                     <>
-                      <div className="date-range-labels">
-                        <span>{displayStartMonth}</span>
-                        <span>{displayEndMonth}</span>
-                      </div>
-                      <div className="range-track-stack">
-                        <input
-                          aria-label="Start month"
-                          type="range"
-                          min={0}
-                          max={monthMax}
-                          value={displayStartMonthIndex}
-                          disabled={months.length === 0}
-                          onChange={(event) => {
-                            const nextIndex = Math.min(Number(event.target.value), displayEndMonthIndex)
-                            setStartMonth(months[nextIndex] ?? '')
-                          }}
-                        />
-                        <input
-                          aria-label="End month"
-                          type="range"
-                          min={0}
-                          max={monthMax}
-                          value={displayEndMonthIndex}
-                          disabled={months.length === 0}
-                          onChange={(event) => {
-                            const nextIndex = Math.max(Number(event.target.value), displayStartMonthIndex)
-                            setEndMonth(months[nextIndex] ?? '')
-                          }}
-                        />
+                      <div className="date-range-inputs">
+                        <label>
+                          <span>Start</span>
+                          <input
+                            type="month"
+                            value={displayStartMonth === 'All' ? '' : displayStartMonth}
+                            min={months[0]}
+                            max={months[monthMax]}
+                            onChange={(event) => setRangeMonth('start', event.target.value)}
+                          />
+                        </label>
+                        <label>
+                          <span>End</span>
+                          <input
+                            type="month"
+                            value={displayEndMonth === 'All' ? '' : displayEndMonth}
+                            min={months[0]}
+                            max={months[monthMax]}
+                            onChange={(event) => setRangeMonth('end', event.target.value)}
+                          />
+                        </label>
                       </div>
                     </>
                   ) : (
@@ -471,6 +500,13 @@ export default function DashboardPage({ initialAudience = 'user' }: DashboardPag
                   )}
                 </div>
               </div>
+              <div className="field gender-slicer">
+                <label htmlFor="gender-filter">Gender</label>
+                <select id="gender-filter" value={selectedGender} onChange={(event) => setSelectedGender(event.target.value)}>
+                  <option value="">All</option>
+                  {filters?.genders.map((genderName) => <option key={genderName} value={genderName}>{genderName}</option>)}
+                </select>
+              </div>
               <div className="field location-slicer">
                 <div className="slicer-heading-row">
                   <label>Location</label>
@@ -488,13 +524,6 @@ export default function DashboardPage({ initialAudience = 'user' }: DashboardPag
                     </label>
                   ))}
                 </div>
-              </div>
-              <div className="field">
-                <label htmlFor="gender-filter">Gender</label>
-                <select id="gender-filter" value={selectedGender} onChange={(event) => setSelectedGender(event.target.value)}>
-                  <option value="">All</option>
-                  {filters?.genders.map((genderName) => <option key={genderName} value={genderName}>{genderName}</option>)}
-                </select>
               </div>
             </section>
 
@@ -514,7 +543,7 @@ export default function DashboardPage({ initialAudience = 'user' }: DashboardPag
                   <KPICard title="Sessions" value={executive?.kpis.selected_sessions ?? 0} detail="Filtered check-ins" icon="exercise" loading={dashboard.loading} />
                   <KPICard title="Users" value={executive?.kpis.selected_users ?? 0} detail="Unique users in filter" icon="dataset" loading={dashboard.loading} />
                   <KPICard title="Avg Duration" value={`${executive?.kpis.avg_duration_minutes ?? 0} min`} detail="Per session" icon="server" loading={dashboard.loading} />
-                  <KPICard title="Avg Calories" value={executive?.kpis.avg_calories ?? 0} detail="Per session" icon="model" loading={dashboard.loading} />
+                  <KPICard title="Top Location" value={topLocation?.location ?? 'Waiting'} detail="Highest selected utilization" icon="model" loading={dashboard.loading} />
                 </div>
                 <div className="grid two-column">
                   <ChartPanel title="Monthly Utilization Trend (Filtered Check-ins)" subtitle="Shows whether selected locations and cohorts are expanding, stable, or softening over time." data={executive?.monthly_activity} type="line" loading={dashboard.loading} />
@@ -546,7 +575,7 @@ export default function DashboardPage({ initialAudience = 'user' }: DashboardPag
                 <section className="panel">
                   <h3 className="panel-title">User Detail Sample</h3>
                   {userInfo?.sample_users.length ? (
-                    <div className="table-wrap">
+                    <div className="table-wrap virtual-scroll">
                       <table>
                         <thead>
                           <tr>
@@ -584,26 +613,26 @@ export default function DashboardPage({ initialAudience = 'user' }: DashboardPag
             {workspaceView === 'nutrition' && (
               <div className="grid">
                 <div className="grid kpi-grid">
-                  <KPICard title="Food Items" value={nutrition?.kpis.food_items ?? 0} detail="Nutrition rows" icon="dataset" loading={dashboard.loading} />
-                  <KPICard title="Avg Calories" value={nutrition?.kpis.avg_calories ?? 0} detail="Per item" icon="model" loading={dashboard.loading} />
-                  <KPICard title="Avg Protein" value={`${nutrition?.kpis.avg_protein_g ?? 0} g`} detail="Per item" icon="exercise" loading={dashboard.loading} />
-                  <KPICard title="Avg Water" value={`${nutrition?.kpis.avg_water_ml ?? 0} ml`} detail="Per item" icon="readiness" loading={dashboard.loading} />
+                  <KPICard title="Food Catalog" value={nutrition?.kpis.food_items ?? 0} detail="Available food records" icon="dataset" loading={dashboard.loading} />
+                  <KPICard title="Meal Types" value={nutritionMealTypes} detail="Breakfast, lunch, dinner, snacks, or similar groups" icon="model" loading={dashboard.loading} />
+                  <KPICard title="Food Categories" value={nutritionCategoryNames.length} detail="Planning categories available" icon="exercise" loading={dashboard.loading} />
+                  <KPICard title="Primary Macro Focus" value={nutritionTopMacro} detail="Largest macro group in the selected data" icon="readiness" loading={dashboard.loading} />
                 </div>
                 <div className="grid two-column">
                   <ChartPanel title="Nutrition Macro Mix for Plan Support" data={nutrition?.macro_mix} type="pie" loading={dashboard.loading} />
-                  <ChartPanel title="Calorie Supply by Meal Type" data={nutrition?.meal_calories} loading={dashboard.loading} />
-                  <ChartPanel title="Protein Supply by Meal Type" data={nutrition?.meal_protein} loading={dashboard.loading} />
+                  <ChartPanel title="Meal Type Coverage" subtitle={`Most represented meal type: ${nutritionTopMealType}.`} data={nutrition?.meal_calories} loading={dashboard.loading} legend="X-axis shows meal type. Y-axis shows available food records for planning coverage." />
+                  <ChartPanel title="Food Category Coverage" subtitle="Shows which food groups can support plan recommendations." data={nutritionCategoryMix} loading={dashboard.loading} legend="X-axis shows food category. Y-axis shows available candidate foods." />
                   <section className="panel">
-                    <h3 className="panel-title">High-Protein Food Candidates</h3>
+                    <h3 className="panel-title">Food Planning Table</h3>
                     {nutrition?.top_protein_foods.length ? (
-                      <div className="table-wrap">
+                      <div className="table-wrap virtual-scroll">
                         <table>
                           <thead>
                             <tr>
                               <th>Food</th>
                               <th>Meal</th>
-                              <th>Calories</th>
-                              <th>Protein</th>
+                              <th>Category</th>
+                              <th>Planning Role</th>
                             </tr>
                           </thead>
                           <tbody>
@@ -611,8 +640,8 @@ export default function DashboardPage({ initialAudience = 'user' }: DashboardPag
                               <tr key={`${row.food_item}-${row.meal_type}`}>
                                 <td>{row.food_item}</td>
                                 <td>{row.meal_type}</td>
-                                <td>{row.calories.toFixed(0)}</td>
-                                <td>{row.protein_g.toFixed(1)} g</td>
+                                <td>{row.category}</td>
+                                <td>{foodPlanningRole(row.category)}</td>
                               </tr>
                             ))}
                           </tbody>
@@ -631,12 +660,12 @@ export default function DashboardPage({ initialAudience = 'user' }: DashboardPag
                 <div className="grid kpi-grid">
                   <KPICard title="Sessions" value={exerciseDashboard?.kpis.selected_sessions ?? 0} detail="Filtered exercise sessions" icon="exercise" loading={dashboard.loading} />
                   <KPICard title="Workout Types" value={exerciseDashboard?.kpis.workout_types ?? 0} detail="Filtered workouts" icon="dataset" loading={dashboard.loading} />
-                  <KPICard title="Avg Calories" value={exerciseDashboard?.kpis.avg_calories ?? 0} detail="Per session" icon="model" loading={dashboard.loading} />
+                  <KPICard title="Equipment Types" value={exerciseEquipmentTypes} detail="ExerciseDB equipment coverage" icon="model" loading={dashboard.loading} />
                   <KPICard title="Avg Duration" value={`${exerciseDashboard?.kpis.avg_duration_minutes ?? 0} min`} detail="Per session" icon="server" loading={dashboard.loading} />
                 </div>
                 <div className="grid two-column">
                   <ChartPanel title="Exercise Session Mix by Workout Type" data={exerciseDashboard?.workout_mix} loading={dashboard.loading} />
-                  <ChartPanel title="Average Calories by Workout Type" data={exerciseDashboard?.calories_by_workout} loading={dashboard.loading} />
+                  <ChartPanel title="ExerciseDB Body Part Coverage" data={exerciseDashboard?.body_part_coverage} loading={dashboard.loading} />
                   <ChartPanel title="Average Duration by Workout Type" data={exerciseDashboard?.duration_by_workout} loading={dashboard.loading} />
                   <ChartPanel title="ExerciseDB Equipment Coverage for Plan Assembly" data={exerciseDashboard?.equipment_coverage} loading={dashboard.loading} />
                 </div>
@@ -729,7 +758,7 @@ export default function DashboardPage({ initialAudience = 'user' }: DashboardPag
               <KPICard title="Members" value={formatNumber(selectedTierMembers)} detail={`${selectedMemberShare.toFixed(1)}% of members`} icon="dataset" loading={dashboard.loading} />
               <KPICard title="Sample Sessions" value={formatNumber(selectedTierSessions)} detail={`${selectedSessionShare.toFixed(1)}% of sampled visits`} icon="exercise" loading={dashboard.loading} />
               <KPICard title="Estimated MRR" value={formatCurrency(selectedTierMrr)} detail="Selected subscription revenue" icon="plan" loading={dashboard.loading} />
-              <KPICard title="Avg Check-ins" value={selectedAvgCheckins} detail="Per member in session sample" icon="server" loading={dashboard.loading} />
+              <KPICard title="Top Workout" value={selectedTopWorkout} detail="Most common workout in selected group" icon="server" loading={dashboard.loading} />
             </div>
             <div className="grid two-column">
               <section className="panel">
@@ -801,8 +830,9 @@ export default function DashboardPage({ initialAudience = 'user' }: DashboardPag
                     <p className="insight-value">{selectedAvgDuration.toFixed(1)} min/session</p>
                   </div>
                   <div className="insight-item">
-                    <p className="insight-label">Average calories</p>
-                    <p className="insight-value">{selectedAvgCalories.toFixed(0)} kcal/session</p>
+                    <p className="insight-label">Engagement note</p>
+                    <p className="insight-value">{selectedAvgCheckins} sampled visits/member</p>
+                    <p className="muted" style={{ margin: '4px 0 0' }}>This is a sample-based engagement signal, not total lifetime attendance.</p>
                   </div>
                   <div className="insight-item">
                     <p className="insight-label">Overall context</p>
@@ -852,18 +882,18 @@ export default function DashboardPage({ initialAudience = 'user' }: DashboardPag
           <div className="grid">
             <div className="grid two-column">
               <section className="panel">
-                <h3 className="panel-title">Cluster Summary</h3>
+                <h3 className="panel-title">Readiness Segment Summary</h3>
                 <div className="insight-list">
                   <div className="insight-item">
-                    <p className="insight-label">Largest lifestyle archetype</p>
+                    <p className="insight-label">Largest readiness segment</p>
                     <p className="insight-value">
-                      {dominantCluster ? `Cluster ${dominantCluster.cluster_id}: ${dominantCluster.label}` : 'Waiting for data'}
+                      {dominantCluster ? `${dominantReadinessSegment}: ${dominantCluster.label}` : 'Waiting for data'}
                     </p>
                   </div>
                   <div className="insight-item">
-                    <p className="insight-label">Readiness implication</p>
+                    <p className="insight-label">Executive implication</p>
                     <p className="muted" style={{ margin: 0 }}>
-                      The clustering layer explains why the system treats readiness as a pre-prediction estimation step before calorie and intensity inference.
+                      Use segment names to decide whether the business should prioritize progression, habit building, or recovery-first support.
                     </p>
                   </div>
                 </div>
@@ -892,8 +922,8 @@ export default function DashboardPage({ initialAudience = 'user' }: DashboardPag
                       <article key={card.cluster_id} className="cluster-card persona-card">
                         <div className="persona-header">
                           <div>
-                            <p className="cluster-card-title">Cluster {card.cluster_id}: {card.label}</p>
-                            <p className="muted" style={{ margin: '4px 0 0', fontSize: 12 }}>{clusterDecisionLabel(card)}</p>
+                            <p className="cluster-card-title">Segment {card.cluster_id}: {clusterDecisionLabel(card)}</p>
+                            <p className="muted" style={{ margin: '4px 0 0', fontSize: 12 }}>{card.label}</p>
                           </div>
                           <span className={`status-chip ${card.readiness_score >= 65 ? 'ready' : 'pending'}`}>
                             {card.readiness_score}/100

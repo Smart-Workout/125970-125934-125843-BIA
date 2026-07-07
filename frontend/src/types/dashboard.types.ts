@@ -76,10 +76,8 @@ export interface LifestyleScatterPoint {
 export interface LifestyleProfilesSection {
   silhouette_scores: ChartData
   sleep_duration_by_cluster: ChartData
-  quality_of_sleep_by_cluster: ChartData
   activity_by_cluster: ChartData
   stress_by_cluster: ChartData
-  daily_steps_by_cluster: ChartData
   profile_cards: LifestyleProfileCard[]
   scatter_points: LifestyleScatterPoint[]
 }
