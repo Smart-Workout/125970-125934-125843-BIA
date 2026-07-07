@@ -14,10 +14,10 @@ export default function PlanCard({ plan }: PlanCardProps) {
       <div className="plan-summary">
         <p style={{ margin: 0, fontWeight: 800 }}>{plan.plan_type}</p>
         <p className="muted" style={{ margin: '4px 0 0', fontSize: 13 }}>
-          Readiness: {plan.readiness_band} | Intensity: {plan.predicted_intensity}
+          Readiness: {plan.readiness_band} | Intensity: {plan.predicted_intensity} | Final score: {plan.decision_mapping.combined_training_score}/100
         </p>
         <p className="muted" style={{ margin: '8px 0 0', fontSize: 12 }}>
-          The readiness label is an estimation from current wellness inputs. The intensity label is the model prediction used to assemble this weekly plan.
+          {plan.decision_mapping.primary_action}
         </p>
         <div className="focus-chip-row" style={{ marginTop: 12 }}>
           {plan.weekly_schedule.map((day) => (
@@ -72,13 +72,15 @@ export default function PlanCard({ plan }: PlanCardProps) {
       </div>
       <div className="panel">
         <h3 className="panel-title">RAG Snippets Used for Plan Rationale</h3>
-        <div className="grid">
+        <div className="rag-snippet-grid">
           {plan.rag_snippets.map((snippet, index) => (
-            <div key={`${snippet.source}-${index}`} className="snippet">
-              <p style={{ margin: 0, fontSize: 12, fontWeight: 780 }}>{snippet.category}</p>
-              <p className="muted" style={{ margin: '3px 0 8px', fontSize: 12 }}>{snippet.source}</p>
-              <p style={{ margin: 0 }}>{snippet.text}</p>
-            </div>
+            <article key={`${snippet.source}-${index}`} className="snippet rag-snippet-card">
+              <div className="rag-snippet-header">
+                <span className="status-chip ready">{snippet.category}</span>
+                <span className="rag-source">{snippet.source}</span>
+              </div>
+              <p className="rag-snippet-text">{snippet.text}</p>
+            </article>
           ))}
         </div>
       </div>

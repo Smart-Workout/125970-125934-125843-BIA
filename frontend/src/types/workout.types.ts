@@ -37,6 +37,14 @@ export interface ReadinessResult {
   band: IntensityBand
   score: number
   factors: string[]
+  score_breakdown: ReadinessFactorScore[]
+}
+
+export interface ReadinessFactorScore {
+  signal: string
+  label: string
+  impact: number
+  detail: string
 }
 
 export interface PreprocessResponse {
@@ -60,6 +68,7 @@ export interface IntensityPredictionResponse {
   class_probabilities: Record<IntensityBand, number>
   model_name: string
   readiness_band: IntensityBand
+  readiness_score: number
   explanation: string[]
 }
 
@@ -108,12 +117,30 @@ export interface PlanDay {
   exercises: PlanExercise[]
 }
 
+export interface RecommendationMapping {
+  readiness_score: number
+  readiness_band: IntensityBand
+  predicted_intensity: IntensityBand
+  intensity_score: number
+  combined_training_score: number
+  recommendation_level: string
+  volume_multiplier: number
+  exercise_target_per_session: number
+  sets_per_exercise: number
+  reps: string
+  rest_seconds: number
+  readiness_cap_applied: boolean
+  primary_action: string
+  rationale: string[]
+}
+
 export interface GeneratedPlanResponse {
   mock_mode: boolean
   plan_id: string
   plan_type: string
   readiness_band: IntensityBand
   predicted_intensity: IntensityBand
+  decision_mapping: RecommendationMapping
   weekly_schedule: PlanDay[]
   safety_notes: string[]
   rag_snippets: RetrievedSnippet[]
