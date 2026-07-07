@@ -1,4 +1,4 @@
-import { Activity, ArrowRight, BarChart3, Dumbbell, HeartPulse, MessageSquare, ShieldCheck, Users } from 'lucide-react'
+import { Activity, ArrowRight, BarChart3, Dumbbell, ShieldCheck } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { useHealth } from '../hooks/useHealth'
 
@@ -21,12 +21,6 @@ const roleCards = [
     cta: 'Open executive view',
     metrics: ['Membership analytics', 'Lifestyle segments', 'Plan governance'],
   },
-]
-
-const systemHighlights = [
-  { label: 'Profile inputs', value: '8+', icon: Users },
-  { label: 'Plan signals', value: '3 layers', icon: HeartPulse },
-  { label: 'Assistant support', value: 'RAG', icon: MessageSquare },
 ]
 
 export default function HomePage() {
@@ -65,53 +59,31 @@ export default function HomePage() {
             </div>
           </div>
 
-          <div className="home-preview-panel" aria-label="System summary">
-            <div className="preview-header">
-              <span>Today</span>
-              <strong>Workout planning cockpit</strong>
-            </div>
-            <div className="preview-score-card">
-              <span>Readiness workflow</span>
-              <strong>Profile to Predict to Plan</strong>
-              <p>Collect user condition, estimate training readiness, then turn model output into an actionable weekly program.</p>
-            </div>
-            <div className="preview-stat-grid">
-              {systemHighlights.map((item) => {
-                const Icon = item.icon
-                return (
-                  <div key={item.label} className="preview-stat">
-                    <Icon size={16} />
-                    <strong>{item.value}</strong>
-                    <span>{item.label}</span>
+          <div className="home-role-stack" aria-label="Dashboard roles">
+            {roleCards.map((card) => {
+              const Icon = card.icon
+              return (
+                <Link key={card.to} className="role-card compact" to={card.to}>
+                  <div className="role-card-icon">
+                    <Icon size={22} />
                   </div>
-                )
-              })}
-            </div>
+                  <div className="role-card-content">
+                    <span className="role-eyebrow">{card.eyebrow}</span>
+                    <h2>{card.title}</h2>
+                    <p>{card.description}</p>
+                    <div className="role-metric-row">
+                      {card.metrics.map((metric) => <span key={metric}>{metric}</span>)}
+                    </div>
+                    <strong className="role-card-cta">
+                      {card.cta}
+                      <ArrowRight size={16} />
+                    </strong>
+                  </div>
+                </Link>
+              )
+            })}
           </div>
         </div>
-      </section>
-
-      <section className="role-section" aria-label="Dashboard roles">
-        {roleCards.map((card) => {
-          const Icon = card.icon
-          return (
-            <Link key={card.to} className="role-card" to={card.to}>
-              <div className="role-card-icon">
-                <Icon size={24} />
-              </div>
-              <span className="role-eyebrow">{card.eyebrow}</span>
-              <h2>{card.title}</h2>
-              <p>{card.description}</p>
-              <div className="role-metric-row">
-                {card.metrics.map((metric) => <span key={metric}>{metric}</span>)}
-              </div>
-              <strong className="role-card-cta">
-                {card.cta}
-                <ArrowRight size={16} />
-              </strong>
-            </Link>
-          )
-        })}
       </section>
     </main>
   )
