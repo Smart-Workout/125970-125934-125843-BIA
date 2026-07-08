@@ -1,5 +1,8 @@
+from pathlib import Path                                                   # Build file-system paths for optional frontend static hosting.
+
 from fastapi import FastAPI                                                # FastAPI creates the backend application object.
 from fastapi.middleware.cors import CORSMiddleware                         # CORS allows frontend dev servers to call the API locally.
+from fastapi.responses import FileResponse, JSONResponse                   # Serve compiled frontend files and fallback JSON responses.
 
 from app.api.v1 import chat, dashboard, health, workout                    # Versioned routers keep endpoint groups organized.
 from app.core.config import settings                                       # Shared settings include deployment CORS allowlist overrides.
@@ -42,6 +45,38 @@ app.include_router(dashboard.router, prefix="/api/v1")                     # Das
 app.include_router(chat.router, prefix="/api/v1")                          # Chat endpoint exposes retrieval-only RAG output.
 
 
+FRONTEND_DIST_DIR = settings.PROJECT_ROOT / "frontend" / "dist"            # Single-service deployment serves the compiled Vite build from here.
+
+
+def _serve_frontend_file(request_path: str = "") -> FileResponse | None:
+    if not FRONTEND_DIST_DIR.exists():
+        return None                                                         # Local backend-only runs can skip frontend static serving.
+
+    normalized = (request_path or "").lstrip("/")
+    if normalized:
+        candidate = (FRONTEND_DIST_DIR / normalized).resolve()
+        if candidate.is_file() and str(candidate).startswith(str(FRONTEND_DIST_DIR.resolve())):
+            return FileResponse(candidate)
+
+    index_path = FRONTEND_DIST_DIR / "index.html"
+    if index_path.exists():
+        return FileResponse(index_path)
+    return None
+
+
 @app.get("/")
 def root() -> dict[str, str]:
-    return {"name": "Smart Workout API", "status": "ok"}                   # Root route gives a quick browser-friendly API status check.
+    frontend_response = _serve_frontend_file()                              # In single-service mode, root serves the frontend application.
+    if frontend_response is not None:
+        return frontend_response
+    return {"name": "Smart Workout API", "status": "ok"}                   # Fallback keeps backend-only usage behavior.
+
+
+@app.get("/{full_path:path}", include_in_schema=False)
+def frontend_fallback(full_path: str):
+    if full_path.startswith("api/"):
+        return JSONResponse(status_code=404, content={"detail": "Not Found"})
+    frontend_response = _serve_frontend_file(full_path)
+    if frontend_response is not None:
+        return frontend_response
+    return JSONResponse(status_code=404, content={"detail": "Not Found"})
