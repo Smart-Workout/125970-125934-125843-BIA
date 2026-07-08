@@ -1,4 +1,4 @@
-import { defineConfig } from 'vite'
+﻿import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
 export default defineConfig({
@@ -9,7 +9,7 @@ export default defineConfig({
         manualChunks: {
           'vendor-react': ['react', 'react-dom', 'react-router-dom'],
           'vendor-charts': ['recharts', 'd3-array', 'd3-scale', 'd3-shape'],
-          'vendor-ui': ['lucide-react', 'rc-slider'],
+          'vendor-ui': ['lucide-react'],
         },
       },
     },
@@ -24,4 +24,5 @@ export default defineConfig({
     },
   },
 })
+
 

@@ -1,4 +1,4 @@
-@tailwind base;
+﻿@tailwind base;
 @tailwind components;
 @tailwind utilities;
 
@@ -1756,7 +1756,59 @@ textarea {
   padding: 9px 10px 11px;
   background: rgba(255, 255, 255, 0.86);
 }
+.month-range-control {
+  position: relative;
+  height: 36px;
+  margin: 4px 0 0;
+  padding: 0 9px;
+}
 
+.month-range-track {
+  position: relative;
+  top: 14px;
+  height: 6px;
+  border-radius: 999px;
+  background: #e5e7eb;
+  cursor: pointer;
+  touch-action: none;
+}
+
+.month-range-selection {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border-radius: 999px;
+  background: #4f46e5;
+}
+
+.month-range-handle {
+  position: absolute;
+  top: 50%;
+  width: 20px;
+  height: 20px;
+  border: 2px solid #4f46e5;
+  border-radius: 50%;
+  padding: 0;
+  background: #4f46e5;
+  box-shadow: 0 6px 14px rgba(79, 70, 229, 0.22);
+  cursor: grab;
+  transform: translate(-50%, -50%);
+  touch-action: none;
+}
+
+.month-range-handle:active {
+  cursor: grabbing;
+}
+
+.month-range-handle:focus-visible {
+  outline: 3px solid rgba(79, 70, 229, 0.25);
+  outline-offset: 3px;
+}
+
+.month-range-handle:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
 .month-mode-toggle {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -2004,26 +2056,49 @@ textarea {
   display: block;
 }
 
-.gif-feature-panel {
-  padding: 0;
-  height: 318px;
+.executive-signal-panel {
   min-height: 318px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: #0f1722;
-  box-shadow: 0 10px 24px rgba(24, 48, 66, 0.055);
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: grid;
+  align-content: space-between;
+  gap: 18px;
+  border: 1px solid rgba(31, 111, 139, 0.16);
+  background:
+    linear-gradient(135deg, rgba(240, 249, 251, 0.95), rgba(255, 255, 255, 0.95)),
+    radial-gradient(circle at 92% 12%, rgba(79, 70, 229, 0.16), transparent 28%);
 }
 
-.gif-feature-panel img {
-  width: 100%;
-  height: 100%;
-  max-height: none;
-  object-fit: contain;
-  display: block;
+.signal-metric-grid {
+  display: grid;
+  gap: 10px;
+}
+
+.signal-metric-grid article {
+  display: grid;
+  gap: 4px;
+  padding: 12px;
+  border: 1px solid rgba(31, 111, 139, 0.14);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.82);
+}
+
+.signal-metric-grid span {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 850;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.signal-metric-grid strong {
+  color: var(--ink);
+  font-size: 20px;
+  line-height: 1.1;
+}
+
+.signal-metric-grid small {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.35;
 }
 
 .util-lift-content {
@@ -3034,7 +3109,7 @@ th {
   }
 }
 
-/* ── Skeleton shimmer ─────────────────────────────────────────────────── */
+/* โ”€โ”€ Skeleton shimmer โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€ */
 @keyframes skeletonShimmer {
   0%   { background-position: -400px 0; }
   100% { background-position:  400px 0; }
@@ -3077,7 +3152,7 @@ th {
   border-radius: 6px 6px 2px 2px;
 }
 
-/* ── Empty state ──────────────────────────────────────────────────────── */
+/* โ”€โ”€ Empty state โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€ */
 .empty-state {
   display: grid;
   justify-items: center;
@@ -3111,7 +3186,7 @@ th {
   line-height: 1.5;
 }
 
-/* ── Refresh spin ─────────────────────────────────────────────────────── */
+/* โ”€โ”€ Refresh spin โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€ */
 @keyframes spinIcon {
   from { transform: rotate(0deg); }
   to   { transform: rotate(360deg); }
@@ -3122,7 +3197,7 @@ th {
   animation: spinIcon 0.75s linear infinite;
 }
 
-/* ── Error banner ─────────────────────────────────────────────────────── */
+/* โ”€โ”€ Error banner โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€ */
 .error-banner {
   display: flex;
   align-items: flex-start;
@@ -3157,7 +3232,7 @@ th {
   opacity: 1;
 }
 
-/* ── Active filters bar ───────────────────────────────────────────────── */
+/* โ”€โ”€ Active filters bar โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€ */
 .active-filters-bar {
   display: flex;
   align-items: center;
@@ -3306,7 +3381,7 @@ th {
   }
 }
 
-/* ── Plan week overview ───────────────────────────────────────────────── */
+/* โ”€โ”€ Plan week overview โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€ */
 .plan-week-overview {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
@@ -3364,7 +3439,7 @@ th {
   line-height: 1.4;
 }
 
-/* ── Wellness Signals panel ────────────────────────────────────────────── */
+/* โ”€โ”€ Wellness Signals panel โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€ */
 .signal-grid {
   display: grid;
   gap: 8px;
@@ -3415,7 +3490,7 @@ th {
   line-height: 1.45;
 }
 
-/* ── Prediction Explanation list ──────────────────────────────────────── */
+/* โ”€โ”€ Prediction Explanation list โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€ */
 .explanation-list {
   margin: 0;
   padding: 0;
@@ -3434,7 +3509,7 @@ th {
   line-height: 1.45;
 }
 
-/* ── Cluster scatter legend ────────────────────────────────────────────── */
+/* โ”€โ”€ Cluster scatter legend โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€ */
 .cluster-legend {
   display: flex;
   flex-wrap: wrap;
@@ -3461,7 +3536,7 @@ th {
   flex-shrink: 0;
 }
 
-/* ── MRR share visual bars ────────────────────────────────────────────── */
+/* โ”€โ”€ MRR share visual bars โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€ */
 .mrr-share-visual {
   display: grid;
   gap: 8px;
@@ -3505,7 +3580,7 @@ th {
   flex-shrink: 0;
 }
 
-/* ── Tableau embed panel ──────────────────────────────────────────────── */
+/* โ”€โ”€ Tableau embed panel โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€ */
 .tableau-embed-panel {
   padding: 16px;
 }
@@ -3523,7 +3598,7 @@ th {
   }
 }
 
-/* ── 768px: tablet ────────────────────────────────────────────────────── */
+/* โ”€โ”€ 768px: tablet โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€ */
 @media (max-width: 768px) {
   .page {
     padding: 18px 18px 48px;
@@ -3538,7 +3613,7 @@ th {
   }
 }
 
-/* ── 640px: phone landscape / small tablet ────────────────────────────── */
+/* โ”€โ”€ 640px: phone landscape / small tablet โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€ */
 @media (max-width: 640px) {
   .page {
     padding: 14px 12px 40px;
@@ -3651,14 +3726,50 @@ th {
     height: 220px;
   }
 
-  .gif-feature-panel {
-    height: 240px;
-    min-height: 240px;
-  }
+  .executive-signal-panel {
+  min-height: 318px;
+  display: grid;
+  align-content: space-between;
+  gap: 18px;
+  border: 1px solid rgba(31, 111, 139, 0.16);
+  background:
+    linear-gradient(135deg, rgba(240, 249, 251, 0.95), rgba(255, 255, 255, 0.95)),
+    radial-gradient(circle at 92% 12%, rgba(79, 70, 229, 0.16), transparent 28%);
+}
 
-  .gif-feature-panel img {
-    height: 100%;
-  }
+.signal-metric-grid {
+  display: grid;
+  gap: 10px;
+}
+
+.signal-metric-grid article {
+  display: grid;
+  gap: 4px;
+  padding: 12px;
+  border: 1px solid rgba(31, 111, 139, 0.14);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.82);
+}
+
+.signal-metric-grid span {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 850;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.signal-metric-grid strong {
+  color: var(--ink);
+  font-size: 20px;
+  line-height: 1.1;
+}
+
+.signal-metric-grid small {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.35;
+}
 
   .util-lift-row {
     grid-template-columns: 1fr;
@@ -3670,13 +3781,13 @@ th {
   }
 }
 
-/* ── 480px: phone portrait ─────────────────────────────────────────────── */
+/* โ”€โ”€ 480px: phone portrait โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€โ”€ */
 @media (max-width: 480px) {
   .page {
     padding: 10px 10px 28px;
   }
 
-  /* Hide New Plan on very small phones — user can still navigate to /user */
+  /* Hide New Plan on very small phones โ€” user can still navigate to /user */
   .primary-button {
     display: none;
   }
@@ -3735,3 +3846,6 @@ th {
     gap: 6px;
   }
 }
+
+
+

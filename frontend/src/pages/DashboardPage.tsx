@@ -1,9 +1,7 @@
-import { useState } from 'react'
+﻿import { type PointerEvent as ReactPointerEvent, useRef, useState } from 'react'
 import { Activity, AlertCircle, BarChart2, Brain, Building2, Dumbbell, FileText, Home, Info, LayoutDashboard, MessageSquare, RefreshCw, Target, UserRound, Users, X, Zap } from 'lucide-react'
 import ErrorBoundary from '../components/ErrorBoundary'
 import { Link, useNavigate } from 'react-router-dom'
-import Range from 'rc-slider'
-import 'rc-slider/assets/index.css'
 import CalendarHeatmap from '../components/CalendarHeatmap'
 import ChartPanel from '../components/ChartPanel'
 import ChatPanel from '../components/ChatPanel'
@@ -210,6 +208,7 @@ export default function DashboardPage({ initialAudience = 'user' }: DashboardPag
   const [selectedLocations, setSelectedLocations] = useState<string[]>([])
   const [selectedGender, setSelectedGender] = useState('')
   const [dismissedError, setDismissedError] = useState<string | null>(null)
+  const monthRangeTrackRef = useRef<HTMLDivElement | null>(null)
   const health = useHealth()
   const dashboard = useDashboard({
     start_month: monthSelectionMode === 'range' ? startMonth : undefined,
@@ -304,6 +303,54 @@ export default function DashboardPage({ initialAudience = 'user' }: DashboardPag
   const displayEndMonthIndex = Math.max(startMonthIndex, endMonthIndex)
   const displayStartMonth = months[displayStartMonthIndex] ?? 'All'
   const displayEndMonth = months[displayEndMonthIndex] ?? 'All'
+  const monthRangeStartPercent = monthMax ? (displayStartMonthIndex / monthMax) * 100 : 0
+  const monthRangeEndPercent = monthMax ? (displayEndMonthIndex / monthMax) * 100 : 0
+  const monthRangeWidthPercent = Math.max(monthRangeEndPercent - monthRangeStartPercent, 0)
+
+  const getMonthIndexFromPointer = (clientX: number) => {
+    const rect = monthRangeTrackRef.current?.getBoundingClientRect()
+    if (!rect || monthMax === 0) return 0
+    const ratio = Math.min(Math.max((clientX - rect.left) / rect.width, 0), 1)
+    return Math.round(ratio * monthMax)
+  }
+
+  const updateMonthRangeHandle = (handle: 'start' | 'end', index: number) => {
+    if (!months.length) return
+    if (handle === 'start') {
+      const nextIndex = Math.min(Math.max(index, 0), displayEndMonthIndex)
+      setStartMonth(months[nextIndex] ?? '')
+      return
+    }
+    const nextIndex = Math.max(Math.min(index, monthMax), displayStartMonthIndex)
+    setEndMonth(months[nextIndex] ?? '')
+  }
+
+  const handleMonthRangeTrackPointerDown = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (!months.length) return
+    const nextIndex = getMonthIndexFromPointer(event.clientX)
+    const moveStart = Math.abs(nextIndex - displayStartMonthIndex) <= Math.abs(nextIndex - displayEndMonthIndex)
+    updateMonthRangeHandle(moveStart ? 'start' : 'end', nextIndex)
+  }
+
+  const handleMonthRangeHandlePointerDown = (handle: 'start' | 'end', event: ReactPointerEvent<HTMLButtonElement>) => {
+    if (!months.length) return
+    event.preventDefault()
+    event.stopPropagation()
+    event.currentTarget.setPointerCapture(event.pointerId)
+    updateMonthRangeHandle(handle, getMonthIndexFromPointer(event.clientX))
+
+    const onPointerMove = (moveEvent: PointerEvent) => {
+      updateMonthRangeHandle(handle, getMonthIndexFromPointer(moveEvent.clientX))
+    }
+    const cleanup = () => {
+      window.removeEventListener('pointermove', onPointerMove)
+    }
+
+    window.addEventListener('pointermove', onPointerMove)
+    window.addEventListener('pointerup', cleanup, { once: true })
+    window.addEventListener('pointercancel', cleanup, { once: true })
+  }
+
   const selectedMonthLabel = selectedMonths.length
     ? `${selectedMonths.length} month${selectedMonths.length === 1 ? '' : 's'} selected`
     : 'All months'
@@ -506,7 +553,7 @@ export default function DashboardPage({ initialAudience = 'user' }: DashboardPag
             </div>
             <button className="icon-button" type="button" onClick={refreshAll} aria-label="Refresh data">
               <RefreshCw size={15} className={dashboard.loading || health.loading ? 'spin' : ''} />
-              {dashboard.loading ? 'Loading…' : 'Refresh'}
+              {dashboard.loading ? 'Loading' : 'Refresh'}
             </button>
             <button className="primary-button" type="button" onClick={() => setAudience('user')}>
               <Dumbbell size={15} />
@@ -586,25 +633,25 @@ export default function DashboardPage({ initialAudience = 'user' }: DashboardPag
             {selectedGender && (
               <span className="active-filter-chip">
                 Gender: {selectedGender}
-                <button type="button" onClick={() => setSelectedGender('')} aria-label="Remove gender filter">×</button>
+                <button type="button" onClick={() => setSelectedGender('')} aria-label="Remove gender filter">—</button>
               </span>
             )}
             {selectedLocations.length > 0 && (
               <span className="active-filter-chip">
                 {selectedLocations.length} location{selectedLocations.length > 1 ? 's' : ''}
-                <button type="button" onClick={() => setSelectedLocations([])} aria-label="Remove location filter">×</button>
+                <button type="button" onClick={() => setSelectedLocations([])} aria-label="Remove location filter">—</button>
               </span>
             )}
             {monthSelectionMode === 'range' && (startMonth || endMonth) && (
               <span className="active-filter-chip">
-                {displayStartMonth} → {displayEndMonth}
-                <button type="button" onClick={() => { setStartMonth(''); setEndMonth('') }} aria-label="Remove date filter">×</button>
+                {displayStartMonth} ’ {displayEndMonth}
+                <button type="button" onClick={() => { setStartMonth(''); setEndMonth('') }} aria-label="Remove date filter">—</button>
               </span>
             )}
             {monthSelectionMode === 'specific' && selectedMonths.length > 0 && (
               <span className="active-filter-chip">
                 {selectedMonths.length} month{selectedMonths.length > 1 ? 's' : ''}
-                <button type="button" onClick={() => setSelectedMonths([])} aria-label="Remove month filter">×</button>
+                <button type="button" onClick={() => setSelectedMonths([])} aria-label="Remove month filter">—</button>
               </span>
             )}
           </div>
@@ -645,25 +692,40 @@ export default function DashboardPage({ initialAudience = 'user' }: DashboardPag
                         <span>{displayStartMonth}</span>
                         <span>{displayEndMonth}</span>
                       </div>
-                      <Range
-                        min={0}
-                        max={monthMax}
-                        value={[displayStartMonthIndex, displayEndMonthIndex]}
-                        onChange={(value) => {
-                          if (!Array.isArray(value)) return
-                          setStartMonth(months[value[0]] ?? '');
-                          setEndMonth(months[value[1]] ?? '');
-                        }}
-                        disabled={months.length === 0}
-                        allowCross={false}
-                        style={{ marginTop: 8 }}
-                        trackStyle={[{ backgroundColor: '#4f46e5' }]}
-                        handleStyle={[
-                          { borderColor: '#4f46e5', backgroundColor: '#4f46e5' },
-                          { borderColor: '#4f46e5', backgroundColor: '#4f46e5' }
-                        ]}
-                        railStyle={{ backgroundColor: '#e5e7eb' }}
-                      />
+                      <div className="month-range-control">
+                        <div
+                          ref={monthRangeTrackRef}
+                          className="month-range-track"
+                          role="slider"
+                          tabIndex={0}
+                          aria-label="Selected month range"
+                          aria-valuemin={0}
+                          aria-valuemax={monthMax}
+                          aria-valuetext={`${displayStartMonth} to ${displayEndMonth}`}
+                          onPointerDown={handleMonthRangeTrackPointerDown}
+                        >
+                          <span
+                            className="month-range-selection"
+                            style={{ left: `${monthRangeStartPercent}%`, width: `${monthRangeWidthPercent}%` }}
+                          />
+                          <button
+                            className="month-range-handle month-range-handle-start"
+                            type="button"
+                            style={{ left: `${monthRangeStartPercent}%` }}
+                            onPointerDown={(event) => handleMonthRangeHandlePointerDown('start', event)}
+                            disabled={months.length === 0}
+                            aria-label="Start month"
+                          />
+                          <button
+                            className="month-range-handle month-range-handle-end"
+                            type="button"
+                            style={{ left: `${monthRangeEndPercent}%` }}
+                            onPointerDown={(event) => handleMonthRangeHandlePointerDown('end', event)}
+                            disabled={months.length === 0}
+                            aria-label="End month"
+                          />
+                        </div>
+                      </div>
                     </>
                   ) : (
                     <div className="month-picker">
@@ -784,12 +846,29 @@ export default function DashboardPage({ initialAudience = 'user' }: DashboardPag
                   <KPICard title="Top Location" value={topLocation?.location ?? 'Waiting'} detail="Highest selected utilization" icon="model" loading={dashboard.loading} />
                 </div>
                 <div className="grid two-column">
-                  <section className="panel gif-feature-panel" aria-label="Decorative animation panel">
-                    <img
-                      src="/tumblr_mptt49hvA11s6wlblo1_500.gif"
-                      alt="Decorative animation"
-                      loading="lazy"
-                    />
+                  <section className="panel executive-signal-panel" aria-label="Executive decision signal panel">
+                    <div>
+                      <p className="eyebrow">Decision signal</p>
+                      <h3 className="panel-title">Where to act first</h3>
+                      <p className="panel-subtitle">Live filters convert utilisation, segment readiness, and revenue proxy into practical action cues.</p>
+                    </div>
+                    <div className="signal-metric-grid">
+                      <article>
+                        <span>Priority branch</span>
+                        <strong>{topLocation?.location ?? 'Waiting'}</strong>
+                        <small>{topLocation ? `${topLocation.session_count.toLocaleString()} sessions selected` : 'Adjust filters to inspect demand'}</small>
+                      </article>
+                      <article>
+                        <span>Demand mix</span>
+                        <strong>{executive?.workout_mix.labels[0] ?? 'Loading'}</strong>
+                        <small>{executive?.workout_mix.values[0] ? `${executive.workout_mix.values[0].toLocaleString()} visits in leading type` : 'Workout-type split updates with filters'}</small>
+                      </article>
+                      <article>
+                        <span>Operational action</span>
+                        <strong>{topLocation ? 'Balance capacity' : 'Awaiting data'}</strong>
+                        <small>Use heatmaps and the Tableau map to plan staffing, campaigns, and underused slots.</small>
+                      </article>
+                    </div>
                   </section>
                   <ChartPanel title="Training Demand Mix by Workout Type" subtitle="Identifies which training formats are driving program demand." data={executive?.workout_mix} loading={dashboard.loading} />
                   <ChartPanel title="Member Gender Composition in Selected Filter" subtitle="Context for comparing behavior across gender segments." data={executive?.gender_mix} type="pie" loading={dashboard.loading} />
@@ -983,7 +1062,7 @@ export default function DashboardPage({ initialAudience = 'user' }: DashboardPag
                     <p className="muted" style={{ margin: 0 }}>BMI: {workout.data.preprocess.processed_profile.bmi} ({workout.data.preprocess.processed_profile.bmi_category})</p>
                     <p className="muted" style={{ margin: 0 }}>Blood pressure: {workout.data.preprocess.processed_profile.systolic_bp}/{workout.data.preprocess.processed_profile.diastolic_bp}</p>
                     {workout.data.preprocess.processed_profile.gym_type && (
-                      <p className="muted" style={{ margin: 0 }}>Gym type: {workout.data.preprocess.processed_profile.gym_type} — equipment constrained to gym capabilities</p>
+                      <p className="muted" style={{ margin: 0 }}>Gym type: {workout.data.preprocess.processed_profile.gym_type} - equipment constrained to gym capabilities</p>
                     )}
                     <ul style={{ marginTop: 0 }}>
                       {workout.data.preprocess.readiness.factors.map((factor) => (
@@ -1135,7 +1214,7 @@ export default function DashboardPage({ initialAudience = 'user' }: DashboardPag
               </section>
             </div>
             <section className="panel tableau-embed-panel">
-              <h3 className="panel-title">Gym Location Utilization — Geographic View</h3>
+              <h3 className="panel-title">Gym Location Utilization - Geographic View</h3>
               <p className="muted" style={{ margin: '-4px 0 12px', fontSize: 13 }}>
                 Bubble size = session volume. Colour = gym type. Interactive map powered by Tableau Public.
               </p>
@@ -1193,7 +1272,7 @@ export default function DashboardPage({ initialAudience = 'user' }: DashboardPag
                   <div className="insight-item">
                     <p className="insight-label">Largest member segment</p>
                     <p className="insight-value">
-                      {dominantCluster ? `${dominantReadinessSegment} — ${dominantCluster.label}` : 'Waiting for data'}
+                      {dominantCluster ? `${dominantReadinessSegment} - ${dominantCluster.label}` : 'Waiting for data'}
                     </p>
                   </div>
                   <div className="insight-item">
@@ -1269,7 +1348,7 @@ export default function DashboardPage({ initialAudience = 'user' }: DashboardPag
                 subtitle="A silhouette score measures how cleanly members fit their assigned group vs. others. Score near 1.0 = very distinct, well-separated groups. k=4 (4 groups) was chosen as the best configuration."
                 data={lifestyle?.silhouette_scores}
                 loading={dashboard.loading}
-                legend="X-axis: number of groups tested (k). Y-axis: quality score (0–1, higher = cleaner, more distinct groups)."
+                legend="X-axis: number of groups tested (k). Y-axis: quality score (0-1, higher = cleaner, more distinct groups)."
               />
               <ChartPanel
                 title="Average Nightly Sleep by Member Segment"
@@ -1280,29 +1359,29 @@ export default function DashboardPage({ initialAudience = 'user' }: DashboardPag
               />
               <ChartPanel
                 title="Physical Activity Level by Member Segment"
-                subtitle="Average activity score per segment (0–100 scale). Higher scores indicate more physically active members who may handle higher training volume."
+                subtitle="Average activity score per segment (0-100 scale). Higher scores indicate more physically active members who may handle higher training volume."
                 data={lifestyle?.activity_by_cluster}
                 loading={dashboard.loading}
-                legend="X-axis: member segment. Y-axis: physical activity level (0–100 scale)."
+                legend="X-axis: member segment. Y-axis: physical activity level (0-100 scale)."
               />
               <ChartPanel
                 title="Stress Level by Member Segment"
-                subtitle="Average stress per segment (1–10 scale). A score above 7 flags a recovery-first group — members who need lighter programming and wellness support before any progression."
+                subtitle="Average stress per segment (1-10 scale). A score above 7 flags a recovery-first group - members who need lighter programming and wellness support before any progression."
                 data={lifestyle?.stress_by_cluster}
                 loading={dashboard.loading}
-                legend="X-axis: member segment. Y-axis: stress level (1–10 scale, lower is better)."
+                legend="X-axis: member segment. Y-axis: stress level (1-10 scale, lower is better)."
               />
             </div>
             <div className="grid three-column">
               <ChartPanel
                 title="Training Readiness Score by Member Segment"
-                subtitle="Average readiness score per lifestyle group (0–10 scale). Higher = more ready for progressive training. Lower = recovery-first priority."
+                subtitle="Average readiness score per lifestyle group (0-10 scale). Higher = more ready for progressive training. Lower = recovery-first priority."
                 data={lifestyle?.profile_cards.length ? {
                   labels: lifestyle.profile_cards.map(c => getSegmentAxisLabel(c)),
                   values: lifestyle.profile_cards.map(c => c.readiness_score)
                 } : undefined}
                 loading={dashboard.loading}
-                legend="X-axis: member segment. Y-axis: average readiness score (0–10)."
+                legend="X-axis: member segment. Y-axis: average readiness score (0-10)."
               />
               <ChartPanel
                 title="Member Share by Wellness Profile"
@@ -1316,7 +1395,7 @@ export default function DashboardPage({ initialAudience = 'user' }: DashboardPag
               />
               <ChartPanel
                 title="How Many Members Are in Each Segment?"
-                subtitle="Member count per lifestyle group. Larger segments have the greatest business impact — interventions here affect the most members."
+                subtitle="Member count per lifestyle group. Larger segments have the greatest business impact - interventions here affect the most members."
                 data={lifestyle?.profile_cards.length ? {
                   labels: lifestyle.profile_cards.map(c => getSegmentAxisLabel(c)),
                   values: lifestyle.profile_cards.map(c => c.record_count)
@@ -1357,7 +1436,7 @@ export default function DashboardPage({ initialAudience = 'user' }: DashboardPag
               mapping={workout.data?.plan.decision_mapping ?? null}
             />
             <div className="grid kpi-grid">
-              <KPICard title="Calories" value={workout.data ? workout.data.calories.prediction : '-'} detail={workout.data ? `${formatCalorieUnit(workout.data.calories.unit)} · ${workout.data.calories.model_name}` : 'kcal per planned session'} icon="model" />
+              <KPICard title="Calories" value={workout.data ? workout.data.calories.prediction : '-'} detail={workout.data ? `${formatCalorieUnit(workout.data.calories.unit)} via ${workout.data.calories.model_name}` : 'kcal per planned session'} icon="model" />
               <KPICard title="Intensity" value={workout.data?.intensity.predicted_class ?? '-'} detail={workout.data?.intensity.model_name ?? 'No model call yet'} icon="readiness" />
               <KPICard title="Training Score" value={workout.data?.plan.decision_mapping.combined_training_score ?? '-'} detail={workout.data?.plan.decision_mapping.recommendation_level ?? 'No mapping yet'} icon="exercise" />
               <KPICard title="Plan" value={workout.data?.plan.weekly_schedule.length ?? 0} detail="Sessions generated" icon="plan" />
@@ -1401,7 +1480,7 @@ export default function DashboardPage({ initialAudience = 'user' }: DashboardPag
                       <p className="insight-value">{workout.data.intensity.predicted_class} via {workout.data.intensity.model_name}</p>
                       <p className="muted" style={{ margin: '4px 0 0', fontSize: 12 }}>
                         Classifier macro-F1 = 0.342 on 3 balanced classes (Low / Mid / High).
-                        Labels are heart-rate-zone derived — readiness band acts as a correction layer when confidence is low.
+                        Labels are heart-rate-zone derived - readiness band acts as a correction layer when confidence is low.
                       </p>
                     </div>
                     <div className="insight-item">
@@ -1488,3 +1567,9 @@ export default function DashboardPage({ initialAudience = 'user' }: DashboardPag
     </div>
   )
 }
+
+
+
+
+
+
