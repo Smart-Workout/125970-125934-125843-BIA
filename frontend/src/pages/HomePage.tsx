@@ -40,10 +40,6 @@ export default function HomePage() {
               <small>Decision dashboard</small>
             </span>
           </Link>
-          <span className="status-pill">
-            <span className={`status-dot ${backendOnline ? 'online' : ''}`} />
-            {backendOnline ? 'Backend online' : 'Backend offline'}
-          </span>
         </nav>
 
         <div className="home-hero-grid">

@@ -23,6 +23,7 @@ class Settings(BaseSettings):
     CHROMA_DB_DIR: Path = PROJECT_ROOT / "chroma_db"                        # Local Chroma persistent index lives here.
     RAG_COLLECTION_NAME: str = "smart_workout_knowledge"                    # Collection name must match RAG build and retrieval scripts.
     EMBEDDING_MODEL_NAME: str = "all-MiniLM-L6-v2"                           # Query embedding model must match the indexed vectors.
+    CORS_ALLOW_ORIGINS: str = ""                                             # Comma-separated frontend origins for deployment environments.
 
 
 @lru_cache

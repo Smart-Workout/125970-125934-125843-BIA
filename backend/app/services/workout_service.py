@@ -22,6 +22,18 @@ from app.services import ml_service
 from app.services.rag_service import retrieve_snippets
 
 
+GYM_TYPE_EQUIPMENT_MAP: dict[str, list[str]] = {
+    "Premium": ["barbell", "dumbbell", "cable", "machine", "bench", "body weight"],
+    "Standard": ["dumbbell", "machine", "cable", "bench", "body weight"],
+    "Budget": ["dumbbell", "body weight"],
+}
+
+GYM_TYPE_NOTE: dict[str, str] = {
+    "Premium": "Premium gym: full equipment range (barbell, cable, machines) is available for the plan.",
+    "Standard": "Standard gym: dumbbell, machine, and cable options are used to constrain the plan.",
+    "Budget": "Budget gym: plan is constrained to dumbbell and bodyweight exercises based on typical facility limits.",
+}
+
 BODY_PART_ALIASES = {
     "arms": {"upper arms", "lower arms"},
     "legs": {"upper legs", "lower legs"},
@@ -325,6 +337,8 @@ def _safety_notes(profile: ProcessedProfile, readiness: ReadinessResult, predict
         notes.append("Resting heart rate is elevated; extend rest and stop the session early if fatigue rises quickly.")
     if not equipment or equipment == ["body weight"]:
         notes.append("The plan relies on body-weight friendly substitutions because little or no equipment was provided.")
+    if profile.gym_type:
+        notes.append(GYM_TYPE_NOTE.get(profile.gym_type, f"Gym type: {profile.gym_type}."))
     return notes
 
 
@@ -411,6 +425,18 @@ def preprocess_profile(payload: UserProfileRequest) -> PreprocessResponse:
     height_m = payload.height_cm / 100
     bmi = round(payload.weight_kg / (height_m * height_m), 2)
     equipment = _normalize_equipment(payload.available_equipment)
+
+    # Apply gym-type location constraint from the gym locations dimension.
+    # If no equipment was provided, use the gym-type defaults.
+    # If equipment was provided, restrict to items the gym type actually carries.
+    if payload.gym_type:
+        gym_defaults = _normalize_equipment(GYM_TYPE_EQUIPMENT_MAP.get(payload.gym_type, []))
+        if not equipment:
+            equipment = gym_defaults
+        else:
+            constrained = [e for e in equipment if e in set(gym_defaults)]
+            equipment = constrained if constrained else equipment
+
     readiness = _readiness(
         payload.sleep_hours,
         payload.stress_level,
@@ -434,6 +460,7 @@ def preprocess_profile(payload: UserProfileRequest) -> PreprocessResponse:
         available_equipment=equipment,
         sessions_per_week=payload.sessions_per_week,
         goal=payload.goal,
+        gym_type=payload.gym_type,
     )
     return PreprocessResponse(
         mock_mode=settings.MOCK_MODE,

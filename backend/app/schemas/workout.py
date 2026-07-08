@@ -17,6 +17,7 @@ BodyPart = Literal[
 ]
 Goal = Literal["strength", "muscle gain", "fat loss", "general fitness"]
 IntensityBand = Literal["Low", "Medium", "High"]
+GymType = Literal["Premium", "Standard", "Budget"]
 
 
 class UserProfileRequest(BaseModel):
@@ -31,6 +32,7 @@ class UserProfileRequest(BaseModel):
     available_equipment: list[str] = Field(default_factory=list, examples=[["dumbbell", "bench"]])
     sessions_per_week: int = Field(..., ge=1, le=6, examples=[3])
     goal: Goal = Field(..., examples=["strength"])
+    gym_type: GymType | None = Field(default=None, examples=["Standard"])
 
 
 class ProcessedProfile(BaseModel):
@@ -48,6 +50,7 @@ class ProcessedProfile(BaseModel):
     available_equipment: list[str]
     sessions_per_week: int
     goal: str
+    gym_type: str | None = None
 
 
 class ReadinessFactorScore(BaseModel):

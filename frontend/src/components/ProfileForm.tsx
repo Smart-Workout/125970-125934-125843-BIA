@@ -1,9 +1,14 @@
 import { FormEvent, useState } from 'react'
-import { BodyPart, Goal, UserProfileRequest } from '../types/workout.types'
+import { BodyPart, Goal, GymType, UserProfileRequest } from '../types/workout.types'
 
 const equipmentOptions = ['dumbbell', 'bench', 'barbell', 'body weight', 'machine', 'cable']
 const bodyParts: BodyPart[] = ['chest', 'back', 'legs', 'arms', 'shoulders', 'core', 'waist', 'full body']
 const goals: Goal[] = ['strength', 'muscle gain', 'fat loss', 'general fitness']
+const gymTypes: Array<{ value: GymType; label: string; detail: string }> = [
+  { value: 'Premium', label: 'Premium', detail: 'Barbell, cable, machines, dumbbell' },
+  { value: 'Standard', label: 'Standard', detail: 'Dumbbell, machine, cable' },
+  { value: 'Budget', label: 'Budget', detail: 'Dumbbell and bodyweight only' },
+]
 
 type ProfileFormState = Omit<
   UserProfileRequest,
@@ -30,6 +35,7 @@ const defaultProfile: ProfileFormState = {
   available_equipment: ['dumbbell', 'bench'],
   sessions_per_week: '3',
   goal: 'strength',
+  gym_type: null,
 }
 
 interface ProfileFormProps {
@@ -158,6 +164,21 @@ export default function ProfileForm({ loading, onSubmit }: ProfileFormProps) {
               ))}
             </select>
           </div>
+        </div>
+        <div className="field" style={{ marginTop: 14 }}>
+          <label htmlFor="gym-type">Gym type <span className="muted" style={{ fontWeight: 400 }}>(optional — constrains equipment to what this gym carries)</span></label>
+          <select
+            id="gym-type"
+            value={profile.gym_type ?? ''}
+            onChange={(event) => setField('gym_type', (event.target.value as GymType) || null)}
+          >
+            <option value="">Not specified</option>
+            {gymTypes.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label} — {option.detail}
+              </option>
+            ))}
+          </select>
         </div>
         <div style={{ marginTop: 14 }}>
           <p className="muted" style={{ margin: '0 0 8px', fontSize: 12, fontWeight: 700 }}>Available equipment</p>

@@ -2,6 +2,7 @@ import { RadarMetric } from '../types/dashboard.types'
 
 interface RadarProfilePanelProps {
   metrics?: RadarMetric[]
+  loading?: boolean
 }
 
 const axes = [
@@ -21,15 +22,29 @@ const pointFor = (index: number, value: number, radius = 72) => {
   }
 }
 
-export default function RadarProfilePanel({ metrics = [] }: RadarProfilePanelProps) {
+export default function RadarProfilePanel({ metrics = [], loading }: RadarProfilePanelProps) {
   const rows = metrics.slice(0, 4)
 
   return (
     <section className="panel">
-      <h3 className="panel-title">Radar Chart: Lifestyle Cluster Readiness Profile</h3>
-      <p className="chart-subtitle">Compares normalized sleep, activity, stress control, readiness, and recovery signals by cluster.</p>
-      {rows.length === 0 ? (
-        <p className="muted">No lifestyle radar metrics available.</p>
+      <h3 className="panel-title">Wellness Profile Comparison by Member Segment</h3>
+      <p className="chart-subtitle">Each pentagon shape covers 5 wellness dimensions (all scored 0–100). A wider, rounder shape = a stronger overall wellness profile. Compare segments to spot which groups need the most support.</p>
+      {loading ? (
+        <div className="radar-grid">
+          {[0, 1, 2, 3].map((i) => (
+            <div key={i} className="radar-card">
+              <div className="skeleton" style={{ width: '100%', height: 160, borderRadius: 8 }} />
+              <div className="skeleton skeleton-value" style={{ width: 90, marginTop: 8 }} />
+              <div className="skeleton skeleton-detail" style={{ width: 120, marginTop: 6 }} />
+            </div>
+          ))}
+        </div>
+      ) : rows.length === 0 ? (
+        <div className="empty-state">
+          <div className="empty-state-icon"><span style={{ fontSize: 22 }}>◎</span></div>
+          <p className="empty-state-title">No radar metrics available</p>
+          <p className="empty-state-detail">Lifestyle cluster data will appear once the backend returns segmentation results.</p>
+        </div>
       ) : (
         <div className="radar-grid">
           {rows.map((row) => {
@@ -53,14 +68,14 @@ export default function RadarProfilePanel({ metrics = [] }: RadarProfilePanelPro
                   })}
                   <polygon points={polygon} className="radar-shape" />
                 </svg>
-                <strong>Cluster {row.cluster_id}</strong>
-                <p>{row.label}</p>
+                <strong>{row.label || `Segment ${row.cluster_id}`}</strong>
+                <p className="muted" style={{ fontSize: 11, margin: '2px 0 0' }}>Segment {row.cluster_id}</p>
               </article>
             )
           })}
         </div>
       )}
-      <p className="chart-legend">Legend: wider shape indicates stronger normalized lifestyle readiness profile.</p>
+      <p className="chart-legend">Each axis = one wellness dimension. Score 0 (centre) to 100 (outer edge). Wider shape = stronger wellness in that dimension.</p>
     </section>
   )
 }

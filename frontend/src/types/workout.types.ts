@@ -1,6 +1,7 @@
 export type BodyPart = 'chest' | 'back' | 'legs' | 'arms' | 'shoulders' | 'core' | 'waist' | 'full body'
 export type Goal = 'strength' | 'muscle gain' | 'fat loss' | 'general fitness'
 export type IntensityBand = 'Low' | 'Medium' | 'High'
+export type GymType = 'Premium' | 'Standard' | 'Budget'
 
 export interface UserProfileRequest {
   age: number
@@ -14,6 +15,7 @@ export interface UserProfileRequest {
   available_equipment: string[]
   sessions_per_week: number
   goal: Goal
+  gym_type?: GymType | null
 }
 
 export interface ProcessedProfile {
@@ -31,6 +33,7 @@ export interface ProcessedProfile {
   available_equipment: string[]
   sessions_per_week: number
   goal: string
+  gym_type?: GymType | null
 }
 
 export interface ReadinessResult {

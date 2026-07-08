@@ -3,7 +3,6 @@
   "n_splits": 5,
   "regression_features": [
     "age",
-    "gender",
     "weight_kg",
     "height_m",
     "max_bpm",
@@ -20,7 +19,6 @@
   ],
   "classifier_features": [
     "age",
-    "gender",
     "weight_kg",
     "height_m",
     "resting_bpm",
@@ -33,11 +31,11 @@
   ],
   "selected_regression": {
     "task": "Calorie-burn-rate regression",
-    "model_name": "Random Forest Regressor",
+    "model_name": "XGBoost Regressor",
     "metrics": {
-      "RMSE": 2.0668089240736944,
-      "MAE": 1.051322576918999,
-      "R2": 0.9994342228870147
+      "RMSE": 15.02090612262203,
+      "MAE": 10.424478103874051,
+      "R2": 0.9701161200658894
     },
     "selected": true
   },
@@ -45,13 +43,13 @@
     "task": "Workout-intensity classification",
     "model_name": "XGBoost Classifier",
     "metrics": {
-      "Accuracy": 0.45940390544707094,
-      "Macro-F1": 0.31591458715561205
+      "Accuracy": 0.3987667009249743,
+      "Macro-F1": 0.3417599834813567
     },
     "selected": true
   },
   "shap_notes": {
     "regression": "shap",
-    "classification": "fallback"
+    "classification": "shap"
   }
 }

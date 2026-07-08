@@ -1,3 +1,4 @@
+import { BarChart2 } from 'lucide-react'
 import { IntensityBand } from '../types/workout.types'
 
 interface ProbabilityBarsProps {
@@ -8,7 +9,13 @@ const bands: IntensityBand[] = ['Low', 'Medium', 'High']
 
 export default function ProbabilityBars({ probabilities }: ProbabilityBarsProps) {
   if (!probabilities) {
-    return <p className="muted">Generate a plan to see class probabilities.</p>
+    return (
+      <div className="empty-state">
+        <div className="empty-state-icon"><BarChart2 size={18} /></div>
+        <p className="empty-state-title">No probabilities yet</p>
+        <p className="empty-state-detail">Model confidence scores for Low, Medium, and High intensity will appear after generating a plan.</p>
+      </div>
+    )
   }
 
   return (

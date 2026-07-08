@@ -2,6 +2,7 @@ from fastapi import FastAPI                                                # Fas
 from fastapi.middleware.cors import CORSMiddleware                         # CORS allows frontend dev servers to call the API locally.
 
 from app.api.v1 import chat, dashboard, health, workout                    # Versioned routers keep endpoint groups organized.
+from app.core.config import settings                                       # Shared settings include deployment CORS allowlist overrides.
 
 
 app = FastAPI(
@@ -10,13 +11,26 @@ app = FastAPI(
     version="0.2.0",                                                       # Version marks the Week 2 ML/RAG update.
 )
 
+local_origins = [                                                          # Local origins keep developer workflow unchanged.
+    "http://127.0.0.1:3000",
+    "http://localhost:3000",
+    "http://127.0.0.1:3001",
+    "http://localhost:3001",
+    "http://127.0.0.1:5173",
+    "http://localhost:5173",
+    "http://127.0.0.1:5174",
+    "http://localhost:5174",
+    "http://127.0.0.1:4173",
+    "http://localhost:4173",
+]
+configured_origins = [
+    origin.strip() for origin in settings.CORS_ALLOW_ORIGINS.split(",") if origin.strip()
+]
+allow_origins = list(dict.fromkeys([*local_origins, *configured_origins])) # Deduplicate while preserving order.
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[                                                        # Common local frontend ports are allowed during development.
-        "http://localhost:3000",                                           # React/Next.js default development port.
-        "http://localhost:3001",                                           # Backup frontend development port.
-        "http://localhost:5173",                                           # Vite development server port.
-    ],
+    allow_origins=allow_origins,
     allow_credentials=True,                                                # Credentials are allowed for future authenticated endpoints.
     allow_methods=["*"],                                                   # All HTTP methods are allowed for local development.
     allow_headers=["*"],                                                   # All request headers are allowed for local development.

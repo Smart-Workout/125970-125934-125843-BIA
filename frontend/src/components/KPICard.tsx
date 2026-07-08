@@ -25,17 +25,26 @@ export default function KPICard({ title, value, detail, icon, loading }: KPICard
   return (
     <section className="kpi-card" style={{ padding: 16 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
-        <div>
+        <div style={{ flex: 1, minWidth: 0 }}>
           <p className="muted" style={{ margin: 0, fontSize: 12, fontWeight: 700 }}>
             {title}
           </p>
-          <p style={{ margin: '8px 0 0', fontSize: 28, fontWeight: 800 }}>
-            {loading ? '...' : value}
-          </p>
-          {detail && (
-            <p className="muted" style={{ margin: '6px 0 0', fontSize: 12 }}>
-              {detail}
-            </p>
+          {loading ? (
+            <div className="kpi-skeleton">
+              <div className="skeleton skeleton-value" />
+              <div className="skeleton skeleton-detail" />
+            </div>
+          ) : (
+            <>
+              <p style={{ margin: '8px 0 0', fontSize: 28, fontWeight: 800, lineHeight: 1.15 }}>
+                {value}
+              </p>
+              {detail && (
+                <p className="muted" style={{ margin: '6px 0 0', fontSize: 12 }}>
+                  {detail}
+                </p>
+              )}
+            </>
           )}
         </div>
         <div
@@ -47,6 +56,7 @@ export default function KPICard({ title, value, detail, icon, loading }: KPICard
             placeItems: 'center',
             color: '#176b87',
             background: '#e8f4f7',
+            flexShrink: 0,
           }}
         >
           <Icon size={20} />

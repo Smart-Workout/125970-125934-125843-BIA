@@ -1,3 +1,4 @@
+import { Dumbbell } from 'lucide-react'
 import { ExerciseRecommendation } from '../types/workout.types'
 
 interface ExerciseTableProps {
@@ -6,7 +7,13 @@ interface ExerciseTableProps {
 
 export default function ExerciseTable({ exercises }: ExerciseTableProps) {
   if (!exercises.length) {
-    return <p className="muted">No exercises recommended yet.</p>
+    return (
+      <div className="empty-state">
+        <div className="empty-state-icon"><Dumbbell size={18} /></div>
+        <p className="empty-state-title">No exercises yet</p>
+        <p className="empty-state-detail">Generate a plan to see your personalised exercise recommendations here.</p>
+      </div>
+    )
   }
 
   return (

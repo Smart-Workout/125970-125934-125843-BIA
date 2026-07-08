@@ -6,9 +6,11 @@ from pathlib import Path
 from typing import Any
 
 import joblib
+import numpy as np
 import pandas as pd
 
 from app.core.config import settings
+from app.core.ml_wrappers import BalancedXGBClassifier  # noqa: F401 — imported so joblib can deserialise the saved pipeline
 from app.schemas.workout import IntensityBand, ProcessedProfile
 
 
@@ -34,12 +36,14 @@ def _load_artifact(path: Path) -> dict[str, Any]:
 def _bundle_from_artifact(path: Path, default_name: str) -> ModelBundle:
     artifact = _load_artifact(path)
     model = artifact.get("model", artifact)
+    # Use name stored in artifact if present (set during training), else fall back to the caller's default.
+    name = artifact.get("name") or default_name
     features = list(artifact.get("features") or getattr(model, "feature_names_in_", []) or [])
     metrics = dict(artifact.get("metrics") or {})
     labels = artifact.get("labels")
     label_mapping = artifact.get("label_mapping")
     return ModelBundle(
-        name=default_name,
+        name=str(name),
         model=model,
         features=features,
         metrics=metrics,
@@ -50,7 +54,7 @@ def _bundle_from_artifact(path: Path, default_name: str) -> ModelBundle:
 
 @lru_cache
 def load_calorie_bundle() -> ModelBundle:
-    return _bundle_from_artifact(settings.MODEL_DIR / "best_calorie_regressor.joblib", "Random Forest Regressor")
+    return _bundle_from_artifact(settings.MODEL_DIR / "best_calorie_regressor.joblib", "XGBoost Regressor")
 
 
 @lru_cache
@@ -76,12 +80,6 @@ def _workout_type(goal: str, target_body_part: str) -> str:
     if target in {"legs", "back", "chest", "arms", "shoulders", "core", "waist"}:
         return "Strength"
     return "Cardio"
-
-
-def _gender_proxy(profile: ProcessedProfile) -> str:
-    # The training data used a gender feature, but the current form does not ask for it.
-    # Keep a stable placeholder so the pipeline can still run with unseen-category handling.
-    return "unknown"
 
 
 def _fat_percentage_proxy(profile: ProcessedProfile) -> float:
@@ -149,7 +147,6 @@ def _base_row(profile: ProcessedProfile) -> dict[str, Any]:
     avg_bpm = _avg_bpm_proxy(profile, intensity_band)
     return {
         "age": profile.age,
-        "gender": _gender_proxy(profile),
         "weight_kg": profile.weight_kg,
         "height_m": round(profile.height_cm / 100.0, 2),
         "max_bpm": max_bpm,
@@ -186,6 +183,16 @@ def build_classifier_features(profile: ProcessedProfile) -> pd.DataFrame:
     return pd.DataFrame([row])
 
 
+# Training artifacts store the classifier's raw class label as "Mid", but the rest of the
+# app (schemas, plan-generation rules, frontend) standardizes on "Medium". Translate at this
+# boundary so callers never see the model's internal vocabulary.
+_MODEL_LABEL_ALIASES: dict[str, str] = {"Mid": "Medium"}
+
+
+def _canonical_label(label: str) -> str:
+    return _MODEL_LABEL_ALIASES.get(label, label)
+
+
 def predict_intensity(profile: ProcessedProfile) -> tuple[IntensityBand, dict[str, float], ModelBundle]:
     bundle = load_intensity_bundle()
     features = build_classifier_features(profile)
@@ -201,16 +208,22 @@ def predict_intensity(profile: ProcessedProfile) -> tuple[IntensityBand, dict[st
     else:
         prediction = 1
 
-    if bundle.labels and isinstance(prediction, (int, float)):
-        predicted_class = bundle.labels[int(prediction)]
+    # np.integer/np.floating are not subclasses of the Python int/float builtins, so a plain
+    # isinstance(prediction, (int, float)) check silently misses numpy scalars returned by
+    # sklearn/XGBoost .predict() and falls through to the "Medium" default below every time.
+    if bundle.labels and isinstance(prediction, (int, float, np.integer, np.floating)):
+        predicted_class = _canonical_label(bundle.labels[int(prediction)])
     elif isinstance(prediction, str):
-        predicted_class = prediction
+        predicted_class = _canonical_label(prediction)
     else:
         predicted_class = "Medium"
 
     probabilities: dict[str, float]
     if raw_probabilities is not None and bundle.labels:
-        probabilities = {label: float(prob) for label, prob in zip(bundle.labels, raw_probabilities, strict=False)}
+        probabilities = {
+            _canonical_label(label): float(prob)
+            for label, prob in zip(bundle.labels, raw_probabilities, strict=False)
+        }
     else:
         probabilities = {"Low": 0.2, "Medium": 0.6, "High": 0.2}
 

@@ -676,9 +676,46 @@ def _build_shap_summary() -> list[ModelFeatureImpact]:
         except json.JSONDecodeError:
             metadata = {}
 
-    classifier_features = list(metadata.get("classifier_features") or [])
     shap_notes = metadata.get("shap_notes") if isinstance(metadata.get("shap_notes"), dict) else {}
     explanation_mode = str(shap_notes.get("classification") if isinstance(shap_notes, dict) else "fallback")
+
+    readable = {
+        "bmi": "BMI is the top classifier signal — higher BMI shifts the model toward lower or mid intensity bands.",
+        "fat_percentage": "Estimated body-fat percentage (derived from BMI and age) is the second strongest driver of predicted intensity.",
+        "height_m": "Height contributes to the feature space through its role in BMI and body-composition estimates.",
+        "age": "Older age shifts the model toward lower predicted intensity due to expected physiological differences.",
+        "weight_kg": "Body weight influences estimated body composition and energy expenditure, shaping intensity predictions.",
+        "resting_bpm": "Higher resting heart rate signals lower cardiovascular readiness and tends to lower predicted intensity.",
+        "water_intake_liters": "Hydration level (estimated from body weight and goal) is a proxy for lifestyle quality in the model.",
+        "workout_frequency_days_week": "More weekly sessions suggest stronger training tolerance and push predictions toward higher intensity.",
+        "experience_level": "Higher experience level (derived from sessions per week) supports more advanced intensity predictions.",
+        "workout_type": "Workout category (Strength, HIIT, Cardio) is mapped from the user's goal and adjusts intensity predictions.",
+        "avg_bpm": "Average heart rate during session is excluded from the classifier to prevent label leakage.",
+        "fat_percentage_proxy": "Body-fat estimate (from BMI × age) is a stronger classifier signal than raw weight alone.",
+    }
+    positive_features = {"workout_frequency_days_week", "experience_level"}
+
+    # Load real SHAP/feature-importance values saved by train_week2_ml.py
+    shap_json_path = settings.PROJECT_ROOT / "docs" / "figures" / "week2" / "selected_intensity_classifier_shap.json"
+    if shap_json_path.exists():
+        try:
+            loaded: dict[str, float] = json.loads(shap_json_path.read_text(encoding="utf-8"))
+            ordered = sorted(loaded.items(), key=lambda item: item[1], reverse=True)[:8]
+            max_val = max(v for _, v in ordered) or 1.0
+            return [
+                ModelFeatureImpact(
+                    feature=feature,
+                    impact=round(value / max_val, 2),
+                    direction="positive" if feature in positive_features else "context",
+                    explanation=f"{readable.get(feature, 'Feature is part of the saved classifier pipeline.')} Mode: {explanation_mode}.",
+                )
+                for feature, value in ordered
+            ]
+        except (json.JSONDecodeError, Exception):
+            pass
+
+    # Hardcoded fallback if training script has not yet been re-run
+    classifier_features = list(metadata.get("classifier_features") or [])
     priority = {
         "avg_bpm": 0.96,
         "resting_bpm": 0.88,
@@ -689,26 +726,15 @@ def _build_shap_summary() -> list[ModelFeatureImpact]:
         "fat_percentage": 0.44,
         "age": 0.38,
     }
-    readable = {
-        "avg_bpm": "Higher average BPM usually pushes predicted intensity upward.",
-        "resting_bpm": "Higher resting BPM can signal recovery risk and affect intensity confidence.",
-        "workout_frequency_days_week": "More weekly sessions suggest stronger training tolerance.",
-        "experience_level": "Higher experience level supports more advanced intensity patterns.",
-        "bmi": "BMI helps contextualize load and movement-risk assumptions.",
-        "water_intake_liters": "Hydration proxy is included as a model feature for readiness context.",
-        "fat_percentage": "Body composition proxy influences the model feature row.",
-        "age": "Age provides baseline physiological context for the model.",
-    }
-    ordered = sorted(classifier_features or priority.keys(), key=lambda feature: priority.get(feature, 0.2), reverse=True)
-
+    ordered_features = sorted(classifier_features or priority.keys(), key=lambda f: priority.get(f, 0.2), reverse=True)
     return [
         ModelFeatureImpact(
             feature=feature,
             impact=round(priority.get(feature, 0.2), 2),
-            direction="positive" if feature in {"avg_bpm", "workout_frequency_days_week", "experience_level"} else "context",
+            direction="positive" if feature in positive_features else "context",
             explanation=f"{readable.get(feature, 'Feature is part of the saved classifier pipeline.')} Mode: {explanation_mode}.",
         )
-        for feature in ordered[:8]
+        for feature in ordered_features[:8]
     ]
 
 

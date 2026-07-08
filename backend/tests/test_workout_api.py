@@ -64,6 +64,12 @@ def test_predict_intensity_uses_saved_model(client: TestClient) -> None:
     assert payload["predicted_class"] in {"Low", "Medium", "High"}
     assert payload["readiness_score"] > 0
     assert isinstance(payload["class_probabilities"], dict)
+    # predicted_class must be the model's own top probability, not a hardcoded fallback
+    # (regression test for a numpy-scalar isinstance bug that silently always returned "Medium").
+    probabilities = payload["class_probabilities"]
+    assert set(probabilities.keys()) == {"Low", "Medium", "High"}
+    assert abs(sum(probabilities.values()) - 1.0) <= 0.001
+    assert max(probabilities, key=probabilities.get) == payload["predicted_class"]
 
 
 def test_predict_calories_uses_saved_model(client: TestClient) -> None:
@@ -71,7 +77,7 @@ def test_predict_calories_uses_saved_model(client: TestClient) -> None:
     assert response.status_code == 200
     payload = response.json()
     assert payload["mock_mode"] is False
-    assert payload["model_name"] == "Random Forest Regressor"
+    assert payload["model_name"] == "XGBoost Regressor"
     assert payload["unit"] == "kcal_per_planned_session"
     assert payload["prediction"] > 0
     assert payload["input_summary"]["model_rate_kcal_per_hour"] > payload["prediction"]

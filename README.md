@@ -35,7 +35,6 @@ The project is now a working prototype, not only a proposal.
 - final tuning of the improved rule-based plan generator after live demo inspection
 
 ### Remaining
-- Tableau embedding promised in the proposal
 - final screenshot and demo-evidence capture
 - optional external LLM API enhancement for a richer assistant
 
@@ -225,7 +224,6 @@ For detailed technical and reproducibility material, use:
 ## Remaining Work
 
 Before final submission, the main remaining items are:
-- add Tableau embedding
 - complete final screenshots and presentation evidence
 - finalize local walkthrough and polish
 - optionally add an external LLM API as a future enhancement

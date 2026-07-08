@@ -1,5 +1,8 @@
+import { Calendar } from 'lucide-react'
 import { GeneratedPlanResponse } from '../types/workout.types'
 import FormattedText from './FormattedText'
+
+const WEEK_DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
 
 interface PlanCardProps {
   plan?: GeneratedPlanResponse | null
@@ -7,7 +10,13 @@ interface PlanCardProps {
 
 export default function PlanCard({ plan }: PlanCardProps) {
   if (!plan) {
-    return <p className="muted">Generate a plan from the Profile tab to see the weekly schedule.</p>
+    return (
+      <div className="empty-state">
+        <div className="empty-state-icon"><Calendar size={18} /></div>
+        <p className="empty-state-title">No plan generated</p>
+        <p className="empty-state-detail">Complete the Profile tab and click Generate to build your personalised weekly workout schedule.</p>
+      </div>
+    )
   }
 
   return (
@@ -27,6 +36,24 @@ export default function PlanCard({ plan }: PlanCardProps) {
             </span>
           ))}
         </div>
+      </div>
+      <div className="plan-week-overview">
+        {WEEK_DAYS.map((dayName) => {
+          const scheduled = plan.weekly_schedule.find((d) => d.day === dayName)
+          return (
+            <div key={dayName} className={`plan-week-cell ${scheduled ? 'active-day' : 'rest-day'}`}>
+              <span className="plan-week-day-abbr">{dayName.slice(0, 3)}</span>
+              {scheduled ? (
+                <>
+                  <span className="plan-week-focus">{scheduled.focus}</span>
+                  <span className="plan-week-count">{scheduled.exercises.length} ex</span>
+                </>
+              ) : (
+                <span className="plan-week-focus">Rest</span>
+              )}
+            </div>
+          )
+        })}
       </div>
       <div className="plan-grid">
         {plan.weekly_schedule.map((day) => (

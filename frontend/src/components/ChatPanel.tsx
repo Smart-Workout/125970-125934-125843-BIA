@@ -20,8 +20,8 @@ export default function ChatPanel({ plan }: ChatPanelProps) {
   }
 
   return (
-    <div className="grid two-column">
-      <section className="panel">
+    <div className="grid two-column chat-layout">
+      <section className="panel chat-main-panel">
         <h3 className="panel-title">RAG Chat</h3>
         <div className="sequence-note" style={{ marginBottom: 12 }}>
           This panel explains the generated plan with retrieved evidence. It is retrieval-grounded support, not a final free-form coaching model yet.
@@ -35,13 +35,13 @@ export default function ChatPanel({ plan }: ChatPanelProps) {
         </div>
         <form onSubmit={submit} className="field">
           <label htmlFor="chat">Question</label>
-          <textarea id="chat" rows={4} value={message} onChange={(event) => setMessage(event.target.value)} />
+          <textarea id="chat" rows={5} value={message} onChange={(event) => setMessage(event.target.value)} />
           <button className="primary-button" type="submit" disabled={loading || !message.trim()}>
             {loading ? 'Asking...' : 'Send'}
           </button>
         </form>
         {error && <p className="error-banner">{error}</p>}
-        <div className="chat-message-list">
+        <div className="chat-message-list chat-scroll-area">
           {messages.map((item, index) => (
             <div key={`${item.role}-${index}`} className={`chat-message ${item.role}`}>
               <p className="chat-message-author">{item.role === 'user' ? 'You' : 'Smart Workout'}</p>
@@ -50,7 +50,7 @@ export default function ChatPanel({ plan }: ChatPanelProps) {
           ))}
         </div>
       </section>
-      <section className="panel">
+      <section className="panel chat-snippet-panel">
         <h3 className="panel-title">Retrieved Snippets</h3>
         {plan ? (
           <p className="muted" style={{ marginTop: 0, fontSize: 12 }}>
@@ -62,7 +62,7 @@ export default function ChatPanel({ plan }: ChatPanelProps) {
           </p>
         )}
         {lastResponse?.retrieved_snippets.length ? (
-          <div className="grid">
+          <div className="grid chat-snippet-list">
             {lastResponse.retrieved_snippets.map((snippet, index) => (
               <div key={`${snippet.source}-${index}`} className="snippet">
                 <p className="snippet-title">{snippet.category}</p>

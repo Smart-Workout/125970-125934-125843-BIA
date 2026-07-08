@@ -1,6 +1,9 @@
 import { useState } from 'react'
-import { Activity, Building2, Dumbbell, Home, LayoutDashboard, MessageSquare, RefreshCw, Target, UserRound, Users } from 'lucide-react'
+import { Activity, AlertCircle, BarChart2, Brain, Building2, Dumbbell, FileText, Home, Info, LayoutDashboard, MessageSquare, RefreshCw, Target, UserRound, Users, X, Zap } from 'lucide-react'
+import ErrorBoundary from '../components/ErrorBoundary'
 import { Link, useNavigate } from 'react-router-dom'
+import Range from 'rc-slider'
+import 'rc-slider/assets/index.css'
 import CalendarHeatmap from '../components/CalendarHeatmap'
 import ChartPanel from '../components/ChartPanel'
 import ChatPanel from '../components/ChatPanel'
@@ -45,28 +48,28 @@ const userTabs: Array<{ id: Tab; label: string; icon: typeof LayoutDashboard }> 
 
 const tabMeta: Record<Tab, { title: string; description: string }> = {
   overview: {
-    title: 'Executive Overview: Priority Action Center',
-    description: 'Top-level decision view connecting membership utilization, lifestyle readiness, and plan performance signals.',
+    title: 'Executive Overview: Priority Action Centre',
+    description: 'One-page snapshot of your member base, top-performing locations, dominant wellness segment, and plan quality. Use this to identify where to focus business attention first.',
   },
   membership: {
-    title: 'Membership Utilization and Revenue Signals',
-    description: 'Location and subscription cohort analytics for utilization, promotion targeting, and service adjustment decisions.',
+    title: 'Membership Utilisation and Revenue Signals',
+    description: 'Subscription cohort and location analytics. Compare plans by member count, revenue, and workout demand to target promotions and service adjustments.',
   },
   lifestyle: {
-    title: 'Lifestyle Readiness Segments',
-    description: 'Clustered wellness profiles showing readiness, recovery risk, sleep, activity, and stress patterns.',
+    title: 'Member Lifestyle Segments',
+    description: 'Members are grouped into 4 wellness profiles based on sleep, activity, stress, and readiness scores. Use these segments to decide who needs recovery support, habit coaching, or progressive training.',
   },
   profile: {
     title: 'Client Profile and Readiness Inputs',
-    description: 'Client-facing form for goals, constraints, wellness status, and safety-aware readiness estimation.',
+    description: 'Fill in your goals, wellness readings, and constraints. The system estimates your readiness to train before generating a personalised plan.',
   },
   plan: {
-    title: 'Personalized Prediction and Weekly Plan',
-    description: 'Model-backed intensity, planned-session calories, exercise retrieval, and weekly programming.',
+    title: 'Personalised Plan: Prediction and Weekly Schedule',
+    description: 'Readiness is estimated first. An ML model then predicts workout intensity and calorie targets. A weekly exercise programme is assembled from those predictions.',
   },
   chat: {
     title: 'Plan Rationale Assistant',
-    description: 'Client-facing retrieval-grounded assistant for explaining the generated plan and supporting evidence.',
+    description: 'Ask questions about your generated plan. The assistant uses your profile and supporting evidence to explain exercise choices and answer follow-up questions.',
   },
 }
 
@@ -89,6 +92,16 @@ const workspaceViewOptions: Array<{ id: WorkspaceView; label: string }> = [
 
 const formatCurrency = (value?: number) => `$${Math.round(value ?? 0).toLocaleString()}`
 const formatNumber = (value?: number) => Math.round(value ?? 0).toLocaleString()
+const formatSignedNumber = (value: number, digits = 1) => {
+  const rounded = Number(value.toFixed(digits))
+  if (rounded === 0) return '0'
+  return `${rounded > 0 ? '+' : ''}${rounded}`
+}
+const formatSignedPercent = (value: number, digits = 1) => {
+  const rounded = Number(value.toFixed(digits))
+  if (rounded === 0) return '0%'
+  return `${rounded > 0 ? '+' : ''}${rounded}%`
+}
 const formatCalorieUnit = (unit?: string) => {
   if (unit === 'kcal_per_planned_session') return 'kcal per planned session'
   if (unit === 'kcal_per_hour') return 'kcal per hour'
@@ -139,6 +152,14 @@ const clusterDecisionAction = (card: LifestyleProfileCard) => {
   return 'Use balanced progression with normal readiness checks.'
 }
 
+const getSegmentAxisLabel = (card: LifestyleProfileCard): string => {
+  const lbl = (card.label || '').toLowerCase()
+  const short = lbl.includes('strain') || lbl.includes('low recovery') ? 'Strained'
+    : lbl.includes('moderate') || lbl.includes('mixed') ? 'Balanced'
+    : clusterDecisionLabel(card).split('-')[0].trim()
+  return `Seg.${card.cluster_id} \u00b7 ${short}`
+}
+
 const foodPlanningRole = (category: string) => {
   const normalized = category.toLowerCase()
   if (normalized.includes('protein') || normalized.includes('meat') || normalized.includes('egg')) return 'Plan as recovery or muscle-support food.'
@@ -153,6 +174,24 @@ const mostCommonLabel = (chart?: ChartData) => {
   const index = chart.values.indexOf(Math.max(...chart.values))
   return chart.labels[index] ?? 'Waiting for data'
 }
+
+const weekdayOrder = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+
+const executivePriorityDefinitions: Record<string, string> = {
+  'Utilization priority': 'Most-used gym location in the selected filter. Higher sessions usually indicate staffing and capacity pressure.',
+  'Membership focus': 'Subscription plan segment with highest influence in the selected view. Helps target retention and promotion actions.',
+  'Readiness segment focus': 'Dominant wellness segment based on sleep, stress, activity, and readiness signals. Guides intervention strategy.',
+  'Plan generation signal': 'Health check for whether prediction outputs can be converted into a practical weekly plan.',
+}
+
+const descriptiveGlossary = [
+  { term: 'Utilization', definition: 'How heavily facilities are used, usually measured by check-ins or session volume.' },
+  { term: 'Retention risk', definition: 'Early warning that members may become inactive or stop renewing, based on trend softening.' },
+  { term: 'Readiness score', definition: 'Wellness-based indicator of how prepared a member is for higher training intensity.' },
+  { term: 'Segment', definition: 'A member group with similar behavior or wellness patterns, used for targeted actions.' },
+  { term: 'Lift', definition: 'Relative change versus a baseline. Example: weekend check-ins compared with weekday average.' },
+  { term: 'Outlier', definition: 'Unusually high or low value compared with the typical range, often requiring investigation.' },
+]
 
 interface DashboardPageProps {
   initialAudience?: AudienceMode
@@ -170,6 +209,7 @@ export default function DashboardPage({ initialAudience = 'user' }: DashboardPag
   const [selectedMonths, setSelectedMonths] = useState<string[]>([])
   const [selectedLocations, setSelectedLocations] = useState<string[]>([])
   const [selectedGender, setSelectedGender] = useState('')
+  const [dismissedError, setDismissedError] = useState<string | null>(null)
   const health = useHealth()
   const dashboard = useDashboard({
     start_month: monthSelectionMode === 'range' ? startMonth : undefined,
@@ -190,11 +230,18 @@ export default function DashboardPage({ initialAudience = 'user' }: DashboardPag
   const plan = workout.data?.plan ?? null
   const processedProfile = workout.data?.preprocess.processed_profile ?? null
   const refreshAll = () => {
+    setDismissedError(null)
     health.refresh()
     dashboard.refresh()
   }
 
-  const backendOnline = health.health?.status === 'ok'
+  const activeError = (health.error || dashboard.error || workout.error) ?? null
+  const showError = activeError && activeError !== dismissedError
+  const activeFilterCount = [
+    selectedLocations.length > 0,
+    selectedGender !== '',
+    monthSelectionMode === 'range' ? (startMonth !== '' || endMonth !== '') : selectedMonths.length > 0,
+  ].filter(Boolean).length
   const activeMeta = audienceMode === 'executive' && activeTab === 'plan'
     ? {
         title: 'Plan Readiness and Model Governance',
@@ -205,6 +252,7 @@ export default function DashboardPage({ initialAudience = 'user' }: DashboardPag
   const topLocation = relational?.top_locations[0]
   const selectedTiers = relational?.tier_dashboards.filter((item) => selectedMembershipTiers.includes(item.tier)) ?? []
   const selectedTierPlans = relational?.plan_breakdown.filter((item) => selectedMembershipTiers.includes(item.tier)) ?? []
+  const totalPlanMrr = selectedTierPlans.reduce((s, r) => s + r.estimated_monthly_recurring_revenue, 0)
   const selectedTierSessions = selectedTiers.reduce((sum, tier) => sum + tier.sampled_sessions, 0)
   const selectedTierMembers = selectedTiers.reduce((sum, tier) => sum + tier.member_count, 0)
   const selectedTierMrr = selectedTiers.reduce((sum, tier) => sum + tier.estimated_monthly_recurring_revenue, 0)
@@ -259,6 +307,95 @@ export default function DashboardPage({ initialAudience = 'user' }: DashboardPag
   const selectedMonthLabel = selectedMonths.length
     ? `${selectedMonths.length} month${selectedMonths.length === 1 ? '' : 's'} selected`
     : 'All months'
+  const hasCalendarData = (executive?.calendar_heatmap.length ?? 0) > 0
+  const weekdaySessionSummary = weekdayOrder.reduce((acc, weekday) => {
+    acc.set(weekday, { total: 0, days: 0 })
+    return acc
+  }, new Map<string, { total: number; days: number }>())
+  ;(executive?.calendar_heatmap ?? []).forEach((day) => {
+    const current = weekdaySessionSummary.get(day.weekday)
+    if (!current) return
+    current.total += day.session_count
+    current.days += 1
+  })
+  const weekdayDemandTrend: ChartData | undefined = hasCalendarData
+    ? {
+        labels: weekdayOrder.map((day) => day.slice(0, 3)),
+        values: weekdayOrder.map((day) => {
+          const stats = weekdaySessionSummary.get(day)
+          if (!stats || stats.days === 0) return 0
+          return Number((stats.total / stats.days).toFixed(1))
+        }),
+      }
+    : undefined
+  const executiveMonths = executive?.monthly_activity.labels ?? []
+  const executiveMonthlyValues = executive?.monthly_activity.values ?? []
+  const latestMonthIndex = executiveMonthlyValues.length - 1
+  const latestMonthValue = latestMonthIndex >= 0 ? executiveMonthlyValues[latestMonthIndex] : 0
+  const previousMonthValue = latestMonthIndex > 0 ? executiveMonthlyValues[latestMonthIndex - 1] : 0
+  const sessionMomentumPercent = previousMonthValue > 0
+    ? ((latestMonthValue - previousMonthValue) / previousMonthValue) * 100
+    : 0
+  const locationValues = executive?.location_mix.values ?? []
+  const locationTotal = locationValues.reduce((sum, value) => sum + value, 0)
+  const topLocationContribution = locationTotal > 0 && locationValues.length > 0
+    ? (Math.max(...locationValues) / locationTotal) * 100
+    : 0
+  const weekdayValues = weekdayDemandTrend?.values ?? []
+  const weekdayPeakPressure = weekdayValues.length
+    ? Math.max(...weekdayValues) - Math.min(...weekdayValues)
+    : 0
+  const avgDurationDelta = executive
+    ? executive.kpis.avg_duration_minutes - executive.duration_distribution.median
+    : 0
+  const filterBreadcrumbs = [
+    {
+      label: 'View',
+      value: workspaceViewOptions.find((item) => item.id === workspaceView)?.label ?? 'Executive summary',
+    },
+    {
+      label: 'Period',
+      value: monthSelectionMode === 'specific'
+        ? selectedMonthLabel
+        : `${displayStartMonth} to ${displayEndMonth}`,
+    },
+    {
+      label: 'Gender',
+      value: selectedGender || 'All',
+    },
+    {
+      label: 'Locations',
+      value: selectedLocations.length ? `${selectedLocations.length} selected` : 'All',
+    },
+  ]
+  const kpiTrendChips = [
+    {
+      label: 'Session momentum',
+      value: formatSignedPercent(sessionMomentumPercent),
+      detail: executiveMonths.length > 1
+        ? `${executiveMonths[latestMonthIndex - 1]} to ${executiveMonths[latestMonthIndex]}`
+        : 'Need at least 2 months',
+      tone: sessionMomentumPercent > 0 ? 'up' : sessionMomentumPercent < 0 ? 'down' : 'neutral',
+    },
+    {
+      label: 'Duration vs median',
+      value: `${formatSignedNumber(avgDurationDelta)} min`,
+      detail: 'Current average against median session length',
+      tone: avgDurationDelta > 0 ? 'up' : avgDurationDelta < 0 ? 'down' : 'neutral',
+    },
+    {
+      label: 'Top location concentration',
+      value: `${topLocationContribution.toFixed(1)}%`,
+      detail: 'Share held by the highest-load location',
+      tone: topLocationContribution >= 35 ? 'up' : topLocationContribution <= 25 ? 'down' : 'neutral',
+    },
+    {
+      label: 'Weekday demand spread',
+      value: `${weekdayPeakPressure.toFixed(1)}`,
+      detail: 'Gap between lowest and highest weekday avg check-ins',
+      tone: weekdayPeakPressure >= 10 ? 'up' : weekdayPeakPressure <= 4 ? 'down' : 'neutral',
+    },
+  ]
 
   const setAudience = (mode: AudienceMode) => {
     setAudienceMode(mode)
@@ -367,13 +504,9 @@ export default function DashboardPage({ initialAudience = 'user' }: DashboardPag
               <button className={audienceMode === 'user' ? 'active' : ''} type="button" onClick={() => setAudience('user')}>User</button>
               <button className={audienceMode === 'executive' ? 'active' : ''} type="button" onClick={() => setAudience('executive')}>Executive</button>
             </div>
-            <span className="status-pill">
-              <span className={`status-dot ${backendOnline ? 'online' : ''}`} />
-              {backendOnline ? 'Backend online' : 'Backend offline'}
-            </span>
-            <button className="icon-button" type="button" onClick={refreshAll}>
-              <RefreshCw size={15} />
-              Refresh
+            <button className="icon-button" type="button" onClick={refreshAll} aria-label="Refresh data">
+              <RefreshCw size={15} className={dashboard.loading || health.loading ? 'spin' : ''} />
+              {dashboard.loading ? 'Loading…' : 'Refresh'}
             </button>
             <button className="primary-button" type="button" onClick={() => setAudience('user')}>
               <Dumbbell size={15} />
@@ -424,6 +557,7 @@ export default function DashboardPage({ initialAudience = 'user' }: DashboardPag
         </aside>
 
         <section className="content-pane">
+          <ErrorBoundary title="Dashboard content">
           <div className="page">
             <section className="page-intro">
               <div>
@@ -437,9 +571,53 @@ export default function DashboardPage({ initialAudience = 'user' }: DashboardPag
               </div>
             </section>
 
-        {(health.error || dashboard.error || workout.error) && (
+        {showError && (
           <div className="error-banner" style={{ marginBottom: 14 }}>
-            {health.error || dashboard.error || workout.error}
+            <AlertCircle size={15} className="error-banner-icon" />
+            <span style={{ flex: 1 }}>{activeError}</span>
+            <button className="error-banner-dismiss" type="button" onClick={() => setDismissedError(activeError)} aria-label="Dismiss error">
+              <X size={14} />
+            </button>
+          </div>
+        )}
+        {audienceMode === 'executive' && activeFilterCount > 0 && (
+          <div className="active-filters-bar" style={{ marginBottom: 14 }}>
+            <span className="active-filters-label">Active filters</span>
+            {selectedGender && (
+              <span className="active-filter-chip">
+                Gender: {selectedGender}
+                <button type="button" onClick={() => setSelectedGender('')} aria-label="Remove gender filter">×</button>
+              </span>
+            )}
+            {selectedLocations.length > 0 && (
+              <span className="active-filter-chip">
+                {selectedLocations.length} location{selectedLocations.length > 1 ? 's' : ''}
+                <button type="button" onClick={() => setSelectedLocations([])} aria-label="Remove location filter">×</button>
+              </span>
+            )}
+            {monthSelectionMode === 'range' && (startMonth || endMonth) && (
+              <span className="active-filter-chip">
+                {displayStartMonth} → {displayEndMonth}
+                <button type="button" onClick={() => { setStartMonth(''); setEndMonth('') }} aria-label="Remove date filter">×</button>
+              </span>
+            )}
+            {monthSelectionMode === 'specific' && selectedMonths.length > 0 && (
+              <span className="active-filter-chip">
+                {selectedMonths.length} month{selectedMonths.length > 1 ? 's' : ''}
+                <button type="button" onClick={() => setSelectedMonths([])} aria-label="Remove month filter">×</button>
+              </span>
+            )}
+          </div>
+        )}
+
+        {audienceMode === 'executive' && (
+          <div className="filter-breadcrumb-bar" style={{ marginBottom: 14 }}>
+            {filterBreadcrumbs.map((crumb) => (
+              <span key={crumb.label} className="filter-breadcrumb-chip">
+                <strong>{crumb.label}:</strong>
+                <span>{crumb.value}</span>
+              </span>
+            ))}
           </div>
         )}
 
@@ -463,7 +641,6 @@ export default function DashboardPage({ initialAudience = 'user' }: DashboardPag
                   </div>
                   {monthSelectionMode === 'range' ? (
                     <>
-<<<<<<< HEAD
                       <div className="date-range-labels">
                         <span>{displayStartMonth}</span>
                         <span>{displayEndMonth}</span>
@@ -472,7 +649,8 @@ export default function DashboardPage({ initialAudience = 'user' }: DashboardPag
                         min={0}
                         max={monthMax}
                         value={[displayStartMonthIndex, displayEndMonthIndex]}
-                        onChange={(value: number[]) => {
+                        onChange={(value) => {
+                          if (!Array.isArray(value)) return
                           setStartMonth(months[value[0]] ?? '');
                           setEndMonth(months[value[1]] ?? '');
                         }}
@@ -486,30 +664,6 @@ export default function DashboardPage({ initialAudience = 'user' }: DashboardPag
                         ]}
                         railStyle={{ backgroundColor: '#e5e7eb' }}
                       />
-=======
-                      <div className="date-range-inputs">
-                        <label>
-                          <span>Start</span>
-                          <input
-                            type="month"
-                            value={displayStartMonth === 'All' ? '' : displayStartMonth}
-                            min={months[0]}
-                            max={months[monthMax]}
-                            onChange={(event) => setRangeMonth('start', event.target.value)}
-                          />
-                        </label>
-                        <label>
-                          <span>End</span>
-                          <input
-                            type="month"
-                            value={displayEndMonth === 'All' ? '' : displayEndMonth}
-                            min={months[0]}
-                            max={months[monthMax]}
-                            onChange={(event) => setRangeMonth('end', event.target.value)}
-                          />
-                        </label>
-                      </div>
->>>>>>> 0c7ba58bbfc2a3ffbb0a973de61dcec6eee69fb9
                     </>
                   ) : (
                     <div className="month-picker">
@@ -559,15 +713,70 @@ export default function DashboardPage({ initialAudience = 'user' }: DashboardPag
             <section className="priority-grid">
               {executivePriorities.map((item) => (
                 <article key={item.label} className="priority-card">
-                  <span>{item.label}</span>
-                  <strong>{item.value}</strong>
-                  <p>{item.detail}</p>
+                  <span className="label-with-info">
+                    {item.label}
+                    {executivePriorityDefinitions[item.label] && (
+                      <span
+                        className="inline-info-trigger"
+                        tabIndex={0}
+                        role="note"
+                        aria-label={executivePriorityDefinitions[item.label]}
+                        data-tooltip={executivePriorityDefinitions[item.label]}
+                      >
+                        <Info size={11} />
+                      </span>
+                    )}
+                  </span>
+                  {dashboard.loading ? (
+                    <div className="kpi-skeleton" style={{ marginTop: 6 }}>
+                      <div className="skeleton skeleton-value" />
+                      <div className="skeleton skeleton-detail" />
+                    </div>
+                  ) : (
+                    <>
+                      <strong>{item.value}</strong>
+                      <p>{item.detail}</p>
+                    </>
+                  )}
                 </article>
               ))}
             </section>
 
             {workspaceView === 'executive' && (
               <div className="grid">
+                <section className="panel kpi-trend-panel">
+                  <h3 className="panel-title" style={{ marginBottom: 6 }}>KPI Trend Snapshot</h3>
+                  <p className="panel-subtitle" style={{ marginBottom: 10 }}>Small directional signals to spot acceleration, concentration, and demand pressure quickly.</p>
+                  <div className="kpi-trend-grid">
+                    {kpiTrendChips.map((chip) => (
+                      <article key={chip.label} className="kpi-trend-chip">
+                        <p className="kpi-trend-label">{chip.label}</p>
+                        <p className={`kpi-trend-value ${chip.tone}`}>{chip.value}</p>
+                        <p className="kpi-trend-detail">{chip.detail}</p>
+                      </article>
+                    ))}
+                  </div>
+                </section>
+                <section className="panel descriptive-glossary-panel">
+                  <h3 className="panel-title" style={{ marginBottom: 6 }}>Descriptive Terms Guide</h3>
+                  <p className="panel-subtitle" style={{ marginBottom: 10 }}>Hover each info icon for plain-language definitions used in this dashboard.</p>
+                  <div className="glossary-chip-row">
+                    {descriptiveGlossary.map((item) => (
+                      <span key={item.term} className="glossary-chip">
+                        {item.term}
+                        <span
+                          className="inline-info-trigger"
+                          tabIndex={0}
+                          role="note"
+                          aria-label={item.definition}
+                          data-tooltip={item.definition}
+                        >
+                          <Info size={11} />
+                        </span>
+                      </span>
+                    ))}
+                  </div>
+                </section>
                 <div className="grid kpi-grid">
                   <KPICard title="Sessions" value={executive?.kpis.selected_sessions ?? 0} detail="Filtered check-ins" icon="exercise" loading={dashboard.loading} />
                   <KPICard title="Users" value={executive?.kpis.selected_users ?? 0} detail="Unique users in filter" icon="dataset" loading={dashboard.loading} />
@@ -575,28 +784,44 @@ export default function DashboardPage({ initialAudience = 'user' }: DashboardPag
                   <KPICard title="Top Location" value={topLocation?.location ?? 'Waiting'} detail="Highest selected utilization" icon="model" loading={dashboard.loading} />
                 </div>
                 <div className="grid two-column">
-                  <ChartPanel title="Monthly Utilization Trend (Filtered Check-ins)" subtitle="Shows whether selected locations and cohorts are expanding, stable, or softening over time." data={executive?.monthly_activity} type="line" loading={dashboard.loading} />
+                  <section className="panel gif-feature-panel" aria-label="Decorative animation panel">
+                    <img
+                      src="/tumblr_mptt49hvA11s6wlblo1_500.gif"
+                      alt="Decorative animation"
+                      loading="lazy"
+                    />
+                  </section>
                   <ChartPanel title="Training Demand Mix by Workout Type" subtitle="Identifies which training formats are driving program demand." data={executive?.workout_mix} loading={dashboard.loading} />
                   <ChartPanel title="Member Gender Composition in Selected Filter" subtitle="Context for comparing behavior across gender segments." data={executive?.gender_mix} type="pie" loading={dashboard.loading} />
                   <ChartPanel title="Location Contribution to Selected Utilization" subtitle="Highlights which branches carry the selected demand." data={executive?.location_mix} loading={dashboard.loading} />
                 </div>
-                <div className="grid two-column">
-                  <UsageHeatmap cells={executive?.usage_heatmap} />
-                  <EngagementScatter points={executive?.engagement_scatter} />
+                <div className="grid two-column" style={{ alignItems: 'start' }}>
+                  <div className="grid" style={{ gap: 12 }}>
+                    <UsageHeatmap cells={executive?.usage_heatmap} loading={dashboard.loading} />
+                    <CalendarHeatmap days={executive?.calendar_heatmap} loading={dashboard.loading} />
+                  </div>
+                  <div className="grid" style={{ gap: 12 }}>
+                    <EngagementScatter points={executive?.engagement_scatter} loading={dashboard.loading} />
+                    <ChartPanel
+                      title="Average Check-ins by Day of Week"
+                      subtitle="Shows your typical demand pattern by weekday. Use this to plan staffing, class slots, and promotions on low-traffic days."
+                      data={weekdayDemandTrend}
+                      type="line"
+                      legend="X-axis: weekday. Y-axis: average number of check-ins for that weekday in the selected date range."
+                      loading={dashboard.loading}
+                    />
+                  </div>
                 </div>
-                <div className="grid two-column">
-                  <CalendarHeatmap days={executive?.calendar_heatmap} />
-                  <SankeyJourneyPanel graph={executive?.journey_sankey} />
-                </div>
+                <SankeyJourneyPanel graph={executive?.journey_sankey} loading={dashboard.loading} />
                 <div className="grid two-column">
                   <DistributionPanel
-                    title="Box Plot + Histogram: Calorie Burn Distribution"
-                    subtitle="Validates whether average calories are representative or driven by outliers."
+                    title="Calorie Burn Spread: Typical Range and Outliers"
+                    subtitle="Shows how calories burned per session vary across members. The box marks the typical range; dots beyond the lines are unusually high or low sessions."
                     summary={executive?.calorie_distribution}
                   />
                   <DistributionPanel
-                    title="Box Plot + Histogram: Visit Duration Distribution"
-                    subtitle="Shows spread of session duration for staffing, class length, and usage-quality decisions."
+                    title="Session Length Spread: Typical Range and Outliers"
+                    subtitle="Shows how visit lengths vary. Use the typical range to inform class scheduling and staffing decisions. Dots beyond the lines are unusually short or long sessions."
                     summary={executive?.duration_distribution}
                   />
                 </div>
@@ -714,7 +939,7 @@ export default function DashboardPage({ initialAudience = 'user' }: DashboardPag
                   <ChartPanel title="Average Duration by Workout Type" data={exerciseDashboard?.duration_by_workout} loading={dashboard.loading} />
                   <ChartPanel title="ExerciseDB Equipment Coverage for Plan Assembly" data={exerciseDashboard?.equipment_coverage} loading={dashboard.loading} />
                 </div>
-                <ShapImpactPanel rows={exerciseDashboard?.shap_summary} />
+                <ShapImpactPanel rows={exerciseDashboard?.shap_summary} loading={dashboard.loading} />
                 <div className="grid two-column">
                   <section className="panel">
                     <h3 className="panel-title">Neo4J Graph: Readiness Source</h3>
@@ -757,6 +982,9 @@ export default function DashboardPage({ initialAudience = 'user' }: DashboardPag
                     </div>
                     <p className="muted" style={{ margin: 0 }}>BMI: {workout.data.preprocess.processed_profile.bmi} ({workout.data.preprocess.processed_profile.bmi_category})</p>
                     <p className="muted" style={{ margin: 0 }}>Blood pressure: {workout.data.preprocess.processed_profile.systolic_bp}/{workout.data.preprocess.processed_profile.diastolic_bp}</p>
+                    {workout.data.preprocess.processed_profile.gym_type && (
+                      <p className="muted" style={{ margin: 0 }}>Gym type: {workout.data.preprocess.processed_profile.gym_type} — equipment constrained to gym capabilities</p>
+                    )}
                     <ul style={{ marginTop: 0 }}>
                       {workout.data.preprocess.readiness.factors.map((factor) => (
                         <li key={factor}>{factor}</li>
@@ -800,8 +1028,8 @@ export default function DashboardPage({ initialAudience = 'user' }: DashboardPag
             </section>
 
             <div className="grid kpi-grid">
-              <KPICard title="Members" value={formatNumber(selectedTierMembers)} detail={`${selectedMemberShare.toFixed(1)}% of members`} icon="dataset" loading={dashboard.loading} />
-              <KPICard title="Sample Sessions" value={formatNumber(selectedTierSessions)} detail={`${selectedSessionShare.toFixed(1)}% of sampled visits`} icon="exercise" loading={dashboard.loading} />
+              <KPICard title="Members" value={formatNumber(selectedTierMembers)} detail={`${selectedMemberShare.toFixed(1)}% of all members`} icon="dataset" loading={dashboard.loading} />
+              <KPICard title="Gym Check-ins (Sample)" value={formatNumber(selectedTierSessions)} detail={`${selectedSessionShare.toFixed(1)}% of all recorded visits`} icon="exercise" loading={dashboard.loading} />
               <KPICard title="Estimated MRR" value={formatCurrency(selectedTierMrr)} detail="Selected subscription revenue" icon="plan" loading={dashboard.loading} />
               <KPICard title="Top Workout" value={selectedTopWorkout} detail="Most common workout in selected group" icon="server" loading={dashboard.loading} />
             </div>
@@ -836,28 +1064,45 @@ export default function DashboardPage({ initialAudience = 'user' }: DashboardPag
               <section className="panel">
                 <h3 className="panel-title">Subscription Plan Breakdown</h3>
                 {selectedTierPlans.length ? (
-                  <div className="table-wrap">
-                    <table>
-                      <thead>
-                        <tr>
-                          <th>Plan</th>
-                          <th>Members</th>
-                          <th>Price</th>
-                          <th>Estimated MRR</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {selectedTierPlans.map((row) => (
-                          <tr key={row.subscription_plan}>
-                            <td>{row.subscription_plan}</td>
-                            <td>{row.user_count.toLocaleString()}</td>
-                            <td>{formatCurrency(row.price_per_month)}</td>
-                            <td>{formatCurrency(row.estimated_monthly_recurring_revenue)}</td>
+                  <>
+                    <div className="table-wrap">
+                      <table>
+                        <thead>
+                          <tr>
+                            <th>Plan</th>
+                            <th>Members</th>
+                            <th>Price</th>
+                            <th>Estimated MRR</th>
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
+                        </thead>
+                        <tbody>
+                          {selectedTierPlans.map((row) => (
+                            <tr key={row.subscription_plan}>
+                              <td>{row.subscription_plan}</td>
+                              <td>{row.user_count.toLocaleString()}</td>
+                              <td>{formatCurrency(row.price_per_month)}</td>
+                              <td>{formatCurrency(row.estimated_monthly_recurring_revenue)}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                    <p className="insight-label" style={{ marginTop: 16, marginBottom: 8 }}>Revenue share by plan</p>
+                    <div className="mrr-share-visual">
+                      {selectedTierPlans.map(row => {
+                        const pct = totalPlanMrr > 0 ? (row.estimated_monthly_recurring_revenue / totalPlanMrr * 100) : 0
+                        return (
+                          <div key={row.subscription_plan} className="mrr-share-row">
+                            <span className="mrr-share-name">{row.subscription_plan}</span>
+                            <div className="mrr-share-track">
+                              <div className="mrr-share-fill" style={{ width: `${Math.round(pct)}%` }} />
+                            </div>
+                            <span className="mrr-share-pct">{Math.round(pct)}%</span>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </>
                 ) : (
                   <p className="muted">No plan rows available for this tier.</p>
                 )}
@@ -889,6 +1134,22 @@ export default function DashboardPage({ initialAudience = 'user' }: DashboardPag
                 </div>
               </section>
             </div>
+            <section className="panel tableau-embed-panel">
+              <h3 className="panel-title">Gym Location Utilization — Geographic View</h3>
+              <p className="muted" style={{ margin: '-4px 0 12px', fontSize: 13 }}>
+                Bubble size = session volume. Colour = gym type. Interactive map powered by Tableau Public.
+              </p>
+              <div className="tableau-frame-wrap">
+                <iframe
+                  src="https://public.tableau.com/views/SmartWorkout/GymLocationMap?:embed=y&:showVizHome=no&:toolbar=no&:animate_transition=yes"
+                  width="100%"
+                  height="520"
+                  style={{ border: 'none', borderRadius: 6, display: 'block' }}
+                  title="Gym Location Utilization Map"
+                  allowFullScreen
+                />
+              </div>
+            </section>
             <section className="panel">
               <h3 className="panel-title">{selectedTierTitle} Location Utilization</h3>
               {selectedLocationRows.length ? (
@@ -927,43 +1188,50 @@ export default function DashboardPage({ initialAudience = 'user' }: DashboardPag
           <div className="grid">
             <div className="grid two-column">
               <section className="panel">
-                <h3 className="panel-title">Readiness Segment Summary</h3>
+                <h3 className="panel-title">Wellness Segment Summary</h3>
                 <div className="insight-list">
                   <div className="insight-item">
-                    <p className="insight-label">Largest readiness segment</p>
+                    <p className="insight-label">Largest member segment</p>
                     <p className="insight-value">
-                      {dominantCluster ? `${dominantReadinessSegment}: ${dominantCluster.label}` : 'Waiting for data'}
+                      {dominantCluster ? `${dominantReadinessSegment} — ${dominantCluster.label}` : 'Waiting for data'}
                     </p>
                   </div>
                   <div className="insight-item">
-                    <p className="insight-label">Executive implication</p>
+                    <p className="insight-label">What this means for your business</p>
                     <p className="muted" style={{ margin: 0 }}>
-                      Use segment names to decide whether the business should prioritize progression, habit building, or recovery-first support.
+                      The dominant segment tells you whether most members are ready for harder training, or whether recovery coaching and lighter programming should be the priority.
                     </p>
                   </div>
                 </div>
               </section>
               <section className="panel">
-                <h3 className="panel-title">Lifestyle Intervention Strategy</h3>
+                <h3 className="panel-title">Recommended Actions by Segment Type</h3>
                 <div className="insight-list">
                   <div className="insight-item">
-                    <p className="insight-label">High-readiness clusters</p>
-                    <p className="muted" style={{ margin: 0 }}>Use progressive training, retention nudges, and premium program offers.</p>
+                    <p className="insight-label">High-readiness members (e.g. Balanced segments)</p>
+                    <p className="muted" style={{ margin: 0 }}>Offer progressive training plans, retention rewards, and premium programme upgrades.</p>
                   </div>
                   <div className="insight-item">
-                    <p className="insight-label">Recovery-risk clusters</p>
-                    <p className="muted" style={{ margin: 0 }}>Prioritize lighter plans, sleep coaching, stress management, and wellness check-ins.</p>
+                    <p className="insight-label">Recovery-risk members (e.g. Strained segments)</p>
+                    <p className="muted" style={{ margin: 0 }}>Prioritise lighter sessions, sleep coaching, stress management courses, and wellness check-ins before any progression.</p>
                   </div>
                 </div>
               </section>
             </div>
             <div className="grid two-column">
-              <LifestyleScatterPanel points={lifestyle?.scatter_points} loading={dashboard.loading} />
-              <RadarProfilePanel metrics={lifestyle?.radar_metrics} />
+              <LifestyleScatterPanel
+              points={lifestyle?.scatter_points}
+              loading={dashboard.loading}
+              clusterNames={
+                lifestyle?.profile_cards
+                  ? Object.fromEntries(lifestyle.profile_cards.map(c => [c.cluster_id, getSegmentAxisLabel(c)]))
+                  : undefined
+              }
+            />
+              <RadarProfilePanel metrics={lifestyle?.radar_metrics} loading={dashboard.loading} />
             </div>
-            <div className="grid two-column">
-              <section className="panel">
-                <h3 className="panel-title">User Cluster Personas</h3>
+            <section className="panel">
+              <h3 className="panel-title">Member Lifestyle Segment Profiles</h3>
                 {lifestyle?.profile_cards.length ? (
                   <div className="persona-grid">
                     {lifestyle.profile_cards.map((card) => (
@@ -988,15 +1256,74 @@ export default function DashboardPage({ initialAudience = 'user' }: DashboardPag
                     ))}
                   </div>
                 ) : (
-                  <p className="muted">No cluster profile data available.</p>
+                  <div className="empty-state">
+                    <div className="empty-state-icon"><Users size={18} /></div>
+                    <p className="empty-state-title">No segment data</p>
+                    <p className="empty-state-detail">Cluster personas appear once lifestyle segmentation returns results.</p>
+                  </div>
                 )}
               </section>
+            <div className="grid two-column">
+              <ChartPanel
+                title="How Distinct Are the 4 Member Groups? (Cluster Quality)"
+                subtitle="A silhouette score measures how cleanly members fit their assigned group vs. others. Score near 1.0 = very distinct, well-separated groups. k=4 (4 groups) was chosen as the best configuration."
+                data={lifestyle?.silhouette_scores}
+                loading={dashboard.loading}
+                legend="X-axis: number of groups tested (k). Y-axis: quality score (0–1, higher = cleaner, more distinct groups)."
+              />
+              <ChartPanel
+                title="Average Nightly Sleep by Member Segment"
+                subtitle="Compares average hours of sleep per segment. Under 6.5 hours is an early indicator of recovery risk and reduced training capacity."
+                data={lifestyle?.sleep_duration_by_cluster}
+                loading={dashboard.loading}
+                legend="X-axis: member segment. Y-axis: average sleep hours per night."
+              />
+              <ChartPanel
+                title="Physical Activity Level by Member Segment"
+                subtitle="Average activity score per segment (0–100 scale). Higher scores indicate more physically active members who may handle higher training volume."
+                data={lifestyle?.activity_by_cluster}
+                loading={dashboard.loading}
+                legend="X-axis: member segment. Y-axis: physical activity level (0–100 scale)."
+              />
+              <ChartPanel
+                title="Stress Level by Member Segment"
+                subtitle="Average stress per segment (1–10 scale). A score above 7 flags a recovery-first group — members who need lighter programming and wellness support before any progression."
+                data={lifestyle?.stress_by_cluster}
+                loading={dashboard.loading}
+                legend="X-axis: member segment. Y-axis: stress level (1–10 scale, lower is better)."
+              />
             </div>
             <div className="grid three-column">
-              <ChartPanel title="Cluster Quality: Silhouette Scores" data={lifestyle?.silhouette_scores} loading={dashboard.loading} />
-              <ChartPanel title="Average Sleep Duration by Lifestyle Cluster" data={lifestyle?.sleep_duration_by_cluster} loading={dashboard.loading} />
-              <ChartPanel title="Physical Activity Level by Lifestyle Cluster" data={lifestyle?.activity_by_cluster} loading={dashboard.loading} />
-              <ChartPanel title="Stress Level by Lifestyle Cluster" data={lifestyle?.stress_by_cluster} loading={dashboard.loading} />
+              <ChartPanel
+                title="Training Readiness Score by Member Segment"
+                subtitle="Average readiness score per lifestyle group (0–10 scale). Higher = more ready for progressive training. Lower = recovery-first priority."
+                data={lifestyle?.profile_cards.length ? {
+                  labels: lifestyle.profile_cards.map(c => getSegmentAxisLabel(c)),
+                  values: lifestyle.profile_cards.map(c => c.readiness_score)
+                } : undefined}
+                loading={dashboard.loading}
+                legend="X-axis: member segment. Y-axis: average readiness score (0–10)."
+              />
+              <ChartPanel
+                title="Member Share by Wellness Profile"
+                subtitle="Proportional breakdown of the member base across the 4 lifestyle segments. The dominant slice is the most common wellness profile in your gym."
+                data={lifestyle?.profile_cards.length ? {
+                  labels: lifestyle.profile_cards.map(c => c.label),
+                  values: lifestyle.profile_cards.map(c => c.record_count)
+                } : undefined}
+                type="pie"
+                loading={dashboard.loading}
+              />
+              <ChartPanel
+                title="How Many Members Are in Each Segment?"
+                subtitle="Member count per lifestyle group. Larger segments have the greatest business impact — interventions here affect the most members."
+                data={lifestyle?.profile_cards.length ? {
+                  labels: lifestyle.profile_cards.map(c => getSegmentAxisLabel(c)),
+                  values: lifestyle.profile_cards.map(c => c.record_count)
+                } : undefined}
+                loading={dashboard.loading}
+                legend="X-axis: member segment. Y-axis: number of members."
+              />
             </div>
           </div>
         )}
@@ -1004,7 +1331,7 @@ export default function DashboardPage({ initialAudience = 'user' }: DashboardPag
         {activeTab === 'plan' && (
           <div className="grid">
             <section className="panel">
-              <h3 className="panel-title">Decision Sequence</h3>
+              <h3 className="panel-title">How Your Plan Is Built: A Step-by-Step Overview</h3>
               <div className="status-grid">
                 <div className="status-card">
                   <span className="status-chip ready">Estimate</span>
@@ -1030,7 +1357,7 @@ export default function DashboardPage({ initialAudience = 'user' }: DashboardPag
               mapping={workout.data?.plan.decision_mapping ?? null}
             />
             <div className="grid kpi-grid">
-              <KPICard title="Calories" value={workout.data ? workout.data.calories.prediction : '-'} detail={formatCalorieUnit(workout.data?.calories.unit)} icon="model" />
+              <KPICard title="Calories" value={workout.data ? workout.data.calories.prediction : '-'} detail={workout.data ? `${formatCalorieUnit(workout.data.calories.unit)} · ${workout.data.calories.model_name}` : 'kcal per planned session'} icon="model" />
               <KPICard title="Intensity" value={workout.data?.intensity.predicted_class ?? '-'} detail={workout.data?.intensity.model_name ?? 'No model call yet'} icon="readiness" />
               <KPICard title="Training Score" value={workout.data?.plan.decision_mapping.combined_training_score ?? '-'} detail={workout.data?.plan.decision_mapping.recommendation_level ?? 'No mapping yet'} icon="exercise" />
               <KPICard title="Plan" value={workout.data?.plan.weekly_schedule.length ?? 0} detail="Sessions generated" icon="plan" />
@@ -1054,7 +1381,11 @@ export default function DashboardPage({ initialAudience = 'user' }: DashboardPag
                     </div>
                   </div>
                 ) : (
-                  <p className="muted">Generate a plan from the Profile tab to see the final split summary.</p>
+                  <div className="empty-state">
+                    <div className="empty-state-icon"><FileText size={18} /></div>
+                    <p className="empty-state-title">No plan generated</p>
+                    <p className="empty-state-detail">Complete your profile and click Generate to see the split summary here.</p>
+                  </div>
                 )}
               </section>
               <section className="panel">
@@ -1068,6 +1399,10 @@ export default function DashboardPage({ initialAudience = 'user' }: DashboardPag
                     <div className="insight-item">
                       <p className="insight-label">Intensity prediction</p>
                       <p className="insight-value">{workout.data.intensity.predicted_class} via {workout.data.intensity.model_name}</p>
+                      <p className="muted" style={{ margin: '4px 0 0', fontSize: 12 }}>
+                        Classifier macro-F1 = 0.342 on 3 balanced classes (Low / Mid / High).
+                        Labels are heart-rate-zone derived — readiness band acts as a correction layer when confidence is low.
+                      </p>
                     </div>
                     <div className="insight-item">
                       <p className="insight-label">Recommendation mapping</p>
@@ -1077,7 +1412,11 @@ export default function DashboardPage({ initialAudience = 'user' }: DashboardPag
                     </div>
                   </div>
                 ) : (
-                  <p className="muted">Prediction context appears here after the user profile is submitted.</p>
+                  <div className="empty-state">
+                    <div className="empty-state-icon"><Brain size={18} /></div>
+                    <p className="empty-state-title">Awaiting prediction</p>
+                    <p className="empty-state-detail">Submit your profile to see readiness band, intensity label, and model recommendations.</p>
+                  </div>
                 )}
               </section>
             </div>
@@ -1090,16 +1429,46 @@ export default function DashboardPage({ initialAudience = 'user' }: DashboardPag
                 <h3 className="panel-title">Intensity Probabilities</h3>
                 <ProbabilityBars probabilities={workout.data?.intensity.class_probabilities} />
               </section>
+            </div>
+            <div className="grid two-column">
               <section className="panel">
                 <h3 className="panel-title">Prediction Explanation</h3>
                 {workout.data ? (
-                  <ul style={{ margin: 0, paddingLeft: 18 }}>
+                  <ul className="explanation-list">
                     {workout.data.intensity.explanation.map((item) => (
-                      <li key={item}>{item}</li>
+                      <li key={item} className="explanation-item">{item}</li>
                     ))}
                   </ul>
                 ) : (
-                  <p className="muted">Generate a plan to see prediction explanation.</p>
+                  <div className="empty-state">
+                    <div className="empty-state-icon"><BarChart2 size={18} /></div>
+                    <p className="empty-state-title">No explanation yet</p>
+                    <p className="empty-state-detail">Feature-level insights from the intensity model will appear here after generating a plan.</p>
+                  </div>
+                )}
+              </section>
+              <section className="panel">
+                <h3 className="panel-title">Wellness Signals</h3>
+                {workout.data ? (
+                  <div className="signal-grid">
+                    {workout.data.preprocess.readiness.score_breakdown.map((f) => (
+                      <div key={f.signal} className="signal-item">
+                        <div className="signal-header">
+                          <span className="signal-label">{f.label}</span>
+                          <span className={`signal-impact ${f.impact >= 0 ? 'pos' : 'neg'}`}>
+                            {f.impact >= 0 ? '+' : ''}{f.impact}
+                          </span>
+                        </div>
+                        <p className="signal-detail">{f.detail}</p>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="empty-state">
+                    <div className="empty-state-icon"><Zap size={18} /></div>
+                    <p className="empty-state-title">No signals yet</p>
+                    <p className="empty-state-detail">Submit your profile to see how each wellness signal influences your readiness score.</p>
+                  </div>
                 )}
               </section>
             </div>
@@ -1112,6 +1481,7 @@ export default function DashboardPage({ initialAudience = 'user' }: DashboardPag
 
         {activeTab === 'chat' && <ChatPanel plan={workout.data?.plan ?? null} />}
           </div>
+          </ErrorBoundary>
         </section>
       </main>
       <FloatingChatAssistant plan={workout.data?.plan ?? null} />

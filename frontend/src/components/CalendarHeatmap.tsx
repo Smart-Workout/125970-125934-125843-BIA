@@ -2,20 +2,27 @@ import { CalendarHeatmapDay } from '../types/dashboard.types'
 
 interface CalendarHeatmapProps {
   days?: CalendarHeatmapDay[]
+  loading?: boolean
 }
 
 const weekdayOrder = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
 
-export default function CalendarHeatmap({ days = [] }: CalendarHeatmapProps) {
+export default function CalendarHeatmap({ days = [], loading }: CalendarHeatmapProps) {
   const maxSessions = Math.max(...days.map((day) => day.session_count), 1)
   const sortedDays = [...days].sort((a, b) => a.date.localeCompare(b.date))
 
   return (
     <section className="panel">
-      <h3 className="panel-title">Calendar Heatmap: Daily Check-in Demand</h3>
-      <p className="chart-subtitle">Each cell is one filtered date. Darker cells show days with heavier gym usage.</p>
-      {sortedDays.length === 0 ? (
-        <p className="muted">No daily session data available for the selected filters.</p>
+      <h3 className="panel-title">Daily Gym Traffic: Check-in Volume by Date</h3>
+      <p className="chart-subtitle">Each square represents one day. Darker colour = more gym visits on that day. Hover over a date to see the exact session count. Use this to spot peak demand periods for staffing and scheduling.</p>
+      {loading ? (
+        <div className="skeleton" style={{ height: 320, borderRadius: 8 }} />
+      ) : sortedDays.length === 0 ? (
+        <div className="empty-state">
+          <div className="empty-state-icon"><span style={{ fontSize: 22 }}>▦</span></div>
+          <p className="empty-state-title">No calendar data</p>
+          <p className="empty-state-detail">Daily check-in calendar will populate once the selected filters return session data.</p>
+        </div>
       ) : (
         <>
           <div className="calendar-heatmap">

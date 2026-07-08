@@ -1,9 +1,17 @@
 from __future__ import annotations
 
 import json                                                                 # Save model metadata and report-ready configuration values.
+import sys                                                                  # Add backend to sys.path so the shared ml_wrappers module is importable.
 from dataclasses import dataclass                                            # Store model result fields in a readable structure.
 from pathlib import Path                                                     # Build project paths that work from scripts, notebooks, or terminal.
 from typing import Any                                                       # Type flexible sklearn objects without hiding the pipeline structure.
+
+# BalancedXGBClassifier must live in backend/app/core/ml_wrappers so that
+# joblib serialises the class with a stable module path that the backend
+# service can resolve when loading the saved pipeline artifact.
+_BACKEND_DIR = Path(__file__).resolve().parent.parent / "backend"
+if str(_BACKEND_DIR) not in sys.path:
+    sys.path.insert(0, str(_BACKEND_DIR))
 
 import joblib                                                               # Persist the selected trained pipelines as reusable model artifacts.
 import matplotlib.pyplot as plt                                             # Create confusion matrix and explanation PNG outputs.
@@ -32,6 +40,8 @@ try:
 except ImportError:  # pragma: no cover - script can still run without xgboost installed.
     XGBClassifier = None
     XGBRegressor = None
+
+from app.core.ml_wrappers import BalancedXGBClassifier                      # Shared wrapper: class path is stable across training script and backend.
 
 try:
     import shap
@@ -176,41 +186,75 @@ def save_shap_or_fallback_plot(
     output_path: Path,
     title: str,
 ) -> str:
-    estimator = pipeline.named_steps["model"]                                # The final estimator is the part explained by SHAP or fallback importances.
-    x_transformed, feature_names = transformed_sample(pipeline, x)            # Raw input is converted into the fitted model feature space.
+    estimator = pipeline.named_steps["model"]
+    # Unwrap balanced wrapper so SHAP sees the real XGBoost estimator.
+    if hasattr(estimator, "clf_"):
+        estimator = estimator.clf_
+    x_transformed, feature_names = transformed_sample(pipeline, x)
 
     if shap is not None:
         try:
-            explainer = shap.Explainer(estimator, x_transformed, feature_names=feature_names) # SHAP estimates feature contribution direction and strength.
-            values = explainer(x_transformed)                              # SHAP values are computed on the transformed feature matrix.
-            shap.plots.bar(values, max_display=15, show=False)             # Bar plot summarizes the strongest global feature drivers.
-            plt.title(title)                                                # Title connects the explanation artifact to the selected model.
-            plt.tight_layout()                                              # Layout cleanup improves readability in exported PNG files.
-            plt.savefig(output_path, dpi=160, bbox_inches="tight")          # SHAP plot is saved for Week 2 documentation.
-            plt.close()                                                     # Figure is closed after export.
-            return "shap"                                                   # Metadata records that a real SHAP plot was produced.
-        except Exception as exc:  # noqa: BLE001 - fallback should keep the pipeline usable.
-            print(f"SHAP failed for {title}: {exc}")                         # SHAP incompatibility should not block the final product artifact.
+            # TreeExplainer handles XGBoost and RandomForest correctly, including multiclass.
+            explainer = shap.TreeExplainer(estimator)
+            shap_values = explainer.shap_values(x_transformed)
+
+            # Multiclass SHAP output varies by version:
+            # older SHAP → list of (n_samples, n_features) arrays, one per class
+            # newer SHAP → single (n_samples, n_features, n_classes) 3-D array
+            shap_arr = np.asarray(shap_values)
+            if shap_arr.ndim == 3:
+                # Average over both sample and class axes → shape (n_features,)
+                mean_abs = np.abs(shap_arr).mean(axis=(0, 2))
+            elif isinstance(shap_values, list):
+                mean_abs = np.mean([np.abs(sv) for sv in shap_values], axis=0).mean(axis=0)
+            else:
+                mean_abs = np.abs(shap_arr).mean(axis=0)
+
+            importance_df = (
+                pd.DataFrame({"feature": feature_names, "importance": mean_abs})
+                .sort_values("importance", ascending=False)
+                .head(15)
+            )
+            plt.figure(figsize=(9, 5))
+            sns.barplot(data=importance_df, x="importance", y="feature", color="#4f46e5")
+            plt.title(f"{title} (mean |SHAP value|)")
+            plt.xlabel("Mean |SHAP value|")
+            plt.tight_layout()
+            plt.savefig(output_path, dpi=160, bbox_inches="tight")
+            plt.close()
+
+            importance_dict = dict(zip(feature_names, mean_abs.tolist()))
+            output_path.with_suffix(".json").write_text(
+                json.dumps(importance_dict, indent=2), encoding="utf-8"
+            )
+            return "shap"
+        except Exception as exc:  # noqa: BLE001
+            print(f"SHAP failed for {title}: {exc}")
 
     if hasattr(estimator, "feature_importances_"):
-        importances = estimator.feature_importances_                         # Tree models expose built-in feature importance values.
+        importances = estimator.feature_importances_
     elif hasattr(estimator, "coef_"):
-        importances = np.abs(np.asarray(estimator.coef_)).mean(axis=0)       # Linear models use average absolute coefficients as a fallback.
+        importances = np.abs(np.asarray(estimator.coef_)).mean(axis=0)
     else:
-        importances = np.zeros(len(feature_names))                           # Empty importance values keep the plot pipeline stable.
+        importances = np.zeros(len(feature_names))
 
     importance_df = (
-        pd.DataFrame({"feature": feature_names, "importance": importances})  # Importance values become a table before plotting.
-        .sort_values("importance", ascending=False)                         # Most influential features appear at the top.
-        .head(15)                                                            # Top 15 keeps the visual compact enough for reports.
+        pd.DataFrame({"feature": feature_names, "importance": importances})
+        .sort_values("importance", ascending=False)
+        .head(15)
     )
-    plt.figure(figsize=(9, 5))                                                # Fixed figure size keeps generated PNGs consistent.
-    sns.barplot(data=importance_df, x="importance", y="feature", color="#70B7A0") # Horizontal bars make long feature names readable.
-    plt.title(f"{title} - fallback feature importance")                       # Title makes clear that this is a fallback explanation.
-    plt.tight_layout()                                                        # Prevent label clipping.
-    plt.savefig(output_path, dpi=160, bbox_inches="tight")                    # Fallback explanation is saved to the same expected artifact path.
-    plt.close()                                                               # Close figure after saving.
-    return "fallback"                                                         # Metadata records that fallback importance was used.
+    plt.figure(figsize=(9, 5))
+    sns.barplot(data=importance_df, x="importance", y="feature", color="#70B7A0")
+    plt.title(f"{title} - fallback feature importance")
+    plt.tight_layout()
+    plt.savefig(output_path, dpi=160, bbox_inches="tight")
+    plt.close()
+
+    importance_dict = dict(zip(feature_names, importances.tolist()))
+    output_path.with_suffix(".json").write_text(
+        json.dumps(importance_dict, indent=2), encoding="utf-8"
+    )
+    return "fallback"
 
 
 def model_results_markdown(
@@ -290,6 +334,10 @@ def main() -> None:
         "calories_burned_clean",                                              # Cleaned calories would also leak the derived target.
         "calories_burned_zscore",                                             # Outlier diagnostic should not become a predictive input.
         "calorie_outlier_3sigma",                                             # Outlier flag is a cleaning proof column, not a model feature.
+        "gender",                                                             # Gender is never collected from users; inference always sends the unknown
+                                                                             # category, which OneHotEncoder silently zeros out — creating a consistent
+                                                                             # train/inference distribution mismatch. Excluding it from training removes
+                                                                             # this gap without affecting predictive power.
     }
     classifier_target = "intensity_band"                                      # Target predicts Low/Mid/High workout intensity band.
     classifier_excluded = regression_excluded | {
@@ -346,36 +394,40 @@ def main() -> None:
             ]
         )
 
+    # class_weight='balanced' corrects for the skewed class distribution
+    # (Mid 52%, High 31%, Low 16%) so minority classes get proper recall.
     classifier_models: dict[str, Pipeline] = {
         "Multinomial Logistic Regression": Pipeline(
             [
-                ("preprocess", make_preprocessor(clf_numeric, clf_categorical, scale_numeric=True)), # Logistic Regression needs scaled numeric values.
-                ("model", LogisticRegression(max_iter=3000, solver="lbfgs")),   # Multiclass logistic regression is the linear classifier baseline.
+                ("preprocess", make_preprocessor(clf_numeric, clf_categorical, scale_numeric=True)),
+                ("model", LogisticRegression(max_iter=3000, solver="lbfgs", class_weight="balanced")),
             ]
         ),
         "Random Forest Classifier": Pipeline(
             [
-                ("preprocess", make_preprocessor(clf_numeric, clf_categorical, scale_numeric=False)), # Scaling is unnecessary for Random Forest.
-                ("model", RandomForestClassifier(n_estimators=300, random_state=RANDOM_STATE, n_jobs=-1)), # Forest tests non-linear intensity signals.
+                ("preprocess", make_preprocessor(clf_numeric, clf_categorical, scale_numeric=False)),
+                ("model", RandomForestClassifier(n_estimators=300, random_state=RANDOM_STATE, class_weight="balanced", n_jobs=-1)),
             ]
         ),
     }
     if XGBClassifier is not None:
-        classifier_models["XGBoost Classifier"] = Pipeline(                  # XGBoost classifier is included when dependency installation succeeds.
+        # BalancedXGBClassifier computes sample weights per fold so cross_val_predict
+        # uses correct fold-local class frequencies rather than the full-dataset ratio.
+        classifier_models["XGBoost Classifier"] = Pipeline(
             [
-                ("preprocess", make_preprocessor(clf_numeric, clf_categorical, scale_numeric=False)), # Boosted trees need encoding but not scaling.
+                ("preprocess", make_preprocessor(clf_numeric, clf_categorical, scale_numeric=False)),
                 (
                     "model",
-                    XGBClassifier(
-                        n_estimators=300,                                      # Boosting rounds build many small corrective trees.
-                        learning_rate=0.05,                                    # Small learning rate reduces unstable updates.
-                        max_depth=4,                                           # Moderate tree depth controls overfitting.
-                        subsample=0.9,                                         # Row sampling improves generalization.
-                        colsample_bytree=0.9,                                  # Column sampling improves generalization.
-                        objective="multi:softprob",                           # Softprob supports three intensity classes.
-                        eval_metric="mlogloss",                               # Multiclass log loss is a stable training metric.
-                        random_state=RANDOM_STATE,                             # Seed keeps results reproducible.
-                        n_jobs=-1,                                             # Use available CPU cores.
+                    BalancedXGBClassifier(
+                        n_estimators=300,
+                        learning_rate=0.05,
+                        max_depth=4,
+                        subsample=0.9,
+                        colsample_bytree=0.9,
+                        objective="multi:softprob",
+                        eval_metric="mlogloss",
+                        random_state=RANDOM_STATE,
+                        n_jobs=-1,
                     ),
                 ),
             ]
@@ -424,6 +476,7 @@ def main() -> None:
 
     joblib.dump(
         {
+            "name": selected_regression.model_name,                          # Name stored so the backend can read the selected model name without hardcoding.
             "model": best_regression_pipeline,                              # Complete preprocessing-plus-model pipeline is stored.
             "target": regression_target,                                     # Target name documents how the artifact should be used.
             "features": regression_features,                                 # Feature list prevents mismatched prediction inputs later.
@@ -433,6 +486,7 @@ def main() -> None:
     )
     joblib.dump(
         {
+            "name": selected_classifier.model_name,                          # Name stored so the backend can read the selected model name without hardcoding.
             "model": best_classifier_pipeline,                               # Complete preprocessing-plus-model pipeline is stored.
             "target": classifier_target,                                     # Target name documents how the artifact should be used.
             "features": classifier_features,                                 # Feature list prevents mismatched prediction inputs later.

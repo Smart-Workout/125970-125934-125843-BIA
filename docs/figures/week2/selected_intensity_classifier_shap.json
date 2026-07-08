@@ -1,0 +1,15 @@
+{
+  "age": 0.13913802802562714,
+  "weight_kg": 0.13387353718280792,
+  "height_m": 0.1457541137933731,
+  "resting_bpm": 0.11608810722827911,
+  "fat_percentage": 0.15626585483551025,
+  "water_intake_liters": 0.10532038658857346,
+  "workout_frequency_days_week": 0.043904028832912445,
+  "experience_level": 0.02321772836148739,
+  "bmi": 0.19230623543262482,
+  "workout_type_Cardio": 0.0167335644364357,
+  "workout_type_HIIT": 0.021057281643152237,
+  "workout_type_Strength": 0.047845423221588135,
+  "workout_type_Yoga": 0.017601972445845604
+}

@@ -3,6 +3,17 @@ import react from '@vitejs/plugin-react'
 
 export default defineConfig({
   plugins: [react()],
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
+          'vendor-charts': ['recharts', 'd3-array', 'd3-scale', 'd3-shape'],
+          'vendor-ui': ['lucide-react', 'rc-slider'],
+        },
+      },
+    },
+  },
   server: {
     port: 5173,
     proxy: {
