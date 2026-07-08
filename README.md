@@ -1,7 +1,7 @@
 # Smart Workout
 
 <p align="center">
-  <a href="https://smart-workout-frk3.onrender.com/user"><img alt="Live App" src="https://img.shields.io/badge/Live-App-0A7B83?style=for-the-badge"></a>
+  <a href="https://smart-workout-frk3.onrender.com"><img alt="Live App" src="https://img.shields.io/badge/Live-App-0A7B83?style=for-the-badge"></a>
   <a href="https://smart-workout-frk3.onrender.com/docs"><img alt="API Docs" src="https://img.shields.io/badge/API-OpenAPI-0A7B83?style=for-the-badge"></a>
   <a href="https://smart-workout-frk3.onrender.com/api/v1/health"><img alt="Health" src="https://img.shields.io/badge/Health-Online-2E8B57?style=for-the-badge"></a>
 </p>
@@ -15,7 +15,7 @@ prediction-backed recommendations, and retrieval-grounded workout guidance.
 
 The application is live and publicly hosted on Render.
 
-- Live app: https://smart-workout-frk3.onrender.com/user
+- Live app: https://smart-workout-frk3.onrender.com
 - API docs: https://smart-workout-frk3.onrender.com/docs
 - Health check: https://smart-workout-frk3.onrender.com/api/v1/health
 
