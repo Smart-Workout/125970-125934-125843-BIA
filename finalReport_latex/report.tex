@@ -87,7 +87,7 @@ Smart Workout is a Retrieval-Augmented Generation (RAG)-assisted Decision Suppor
 
 The system was implemented as a full-stack web application using a React frontend and a FastAPI backend. Raw data was transformed through feature engineering into utilization and time-pattern signals, membership and estimated revenue signals, lifestyle readiness indicators, workout-intensity features, calorie-burn-rate targets, final training-score variables, and RAG retrieval inputs. These engineered features support two decision contexts: executive users who need branch, segment, cohort, and demand insights, and individual users who need readiness-aware training guidance.
 
-The predictive layer evaluates two supervised machine learning tasks: calorie-burn-rate regression and three-class workout-intensity classification. XGBoost was selected for calorie-burn-rate estimation with RMSE 15.820 kcal/hr and $R^2=0.970$. XGBoost was also selected for intensity classification using macro-F1 as the main metric because the Low, Mid, and High classes are imbalanced. The classifier's modest accuracy is reported transparently as a hard three-class task with label-leakage prevention, corrected train/inference feature alignment, and class-balancing improvements. The model audit also documents fixes for gender feature mismatch, balanced class weighting, stable model serialization, and honest regression reporting.
+The predictive layer evaluates two supervised machine learning tasks: calorie-burn-rate regression and three-class workout-intensity classification. XGBoost was selected for calorie-burn-rate estimation with RMSE 15.021 kcal/hr and $R^2=0.970$. XGBoost was also selected for intensity classification using macro-F1 as the main metric because the Low, Mid, and High classes are imbalanced. The classifier's modest accuracy is reported transparently as a hard three-class task with label-leakage prevention, corrected train/inference feature alignment, and class-balancing improvements. The model audit also documents fixes for gender feature mismatch, balanced class weighting, stable model serialization, and honest regression reporting.
 
 The prescriptive layer combines model outputs with readiness rules and RAG-retrieved exercise evidence. It generates personalized plan recommendations, plan rationale, safety notes, and assistant responses grounded in exercise instructions, target body part, equipment, predicted intensity, and readiness band. The final dashboard integrates executive summaries, membership utilization and revenue signals, lifestyle segment analysis, client readiness inputs, exercise plan analytics, nutrition context, Tableau map embedding, and RAG-assisted explanation. The result is a decision-support prototype that links data preparation, model evaluation, explainable recommendations, and dashboard-based action decisions in one workflow.
 \clearpage
@@ -117,10 +117,10 @@ audience using the dashboard for decision-support reference.
 
 The project is expected to deliver a functional DSS/BIS prototype that fulfils the following objectives, explicitly covering the descriptive, predictive, and prescriptive analytics layers required of a BI system:
 \begin{itemize}
-    \item \textbf{Data collection \& preparation:} clean and standardize multi-source public datasets (gym membership and check-in records, exercise catalogue, gym-member workout tracking, sleep \& lifestyle, daily nutrition; details in \S4) alongside structured user input.
+    \item \textbf{Data collection \& preparation:} clean and standardize multi-source public datasets (gym membership and check-in records, exercise catalogue, gym-member workout tracking, sleep \& lifestyle, daily nutrition; details in \S3.2) alongside structured user input.
     \item \textbf{Descriptive analytics:} segment users into lifestyle profiles via clustering; present a relational gym membership view (member activity, subscription trends, usage analytics) as an interactive dashboard; and present cross-dataset insights (calorie-burn patterns, exercise coverage, nutrition macro mix).
     \item \textbf{Predictive analytics:} train and compare multiple candidate models per task via cross-validation: (a) calorie-burn-rate regression (kcal/hr); (b) Workout-intensity 3-class classification (Low/Mid/High).
-    \item \textbf{Prescriptive analytics:} generate a daily/weekly training plan via a rule-based engine conditioned on the predicted intensity, readiness, target body part, and available equipment; the predicted calorie-burn rate is displayed alongside the plan. A rule-derived Training Readiness band (computed from user input; rules drawn from the Sleep Health dataset) guides the plan generator (see \S5).
+    \item \textbf{Prescriptive analytics:} generate a daily/weekly training plan via a rule-based engine conditioned on the predicted intensity, readiness, target body part, and available equipment; the predicted calorie-burn rate is displayed alongside the plan. A rule-derived Training Readiness band (computed from user input; rules drawn from the Sleep Health dataset) guides the plan generator (see \S3.4).
     \item \textbf{RAG knowledge retrieval \& AI chat assistant:} retrieve exercise instructions, equipment-substitution rules, and scheduling guidance via an interactive chat interface (RAG retrieval is core; LLM chat is a planned extension).
     \item \textbf{BI dashboard:} React-based dashboard (with embedded Tableau views) presenting a relational gym membership view, multi-dataset descriptive analytics, personalized predictions, prescribed plan, RAG-sourced explanation, and embedded chat.
 \end{itemize}
@@ -134,19 +134,19 @@ The concept of leveraging data-driven systems to enhance physical training has g
 
 \section{Decision Support and Business Intelligence Systems}
 
-Decision Support Systems (DSS) are defined as interactive computer-based systems intended to help decision-makers use communications technologies, data, documents, knowledge, and models to identify and solve problems. According to Power~\cite{power2002}, these systems are essential for managers and individuals to process complex information that exceeds human cognitive limits.
+Decision Support Systems (DSS) are defined as interactive computer-based systems intended to help decision-makers use communications technologies, data, documents, knowledge, and models to identify and solve problems. According to Power (\citeyear{power2002}), these systems are essential for managers and individuals to process complex information that exceeds human cognitive limits.
 
-In the context of the fitness industry, Business Intelligence (BI) technology enables the integration of multi-source data to provide actionable insights. Chaudhuri et al.~\cite{chaudhuri2011} emphasize that effective BI systems should support descriptive, predictive, and prescriptive analytics. The proposed Smart Workout system adopts this three-layer approach by transforming raw gym membership and check-in records into descriptive insights, predictive analytics, and prescriptive training recommendations.
+In the context of the fitness industry, Business Intelligence (BI) technology enables the integration of multi-source data to provide actionable insights. Chaudhuri et al. (\citeyear{chaudhuri2011}) emphasize that effective BI systems should support descriptive, predictive, and prescriptive analytics. The proposed Smart Workout system adopts this three-layer approach by transforming raw gym membership and check-in records into descriptive insights, predictive analytics, and prescriptive training recommendations.
 
 \section{Machine Learning in Exercise Analytics}
 
-The predictive layer of the Smart Workout system relies on supervised machine learning models to estimate physiological responses such as calorie-burn rates and workout intensity. Modern research frequently utilizes gradient-boosted trees, such as XGBoost, for high-performance classification and regression tasks. Chen and Guestrin~\cite{chen2016} demonstrated that XGBoost provides a scalable and accurate tree-boosting framework that outperforms traditional linear baselines on complex datasets.
+The predictive layer of the Smart Workout system relies on supervised machine learning models to estimate physiological responses such as calorie-burn rates and workout intensity. Modern research frequently utilizes gradient-boosted trees, such as XGBoost, for high-performance classification and regression tasks. Chen and Guestrin (\citeyear{chen2016}) demonstrated that XGBoost provides a scalable and accurate tree-boosting framework that outperforms traditional linear baselines on complex datasets.
 
-Furthermore, interpretability is a critical requirement for health-related decision support systems to improve user trust and transparency. The SHAP (SHapley Additive exPlanations) method, proposed by Lundberg and Lee~\cite{lundberg2017}, enables feature-attribution analysis by quantifying the contribution of each input feature to a model's prediction. In the proposed Smart Workout system, SHAP is used to explain how factors such as demographics and heart rate influence calorie-burn estimation and workout-intensity recommendations.
+Furthermore, interpretability is a critical requirement for health-related decision support systems to improve user trust and transparency. The SHAP (SHapley Additive exPlanations) method, proposed by Lundberg and Lee (\citeyear{lundberg2017}), enables feature-attribution analysis by quantifying the contribution of each input feature to a model's prediction. In the proposed Smart Workout system, SHAP is used to explain how factors such as demographics and heart rate influence calorie-burn estimation and workout-intensity recommendations.
 
 \section{Retrieval-Augmented Generation (RAG)}
 
-While large language models (LLMs) possess vast parametric memory, they often struggle with factual accuracy and hallucinations when providing specific instructions. To address this, Lewis et al.~\cite{lewis2020} introduced Retrieval-Augmented Generation (RAG), a technique that retrieves relevant document snippets from a vector store to ground the model's responses. In the Smart Workout system, this technology is used to index exercise catalogues (ExerciseDB) and curated training rules to provide grounded rationale and equipment substitutions. By utilizing sentence embeddings to match user queries with verified fitness data, the system ensures that the prescriptive plans are supported by evidence rather than generated in a vacuum.
+While large language models (LLMs) possess vast parametric memory, they often struggle with factual accuracy and hallucinations when providing specific instructions. To address this, Lewis et al. (\citeyear{lewis2020}) introduced Retrieval-Augmented Generation (RAG), a technique that retrieves relevant document snippets from a vector store to ground the model's responses. In the Smart Workout system, this technology is used to index exercise catalogues (ExerciseDB) and curated training rules to provide grounded rationale and equipment substitutions. By utilizing sentence embeddings to match user queries with verified fitness data, the system ensures that the prescriptive plans are supported by evidence rather than generated in a vacuum.
 
 \section{Lifestyle Factors and Training Readiness}
 
@@ -259,7 +259,7 @@ for regression, while classification uses the majority vote across trees. These 
 \toprule
 \textbf{Task} & \textbf{Input variables} & \textbf{Output} & \textbf{Selected result} \\
 \midrule
-Calorie-burn-rate regression & Numerical: age, weight, height, max BPM, average BPM, resting BPM, fat percentage, water intake, workout frequency, experience level, BMI, BPM response ratio. Categorical: workout type, intensity band. & kcal/hr estimate and session calorie target & XGBoost Regressor, RMSE 15.82 kcal/hr, MAE 10.424 kcal/hr, $R^2=0.970$. \\
+Calorie-burn-rate regression & Numerical: age, weight, height, max BPM, average BPM, resting BPM, fat percentage, water intake, workout frequency, experience level, BMI, BPM response ratio. Categorical: workout type, intensity band. & kcal/hr estimate and session calorie target & XGBoost Regressor, RMSE 15.021 kcal/hr, MAE 10.424 kcal/hr, $R^2=0.970$. \\
 Workout-intensity classification & Numerical: age, weight, height, resting BPM, fat percentage, water intake, workout frequency, experience level, BMI. Categorical: workout type. & Low, Mid, or High intensity class & XGBoost Classifier, accuracy 0.399 and macro-F1 0.342 after class-balancing. \\
 Prescriptive plan mapping & Predicted intensity, readiness score, readiness band, goal, equipment, target body part, constraints, and available schedule. & Sets, reps, rest seconds, weekly schedule, safety notes, and primary action & Rule-based plan output capped by readiness and grounded by RAG-retrieved exercise evidence. \\
 \bottomrule
@@ -350,12 +350,12 @@ The predictive layer contains two machine learning tasks. The first task estimat
 \midrule
 Ridge Regression & 28.095 & 22.524 & 0.895 & No \\
 Random Forest Regressor & 17.991 & 11.457 & 0.957 & No \\
-XGBoost Regressor & 15.820 & 10.424 & 0.970 & Yes \\
+XGBoost Regressor & 15.021 & 10.424 & 0.970 & Yes \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-The XGBoost Regressor is selected because it produces the strongest calorie-burn-rate estimation result, with RMSE 15.820 kcal/hr and $R^2=0.970$. This score is intentionally reported as an honest deployment-aware result. The earlier inflated regression performance was corrected by removing features that created misleading training-time advantage or inference mismatch. In particular, gender was excluded because the deployed user form does not collect it.
+The XGBoost Regressor is selected because it produces the strongest calorie-burn-rate estimation result, with RMSE 15.021 kcal/hr and $R^2=0.970$. This score is intentionally reported as an honest deployment-aware result. The earlier inflated regression performance was corrected by removing features that created misleading training-time advantage or inference mismatch. In particular, gender was excluded because the deployed user form does not collect it.
 
 \begin{table}[htbp]
 \centering
@@ -385,9 +385,9 @@ The classifier result requires careful interpretation. The raw accuracy is 46\% 
 \textbf{Audit item} & \textbf{Issue found} & \textbf{Result after correction} \\
 \midrule
 Gender feature mismatch & Training used Male/Female, while inference sent an unknown value because the form does not ask for gender. & Gender was removed from both training and inference feature sets, preventing train/inference distribution mismatch. \\
-Classifier imbalance & Mid class was the majority class, so the model under-predicted Low and High intensity. & Balanced class weighting improved macro-F1 from 0.304 to 0.342, Low recall to 21.5\%, and High recall to 30\%. \\
+Classifier imbalance & Mid class was the majority class, so the model under-predicted Low and High intensity. & Balanced class weighting improved macro-F1 from 0.316 to 0.342, Low recall to 21.5\%, and High recall to 29.3\%. \\
 Joblib deserialization risk & A custom XGBoost wrapper defined inside the training script serialized with an unstable class path. & The wrapper was moved to \path{app.core.ml_wrappers.BalancedXGBClassifier}, making model loading stable in the backend. \\
-Inflated regression score & Some training features made the regression score appear too optimistic under deployment conditions. & The honest cross-validated result is $R^2=0.970$ and RMSE 15.82 kcal/hr, with XGBoost selected over Random Forest. \\
+Inflated regression score & Some training features made the regression score appear too optimistic under deployment conditions. & The honest cross-validated result is $R^2=0.970$ and RMSE 15.021 kcal/hr, with XGBoost selected over Random Forest. \\
 \bottomrule
 \end{tabularx}
 \end{table}
@@ -651,7 +651,7 @@ This project developed Smart Workout as an integrated Decision Support System an
 
 The dataset and feature-engineering results show that the project successfully transformed multiple independent data sources into usable analytical features. Gym membership and check-in records were converted into utilization, time-pattern, subscription, and estimated revenue signals. Exercise tracking and user-profile data were converted into calorie-burn-rate and intensity features. Lifestyle, sleep, stress, and activity inputs were converted into readiness scores and readiness bands. These engineered results enabled the dashboard to connect branch-level business questions with user-level training decisions.
 
-The predictive layer produced deployable and transparent model results. The XGBoost Regressor was selected for calorie-burn-rate estimation with RMSE 15.820 kcal/hr and $R^2=0.970$. For intensity classification, the XGBoost Classifier was selected based on macro-F1 because the Low, Mid, and High classes are imbalanced. Although the classifier accuracy is modest, the report explains why the task is difficult: label leakage was prevented, gender was removed to avoid train/inference mismatch, and balanced weighting was applied to improve minority-class behavior. Therefore, the final evaluation is more honest and useful for deployment than an inflated score.
+The predictive layer produced deployable and transparent model results. The XGBoost Regressor was selected for calorie-burn-rate estimation with RMSE 15.021 kcal/hr and $R^2=0.970$. For intensity classification, the XGBoost Classifier was selected based on macro-F1 because the Low, Mid, and High classes are imbalanced. Although the classifier accuracy is modest, the report explains why the task is difficult: label leakage was prevented, gender was removed to avoid train/inference mismatch, and balanced weighting was applied to improve minority-class behavior. Therefore, the final evaluation is more honest and useful for deployment than an inflated score.
 
 The RAG and dashboard results demonstrate that the system can translate predictions into explainable action. The RAG layer retrieves exercise instructions and substitution context to support plan rationale and assistant responses. The dashboard then presents executive summaries, membership utilization and revenue signals, lifestyle segments, readiness inputs, plan analytics, user profile context, nutrition context, and Tableau map integration. Together, these outputs answer the business decision questions about branch demand, cohort risk, segment readiness, weekday/weekend patterns, and prediction-to-plan consistency, while also helping individual users understand their readiness, predicted intensity, calorie target, and weekly action priority.
 
@@ -677,6 +677,7 @@ Overall, Smart Workout demonstrates that a BI dashboard, machine learning layer,
 \cleardoublepage
 \phantomsection
 \addcontentsline{toc}{chapter}{\bf REFERENCES}
+\nocite{amoghabhinavms2024,exercisedb,khorasani2024,shamim2025,tharmalingam2023}
 \bibliographystyle{apacite}
 \bibliography{references}
 

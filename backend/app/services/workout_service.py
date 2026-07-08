@@ -1,5 +1,6 @@
 import logging
 import time
+from functools import lru_cache
 
 from app.core.config import settings
 from app.core.constants import INTENSITY_RULES
@@ -26,6 +27,30 @@ from app.services.rag_service import retrieve_snippets
 
 
 logger = logging.getLogger("uvicorn.error")                                # Use uvicorn logger so timing diagnostics show up in Render logs.
+
+
+@lru_cache
+def _get_exercise_catalog() -> list[dict[str, object]]:
+    catalog: list[dict[str, object]] = []
+    for row in read_csv_rows("exercisedb_all_raw_flat.csv"):
+        body_parts = parse_list_field(row.get("bodyParts"))
+        equipment = parse_list_field(row.get("equipments"))
+        target_muscles = parse_list_field(row.get("targetMuscles"))
+        instructions = [
+            step.replace("Step:", "").strip()
+            for step in parse_list_field(row.get("instructions"))
+        ]
+        catalog.append(
+            {
+                "exercise_id": row.get("exerciseId") or "",
+                "name": (row.get("name") or "Unnamed exercise").title(),
+                "body_parts": body_parts,
+                "equipment": equipment,
+                "target_muscles": target_muscles,
+                "instructions": instructions[:6],
+            }
+        )
+    return catalog
 
 
 GYM_TYPE_EQUIPMENT_MAP: dict[str, list[str]] = {
@@ -138,7 +163,7 @@ def _select_exercises(
     target_body_part: str,
     equipment: list[str],
     limit: int = 8,
-    catalog_rows: list[dict[str, str]] | None = None,
+    catalog_rows: list[dict[str, object]] | None = None,
 ) -> tuple[list[ExerciseRecommendation], bool]:
     normalized_equipment = _normalize_equipment(equipment)
     fallback_used = not normalized_equipment
@@ -148,16 +173,13 @@ def _select_exercises(
     target_body_parts = BODY_PART_ALIASES.get(target_body_part, {target_body_part})
     recommendations: list[ExerciseRecommendation] = []
 
-    rows = catalog_rows if catalog_rows is not None else read_csv_rows("exercisedb_all_raw_flat.csv")
+    rows = catalog_rows if catalog_rows is not None else _get_exercise_catalog()
 
     for row in rows:
-        row_body_parts = parse_list_field(row.get("bodyParts"))
-        row_equipment = parse_list_field(row.get("equipments"))
-        target_muscles = parse_list_field(row.get("targetMuscles"))
-        instructions = [
-            step.replace("Step:", "").strip()
-            for step in parse_list_field(row.get("instructions"))
-        ]
+        row_body_parts = row.get("body_parts") or []
+        row_equipment = row.get("equipment") or []
+        target_muscles = row.get("target_muscles") or []
+        instructions = row.get("instructions") or []
 
         body_match = (
             target_body_part == "full body"
@@ -179,13 +201,13 @@ def _select_exercises(
 
         recommendations.append(
             ExerciseRecommendation(
-                exercise_id=row.get("exerciseId") or f"exercise_{len(recommendations) + 1}",
-                name=(row.get("name") or "Unnamed exercise").title(),
+                exercise_id=str(row.get("exercise_id") or f"exercise_{len(recommendations) + 1}"),
+                name=str(row.get("name") or "Unnamed exercise"),
                 body_parts=row_body_parts,
                 target_muscles=target_muscles,
                 equipment=row_equipment,
                 match_score=round(min(score, 1.0), 2),
-                instructions=instructions[:6],
+                instructions=instructions,
             )
         )
 
@@ -568,7 +590,7 @@ def generate_plan(payload: GeneratePlanRequest) -> GeneratedPlanResponse:
     seen_ids: set[str] = set()
     schedule: list[PlanDay] = []
     normalized_equipment = _normalize_equipment(payload.profile.available_equipment)
-    catalog_rows = read_csv_rows("exercisedb_all_raw_flat.csv")
+    catalog_rows = _get_exercise_catalog()
     for day, focus_key in zip(days, focus_rotation, strict=False):
         candidates, _ = _select_exercises(
             focus_key,
