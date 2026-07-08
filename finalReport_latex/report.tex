@@ -28,7 +28,7 @@ Business Intelligence System for Personalized Weight Training}
 \newcommand{\studentidiii}{st125843}
 \newcommand{\degreeprogram}{AT82.04: Business Intelligence and Analytics \\
 Intersem 2026}
-\newcommand{\submissiondate}{5 July 2026}
+\newcommand{\submissiondate}{July 2026}
 
 
 \begin{document}
@@ -83,13 +83,14 @@ TA: Anushka Ojha
     \large{\bf ABSTRACT}
 \end{center}
 
-Smart Workout is a Retrieval-Augmented Generation (RAG)-assisted Decision Support System and Business Intelligence dashboard for personalized weight-training planning. The project addresses the limitation of generic workout routines by combining gym membership and check-in records, exercise tracking data, lifestyle and sleep indicators, nutrition context, and an exercise knowledge base into one descriptive, predictive, and prescriptive analytics workflow.
+Smart Workout is a Retrieval-Augmented Generation (RAG)-assisted Decision Support System and Business Intelligence dashboard for personalized weight-training planning. It unifies gym membership and check-in records, exercise-tracking data, lifestyle and sleep indicators, nutrition context, and an exercise knowledge base into one descriptive, predictive, and prescriptive analytics workflow, implemented as a full-stack web application with a React frontend and a FastAPI backend.
 
-The system was implemented as a full-stack web application using a React frontend and a FastAPI backend. Raw data was transformed through feature engineering into utilization and time-pattern signals, membership and estimated revenue signals, lifestyle readiness indicators, workout-intensity features, calorie-burn-rate targets, final training-score variables, and RAG retrieval inputs. These engineered features support two decision contexts: executive users who need branch, segment, cohort, and demand insights, and individual users who need readiness-aware training guidance.
+Raw data was engineered into utilization, revenue, readiness, workout-intensity, and calorie-burn-rate features that support two decision contexts: executive users needing branch, segment, and demand insights, and individual users needing readiness-aware training guidance. Two supervised machine learning tasks were evaluated -- calorie-burn-rate regression and three-class workout-intensity classification -- and XGBoost was selected for both, achieving RMSE 15.021 kcal/hr ($R^2=0.970$) for regression and macro-F1 0.342 for classification, selected over accuracy because the Low/Mid/High classes are imbalanced. The model audit corrected a gender feature mismatch, applied class-balanced weighting, and ensured stable model serialization.
 
-The predictive layer evaluates two supervised machine learning tasks: calorie-burn-rate regression and three-class workout-intensity classification. XGBoost was selected for calorie-burn-rate estimation with RMSE 15.021 kcal/hr and $R^2=0.970$. XGBoost was also selected for intensity classification using macro-F1 as the main metric because the Low, Mid, and High classes are imbalanced. The classifier's modest accuracy is reported transparently as a hard three-class task with label-leakage prevention, corrected train/inference feature alignment, and class-balancing improvements. The model audit also documents fixes for gender feature mismatch, balanced class weighting, stable model serialization, and honest regression reporting.
+The prescriptive layer combines model outputs with readiness rules and RAG-retrieved exercise evidence to generate personalized plans, rationale, and safety notes grounded in exercise instructions, equipment, and readiness band. The dashboard integrates executive summaries, membership and revenue signals, lifestyle segmentation, readiness inputs, exercise plan analytics, nutrition context, and a Tableau map embed, delivering a decision-support prototype that links data preparation, transparent model evaluation, explainable recommendations, and dashboard-based action decisions in one workflow.
 
-The prescriptive layer combines model outputs with readiness rules and RAG-retrieved exercise evidence. It generates personalized plan recommendations, plan rationale, safety notes, and assistant responses grounded in exercise instructions, target body part, equipment, predicted intensity, and readiness band. The final dashboard integrates executive summaries, membership utilization and revenue signals, lifestyle segment analysis, client readiness inputs, exercise plan analytics, nutrition context, Tableau map embedding, and RAG-assisted explanation. The result is a decision-support prototype that links data preparation, model evaluation, explainable recommendations, and dashboard-based action decisions in one workflow.
+\vspace{0.5em}
+\noindent\textbf{Keywords:} Decision Support System, Business Intelligence, Retrieval-Augmented Generation, XGBoost, Personalized Training, Dashboard Analytics
 \clearpage
 
 \tableofcontents
