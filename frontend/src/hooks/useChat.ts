@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import chatService from '../services/chat.service'
+import { toUserErrorMessage } from '../utils/apiError'
 import { ChatResponse } from '../types/chat.types'
 import { GeneratedPlanResponse } from '../types/workout.types'
 
@@ -28,7 +29,7 @@ export const useChat = () => {
       setLastResponse(response)
       setMessages((current) => [...current, { role: 'assistant', text: response.answer }])
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Chat request failed')
+      setError(toUserErrorMessage(err, 'Chat request failed'))
     } finally {
       setLoading(false)
     }

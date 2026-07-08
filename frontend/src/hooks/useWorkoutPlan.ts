@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import workoutService from '../services/workout.service'
 import { UserProfileRequest, WorkoutFlowResult } from '../types/workout.types'
+import { toUserErrorMessage } from '../utils/apiError'
 
 export const useWorkoutPlan = () => {
   const [data, setData] = useState<WorkoutFlowResult | null>(null)
@@ -25,7 +26,7 @@ export const useWorkoutPlan = () => {
       })
       setData({ preprocess, calories, intensity, exercises, plan })
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to generate workout plan')
+      setError(toUserErrorMessage(err, 'Failed to generate workout plan'))
     } finally {
       setLoading(false)
     }

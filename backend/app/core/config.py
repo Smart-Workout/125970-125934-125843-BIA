@@ -23,6 +23,10 @@ class Settings(BaseSettings):
     CHROMA_DB_DIR: Path = PROJECT_ROOT / "chroma_db"                        # Local Chroma persistent index lives here.
     RAG_COLLECTION_NAME: str = "smart_workout_knowledge"                    # Collection name must match RAG build and retrieval scripts.
     EMBEDDING_MODEL_NAME: str = "all-MiniLM-L6-v2"                           # Query embedding model must match the indexed vectors.
+    RAG_MODE: str = "auto"                                                   # auto uses vector retrieval when available; keyword forces lightweight fallback.
+    SERVE_FRONTEND: bool = False                                              # Backend static file serving is disabled when frontend is hosted separately.
+    CHAT_TIMEOUT_SECONDS: float = 0.0                                         # Non-positive values disable API timeout enforcement (recommended for local dev).
+    GENERATE_PLAN_TIMEOUT_SECONDS: float = 0.0                                # Non-positive values disable API timeout enforcement (recommended for local dev).
     CORS_ALLOW_ORIGINS: str = ""                                             # Comma-separated frontend origins for deployment environments.
 
 

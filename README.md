@@ -92,7 +92,7 @@ data/raw/                Original source datasets
 data/processed/          Cleaned tables, marts, and model-ready data
 models/                  Trained model artifacts and evaluation outputs
 scripts/                 Reproducible training and indexing scripts
-docs/                    Run guides, deployment guide, demo assets, RAG docs
+docs/                    Run guides, demo assets, RAG docs
 notebooks/               Week 1 and Week 2 analysis notebooks
 render.yaml              Render blueprint for backend and frontend deployment
 ```
@@ -151,16 +151,31 @@ cmd /c npm run build
 - The repository includes Render blueprint configuration in render.yaml.
 - Backend and frontend can be deployed together from the same repo.
 - Required environment variables:
-  - Backend: CORS_ALLOW_ORIGINS
+  - Backend: CORS_ALLOW_ORIGINS, RAG_MODE, SERVE_FRONTEND, CHAT_TIMEOUT_SECONDS, GENERATE_PLAN_TIMEOUT_SECONDS
   - Frontend: VITE_API_URL, VITE_API_V1
 
-Detailed instructions are available in docs/RENDER_DEPLOYMENT_GUIDE.md.
+Quick Render checklist:
+
+1. Deploy with render.yaml (Blueprint) so both services are created.
+2. Backend environment:
+  - CORS_ALLOW_ORIGINS=https://<frontend-domain>
+  - RAG_MODE=keyword
+  - SERVE_FRONTEND=false
+  - CHAT_TIMEOUT_SECONDS=30
+  - GENERATE_PLAN_TIMEOUT_SECONDS=45
+3. Frontend environment:
+  - VITE_API_URL=https://<backend-domain>
+  - VITE_API_V1=/api/v1
+4. Redeploy backend, then redeploy frontend.
+5. Verify:
+  - GET /api/v1/health returns status ok
+  - Generate Plan works
+  - Chat responds and does not hang indefinitely
 
 ## Documentation
 
 - docs/WEEK1_WEEK2_RUN_STEPS.md
 - docs/demo_script.md
-- docs/RENDER_DEPLOYMENT_GUIDE.md
 - frontend/README.md
 - MODEL_RESULTS.md
 

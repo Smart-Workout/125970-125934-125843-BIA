@@ -1,10 +1,15 @@
 from __future__ import annotations
 
+import logging
 import re
+import time
 
 from app.core.config import settings                                        # Settings expose mock mode and shared backend configuration.
 from app.schemas.chat import ChatRequest, ChatResponse                      # Chat schemas keep request and response payloads explicit.
 from app.services.rag_service import retrieve_snippets                      # Retrieval service returns top-k ExerciseDB/rule snippets.
+
+
+logger = logging.getLogger("uvicorn.error")                                # Use uvicorn logger so INFO lines appear in Render logs.
 
 
 def _detect_intent(message: str) -> str:
@@ -84,8 +89,17 @@ def _compose_answer(message: str, snippets: list, current_plan: dict) -> str:
 
 
 def answer_chat(payload: ChatRequest) -> ChatResponse:
+    started = time.perf_counter()
     snippets = retrieve_snippets(payload.message, limit=5)                  # Chat endpoint retrieves top-k knowledge snippets before answer assembly.
     answer = _compose_answer(payload.message, snippets, payload.current_plan)
+    elapsed_ms = (time.perf_counter() - started) * 1000
+    logger.info(
+        "PERF chat.total_ms=%.2f snippets=%d grounded=%s message_chars=%d",
+        elapsed_ms,
+        len(snippets),
+        bool(snippets),
+        len(payload.message or ""),
+    )
     return ChatResponse(
         mock_mode=settings.MOCK_MODE,                                       # Mock mode tells the frontend that no full LLM answer is generated yet.
         answer=answer,                                                      # Answer is grounded and assembled from retrieved rules plus plan context.

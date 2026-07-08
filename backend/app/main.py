@@ -49,6 +49,9 @@ FRONTEND_DIST_DIR = settings.PROJECT_ROOT / "frontend" / "dist"            # Sin
 
 
 def _serve_frontend_file(request_path: str = "") -> FileResponse | None:
+    if not settings.SERVE_FRONTEND:
+        return None                                                         # Static frontend should be served by a dedicated hosting service in split deployments.
+
     if not FRONTEND_DIST_DIR.exists():
         return None                                                         # Local backend-only runs can skip frontend static serving.
 

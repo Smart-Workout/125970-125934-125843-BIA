@@ -1,7 +1,10 @@
 from __future__ import annotations
 
+import logging
 import re                                                                  # Tokenize fallback search text and parse Markdown rule fields.
+from functools import lru_cache                                            # Cache heavyweight retrieval objects per backend process.
 from pathlib import Path                                                    # Refer to project files through settings paths.
+import time
 from typing import Any                                                      # Type Chroma result dictionaries without over-constraining the API.
 
 from app.core.config import settings                                        # Shared paths and RAG settings are loaded from one config object.
@@ -9,6 +12,26 @@ from app.schemas.common import RetrievedSnippet                             # Re
 
 
 COLLECTION_NAME = settings.RAG_COLLECTION_NAME                              # Collection name must match build_rag_index.py.
+logger = logging.getLogger("uvicorn.error")                                # Use uvicorn logger so PERF lines are visible on Render.
+
+
+def _use_keyword_only_mode() -> bool:
+    return settings.RAG_MODE.strip().lower() == "keyword"                  # Keyword mode avoids vector-model memory usage on constrained plans.
+
+
+@lru_cache
+def _get_sentence_transformer():
+    from sentence_transformers import SentenceTransformer
+
+    return SentenceTransformer(settings.EMBEDDING_MODEL_NAME)               # Model is loaded once per process instead of once per request.
+
+
+@lru_cache
+def _get_chroma_collection():
+    import chromadb
+
+    client = chromadb.PersistentClient(path=str(settings.CHROMA_DB_DIR))    # Open persistent index once per process.
+    return client.get_collection(COLLECTION_NAME)
 
 
 def _fallback_corpus_snippets(query: str, limit: int) -> list[RetrievedSnippet]:
@@ -38,23 +61,35 @@ def _fallback_corpus_snippets(query: str, limit: int) -> list[RetrievedSnippet]:
 
 
 def retrieve_snippets(query: str, limit: int = 5) -> list[RetrievedSnippet]:
+    started = time.perf_counter()
+
+    if _use_keyword_only_mode():
+        snippets = _fallback_corpus_snippets(query, limit)                  # Explicit low-memory mode skips vector retrieval entirely.
+        logger.info("PERF rag.total_ms=%.2f mode=keyword limit=%d snippets=%d", (time.perf_counter() - started) * 1000, limit, len(snippets))
+        return snippets
+
     try:
-        import chromadb                                                     # Chroma import is lazy so backend startup stays light.
-        from sentence_transformers import SentenceTransformer               # Embedding import is lazy because model loading is expensive.
+        __import__("chromadb")                                             # Dependency checks ensure optional packages fail gracefully.
+        __import__("sentence_transformers")
     except ImportError:
-        return _fallback_corpus_snippets(query, limit)                      # Missing RAG dependencies should not break the chat endpoint.
+        snippets = _fallback_corpus_snippets(query, limit)                  # Missing RAG dependencies should not break the chat endpoint.
+        logger.info("PERF rag.total_ms=%.2f mode=fallback_missing_dependency limit=%d snippets=%d", (time.perf_counter() - started) * 1000, limit, len(snippets))
+        return snippets
 
     if not settings.CHROMA_DB_DIR.exists():
-        return _fallback_corpus_snippets(query, limit)                      # Missing local index falls back to curated corpus keyword search.
+        snippets = _fallback_corpus_snippets(query, limit)                  # Missing local index falls back to curated corpus keyword search.
+        logger.info("PERF rag.total_ms=%.2f mode=fallback_missing_index limit=%d snippets=%d", (time.perf_counter() - started) * 1000, limit, len(snippets))
+        return snippets
 
     try:
-        client = chromadb.PersistentClient(path=str(settings.CHROMA_DB_DIR)) # Open the persistent vector index created by build_rag_index.py.
-        collection = client.get_collection(COLLECTION_NAME)                 # Load the Smart Workout knowledge collection.
-        model = SentenceTransformer(settings.EMBEDDING_MODEL_NAME)          # Query embedding model must match the document embedding model.
+        collection = _get_chroma_collection()                               # Reuse persistent collection object across chat requests.
+        model = _get_sentence_transformer()                                 # Reuse embedding model across chat requests.
         embedding = model.encode([query], normalize_embeddings=True).tolist()[0] # User query becomes a normalized semantic vector.
         results: dict[str, Any] = collection.query(query_embeddings=[embedding], n_results=limit) # Chroma returns nearest documents.
     except Exception:
-        return _fallback_corpus_snippets(query, limit)                      # Runtime retrieval errors fall back gracefully.
+        snippets = _fallback_corpus_snippets(query, limit)                  # Runtime retrieval errors fall back gracefully.
+        logger.info("PERF rag.total_ms=%.2f mode=fallback_exception limit=%d snippets=%d", (time.perf_counter() - started) * 1000, limit, len(snippets))
+        return snippets
 
     snippets: list[RetrievedSnippet] = []                                   # API response snippets are assembled from Chroma results.
     documents = results.get("documents", [[]])[0]                           # Retrieved document text becomes answer evidence.
@@ -69,4 +104,5 @@ def retrieve_snippets(query: str, limit: int = 5) -> list[RetrievedSnippet]:
                 text=str(document)[:900],                                   # Text is trimmed so the API response stays compact.
             )
         )
+    logger.info("PERF rag.total_ms=%.2f mode=vector limit=%d snippets=%d", (time.perf_counter() - started) * 1000, limit, len(snippets))
     return snippets                                                         # Final top-k snippets are returned to the chat service.

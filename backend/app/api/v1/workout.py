@@ -1,5 +1,9 @@
-from fastapi import APIRouter, HTTPException                                # HTTPException converts validation failures into API error responses.
+import asyncio
 
+from fastapi import APIRouter, HTTPException                                # HTTPException converts validation failures into API error responses.
+from fastapi.concurrency import run_in_threadpool
+
+from app.core.config import settings
 from app.schemas.workout import GeneratePlanRequest, UserProfileRequest     # Schemas validate workout request payloads.
 from app.services import workout_service                                    # Service layer contains workout processing and recommendation logic.
 
@@ -31,5 +35,20 @@ def recommend_exercises(payload: UserProfileRequest):
 
 
 @router.post("/generate-plan")
-def generate_plan(payload: GeneratePlanRequest):
-    return workout_service.generate_plan(payload)                           # Endpoint combines profile, intensity, and recommendations into a plan.
+async def generate_plan(payload: GeneratePlanRequest):
+    if settings.GENERATE_PLAN_TIMEOUT_SECONDS <= 0:
+        return await run_in_threadpool(workout_service.generate_plan, payload)
+
+    try:
+        return await asyncio.wait_for(
+            run_in_threadpool(workout_service.generate_plan, payload),
+            timeout=settings.GENERATE_PLAN_TIMEOUT_SECONDS,
+        )
+    except asyncio.TimeoutError as exc:
+        raise HTTPException(
+            status_code=504,
+            detail=(
+                "Plan generation timed out before completion. "
+                "Please retry with fewer sessions/equipment filters or try again shortly."
+            ),
+        ) from exc

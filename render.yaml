@@ -10,6 +10,14 @@ services:
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.9
+      - key: RAG_MODE
+        value: keyword
+      - key: SERVE_FRONTEND
+        value: false
+      - key: CHAT_TIMEOUT_SECONDS
+        value: 30
+      - key: GENERATE_PLAN_TIMEOUT_SECONDS
+        value: 45
       - key: CORS_ALLOW_ORIGINS
         sync: false
 

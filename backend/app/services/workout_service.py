@@ -1,3 +1,6 @@
+import logging
+import time
+
 from app.core.config import settings
 from app.core.constants import INTENSITY_RULES
 from app.schemas.common import RetrievedSnippet
@@ -20,6 +23,9 @@ from app.schemas.workout import (
 from app.services.data_service import parse_list_field, read_csv_rows
 from app.services import ml_service
 from app.services.rag_service import retrieve_snippets
+
+
+logger = logging.getLogger("uvicorn.error")                                # Use uvicorn logger so timing diagnostics show up in Render logs.
 
 
 GYM_TYPE_EQUIPMENT_MAP: dict[str, list[str]] = {
@@ -128,7 +134,12 @@ def _bmi_category(bmi: float) -> str:
     return "Obese"
 
 
-def _select_exercises(target_body_part: str, equipment: list[str], limit: int = 8) -> tuple[list[ExerciseRecommendation], bool]:
+def _select_exercises(
+    target_body_part: str,
+    equipment: list[str],
+    limit: int = 8,
+    catalog_rows: list[dict[str, str]] | None = None,
+) -> tuple[list[ExerciseRecommendation], bool]:
     normalized_equipment = _normalize_equipment(equipment)
     fallback_used = not normalized_equipment
     if fallback_used:
@@ -137,7 +148,9 @@ def _select_exercises(target_body_part: str, equipment: list[str], limit: int = 
     target_body_parts = BODY_PART_ALIASES.get(target_body_part, {target_body_part})
     recommendations: list[ExerciseRecommendation] = []
 
-    for row in read_csv_rows("exercisedb_all_raw_flat.csv"):
+    rows = catalog_rows if catalog_rows is not None else read_csv_rows("exercisedb_all_raw_flat.csv")
+
+    for row in rows:
         row_body_parts = parse_list_field(row.get("bodyParts"))
         row_equipment = parse_list_field(row.get("equipments"))
         target_muscles = parse_list_field(row.get("targetMuscles"))
@@ -527,9 +540,15 @@ def recommend_exercises(payload: UserProfileRequest) -> ExerciseRecommendationRe
 
 
 def generate_plan(payload: GeneratePlanRequest) -> GeneratedPlanResponse:
+    started = time.perf_counter()
+
+    stage_started = time.perf_counter()
     preprocessed = preprocess_profile(payload.profile)
     readiness_band = payload.readiness_band or preprocessed.readiness.band
     profile = preprocessed.processed_profile
+    preprocess_ms = (time.perf_counter() - stage_started) * 1000
+
+    stage_started = time.perf_counter()
     days = _days_for_sessions(profile.sessions_per_week)
     focus_rotation = _rotation_for_profile(profile, readiness_band)
     sets, reps, rest_seconds = _training_rule(profile.goal, payload.predicted_intensity, readiness_band)
@@ -543,11 +562,20 @@ def generate_plan(payload: GeneratePlanRequest) -> GeneratedPlanResponse:
         reps=reps,
         rest_seconds=rest_seconds,
     )
+    planning_ms = (time.perf_counter() - stage_started) * 1000
+
+    stage_started = time.perf_counter()
     seen_ids: set[str] = set()
     schedule: list[PlanDay] = []
     normalized_equipment = _normalize_equipment(payload.profile.available_equipment)
+    catalog_rows = read_csv_rows("exercisedb_all_raw_flat.csv")
     for day, focus_key in zip(days, focus_rotation, strict=False):
-        candidates, _ = _select_exercises(focus_key, normalized_equipment, limit=max(6, exercises_per_day + 2))
+        candidates, _ = _select_exercises(
+            focus_key,
+            normalized_equipment,
+            limit=max(6, exercises_per_day + 2),
+            catalog_rows=catalog_rows,
+        )
         picked: list[ExerciseRecommendation] = []
         for item in candidates:
             if item.exercise_id in seen_ids and len(candidates) > exercises_per_day:
@@ -580,9 +608,25 @@ def generate_plan(payload: GeneratePlanRequest) -> GeneratedPlanResponse:
                 exercises=exercises,
             )
         )
+    schedule_ms = (time.perf_counter() - stage_started) * 1000
 
+    stage_started = time.perf_counter()
     rag_query = f"{profile.goal} {payload.predicted_intensity} intensity {readiness_band} readiness {profile.target_body_part} workout plan"
     rag_snippets = retrieve_snippets(rag_query, limit=2)
+    rag_ms = (time.perf_counter() - stage_started) * 1000
+
+    total_ms = (time.perf_counter() - started) * 1000
+    logger.info(
+        "PERF generate_plan.total_ms=%.2f preprocess_ms=%.2f planning_ms=%.2f schedule_ms=%.2f rag_ms=%.2f sessions=%d target=%s intensity=%s",
+        total_ms,
+        preprocess_ms,
+        planning_ms,
+        schedule_ms,
+        rag_ms,
+        profile.sessions_per_week,
+        profile.target_body_part,
+        payload.predicted_intensity,
+    )
 
     return GeneratedPlanResponse(
         mock_mode=False,
