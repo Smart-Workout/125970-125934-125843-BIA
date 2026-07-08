@@ -1,9 +1,9 @@
 # Smart Workout
 
 <p align="center">
-  <a href="https://smartworkout-yolanda-non-earth-bia.onrender.com/"><img alt="Live App" src="https://img.shields.io/badge/Live-App-0A7B83?style=for-the-badge"></a>
-  <a href="https://smartworkout-yolanda-non-earth-bia.onrender.com/docs"><img alt="API Docs" src="https://img.shields.io/badge/API-OpenAPI-0A7B83?style=for-the-badge"></a>
-  <a href="https://smartworkout-yolanda-non-earth-bia.onrender.com/api/v1/health"><img alt="Health" src="https://img.shields.io/badge/Health-Online-2E8B57?style=for-the-badge"></a>
+  <a href="https://smart-workout-frk3.onrender.com/user"><img alt="Live App" src="https://img.shields.io/badge/Live-App-0A7B83?style=for-the-badge"></a>
+  <a href="https://smart-workout-frk3.onrender.com/docs"><img alt="API Docs" src="https://img.shields.io/badge/API-OpenAPI-0A7B83?style=for-the-badge"></a>
+  <a href="https://smart-workout-frk3.onrender.com/api/v1/health"><img alt="Health" src="https://img.shields.io/badge/Health-Online-2E8B57?style=for-the-badge"></a>
 </p>
 
 <p align="center">
@@ -15,9 +15,9 @@ prediction-backed recommendations, and retrieval-grounded workout guidance.
 
 The application is live and publicly hosted on Render.
 
-- Live app: https://smartworkout-yolanda-non-earth-bia.onrender.com/
-- API docs: https://smartworkout-yolanda-non-earth-bia.onrender.com/docs
-- Health check: https://smartworkout-yolanda-non-earth-bia.onrender.com/api/v1/health
+- Live app: https://smart-workout-frk3.onrender.com/user
+- API docs: https://smart-workout-frk3.onrender.com/docs
+- Health check: https://smart-workout-frk3.onrender.com/api/v1/health
 
 Note: Render free-tier services may cold start after inactivity.
 
