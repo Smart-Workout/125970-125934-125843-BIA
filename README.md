@@ -1,127 +1,111 @@
 # Smart Workout
 
-Smart Workout is a Decision Support System / Business Intelligence System (DSS/BIS) for personalized workout planning. The project combines descriptive analytics, machine learning, rule-based plan generation, and retrieval-grounded explanation in a single prototype.
+<p align="center">
+  <a href="https://smartworkout-yolanda-non-earth-bia.onrender.com/"><img alt="Live App" src="https://img.shields.io/badge/Live-App-0A7B83?style=for-the-badge"></a>
+  <a href="https://smartworkout-yolanda-non-earth-bia.onrender.com/docs"><img alt="API Docs" src="https://img.shields.io/badge/API-OpenAPI-0A7B83?style=for-the-badge"></a>
+  <a href="https://smartworkout-yolanda-non-earth-bia.onrender.com/api/v1/health"><img alt="Health" src="https://img.shields.io/badge/Health-Online-2E8B57?style=for-the-badge"></a>
+</p>
 
-The current system uses:
-- multi-dataset descriptive analytics for gym activity, exercise coverage, lifestyle patterns, and nutrition context
-- machine learning for calorie-burn and workout-intensity prediction
-- rule-based weekly plan generation
-- a retrieval-grounded RAG assistant for explanation and substitution-style questions
+<p align="center">
+Decision Support and Business Intelligence platform for personalized training plans,
+prediction-backed recommendations, and retrieval-grounded workout guidance.
+</p>
 
-## Current Status
+## Live Hosted Deployment
 
-Status updated: `2026-06-29`
+The application is live and publicly hosted on Render.
 
-The project is now a working prototype, not only a proposal.
+- Live app: https://smartworkout-yolanda-non-earth-bia.onrender.com/
+- API docs: https://smartworkout-yolanda-non-earth-bia.onrender.com/docs
+- Health check: https://smartworkout-yolanda-non-earth-bia.onrender.com/api/v1/health
 
-### Completed
-- Week 1 data cleaning, validation, and EDA
-- GymDB relational marts and descriptive analytics
-- lifestyle clustering and readiness-related outputs
-- Week 2 model training and artifact generation
-- FastAPI backend for dashboard, preprocessing, prediction, recommendation, plan generation, and chat
-- React frontend with:
-  - `Overview`
-  - `Gym Membership`
-  - `Lifestyle Profiles`
-  - `Profile`
-  - `Plan`
-  - `RAG Chat`
-  - floating assistant
-- local backend verification:
-  - `12 passed, 2 warnings in 6.09s`
+Note: Render free-tier services may cold start after inactivity.
 
-### In Progress
-- final tuning of the improved rule-based plan generator after live demo inspection
+## Overview
 
-### Remaining
-- final screenshot and demo-evidence capture
-- optional external LLM API enhancement for a richer assistant
+Smart Workout integrates four layers in one end-to-end workflow:
 
-## System Workflow
+- Descriptive analytics for membership behavior, lifestyle segments, and readiness context
+- Predictive modeling for calorie burn and workout intensity
+- Prescriptive plan generation for weekly training structure
+- Retrieval-grounded assistant responses for explainability and exercise substitutions
 
-The current application flow is:
+## Core Features
 
-1. User enters profile and training information
-2. System preprocesses the input
-3. System estimates readiness
-4. System predicts calorie burn and workout intensity
-5. System recommends exercises
-6. System generates the weekly workout plan
-7. RAG chat explains the result
+- Dual interfaces:
+  - User dashboard for personalized planning
+  - Executive dashboard for BI monitoring and segment insights
+- End-to-end planning flow from profile input to weekly workout plan
+- XGBoost-based prediction stack with saved artifacts for runtime inference
+- Rule-based weekly split generation using readiness, goal, equipment, and target body part
+- RAG chat endpoint and in-app assistant for grounded plan explanations
 
-Important wording:
-- `Readiness` is an **estimation**
-- `Calorie burn` and `workout intensity` are **predictions**
-- `Workout plan` is **generated after prediction**
+## Workflow
 
-## Implemented Components
+```mermaid
+flowchart LR
+    A[User Profile and Goal Input] --> B[Preprocessing]
+    B --> C[Readiness Estimation]
+    C --> D[Calorie Prediction]
+    C --> E[Intensity Prediction]
+    D --> F[Exercise Recommendation]
+    E --> F
+    F --> G[Weekly Plan Generation]
+    G --> H[RAG Explanation and Q and A]
+```
 
-### Descriptive Layer
-- Gym Membership dashboard backed by cleaned GymDB marts
-- Lifestyle Profiles dashboard backed by clustering outputs
-- Overview dashboard for cross-dataset charts and system readiness
+Interpretation:
 
-### Predictive Layer
-- `Random Forest Regressor` for calorie prediction
-- `XGBoost Classifier` for intensity classification
-- saved model artifacts loaded directly by the backend
-
-### Prescriptive Layer
-- exercise recommendation from ExerciseDB
-- rule-based weekly split generation using:
-  - readiness
-  - predicted intensity
-  - goal
-  - target body part
-  - available equipment
-
-### Explanation Layer
-- retrieval-grounded chat endpoint
-- floating assistant and tab-based chat UI
-- current-plan-aware answers built from retrieved snippets
+- Readiness is estimated from profile and context.
+- Calories and intensity are model predictions.
+- Weekly plans are generated after prediction outputs are available.
 
 ## Tech Stack
 
-### Backend
-- FastAPI
-- Pydantic
-- pandas / numpy
-- scikit-learn
-- XGBoost
-- ChromaDB
-- sentence-transformers
-
-### Frontend
-- React
-- TypeScript
-- Vite
-- Recharts
-- Lucide React
-
-## Repository Structure
-
-| Path | Purpose |
+| Layer | Technologies |
 |---|---|
-| `backend/` | FastAPI application, services, schemas, and tests |
-| `frontend/` | React dashboard frontend |
-| `data/raw/` | original source datasets |
-| `data/processed/` | cleaned outputs, marts, validation tables, and model-ready datasets |
-| `docs/` | run steps, demo notes, figures, and RAG documentation |
-| `models/` | saved model artifacts and evaluation outputs |
-| `notebooks/` | Week 1 and Week 2 notebook workflows |
-| `scripts/` | rerunnable ML and RAG scripts |
-| `Proposal/` | proposal materials |
+| Backend | FastAPI, Pydantic, pandas, numpy, scikit-learn, XGBoost, ChromaDB, sentence-transformers |
+| Frontend | React, TypeScript, Vite, Recharts, Tailwind CSS, Lucide React |
+| Data and Modeling | Gym datasets, ExerciseDB-derived catalog, clustering outputs, trained artifacts in models/ |
+| Deployment | Render Web Service plus Static Site via render.yaml |
+
+## API Endpoints
+
+| Endpoint | Method | Purpose |
+|---|---|---|
+| /api/v1/health | GET | Service health |
+| /api/v1/health/readiness | GET | Data and model readiness check |
+| /api/v1/dashboard/summary | GET | Aggregated dashboard payload |
+| /api/v1/workout/preprocess | POST | Input preprocessing |
+| /api/v1/workout/predict-calories | POST | Calorie burn prediction |
+| /api/v1/workout/predict-intensity | POST | Intensity prediction |
+| /api/v1/workout/recommend-exercises | POST | Exercise recommendation |
+| /api/v1/workout/generate-plan | POST | Weekly plan generation |
+| /api/v1/chat | POST | Retrieval-grounded chat response |
+
+## Project Structure
+
+```text
+backend/                 FastAPI app, API routers, services, schemas, tests
+frontend/                React app (user and executive dashboards)
+data/raw/                Original source datasets
+data/processed/          Cleaned tables, marts, and model-ready data
+models/                  Trained model artifacts and evaluation outputs
+scripts/                 Reproducible training and indexing scripts
+docs/                    Run guides, deployment guide, demo assets, RAG docs
+notebooks/               Week 1 and Week 2 analysis notebooks
+render.yaml              Render blueprint for backend and frontend deployment
+```
 
 ## Local Setup
 
-Open PowerShell at the repository root:
+### Prerequisites
 
-```powershell
-cd "<repo-root>"
-```
+- Python 3.11+
+- Node.js 18+
+- npm
 
-### 1. Create and activate the Python environment
+### 1. Backend
 
 ```powershell
 python -m venv .venv
@@ -129,107 +113,57 @@ Set-ExecutionPolicy -Scope Process -ExecutionPolicy RemoteSigned
 .\.venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip
 python -m pip install -r backend\requirements.txt
-```
 
-### 2. Run the backend
-
-```powershell
 $env:PYTHONPATH = "backend"
-python -m uvicorn app.main:app --app-dir backend --reload --host 127.0.0.1 --port 8000
+python -m uvicorn app.main:app --app-dir backend --host 127.0.0.1 --port 8000 --reload
 ```
 
-Backend URLs:
-- API root: `http://127.0.0.1:8000`
-- Swagger: `http://127.0.0.1:8000/docs`
-- Health: `http://127.0.0.1:8000/api/v1/health`
+Backend local URLs:
 
-### 3. Run the frontend
+- API root: http://127.0.0.1:8000
+- API docs: http://127.0.0.1:8000/docs
+- Health: http://127.0.0.1:8000/api/v1/health
 
-Open a second PowerShell window:
+### 2. Frontend
+
+Open a second terminal:
 
 ```powershell
-cd "<repo-root>\\frontend"
+cd frontend
 cmd /c npm install
 cmd /c npm run dev
 ```
 
-Frontend URL:
-- `http://127.0.0.1:5173`
+Frontend local URL:
 
-## Recommended Local Check Flow
+- http://127.0.0.1:5173
 
-1. Open Swagger and confirm the main endpoints load.
-2. Open the frontend.
-3. Inspect:
-   - `Overview`
-   - `Gym Membership`
-   - `Lifestyle Profiles`
-4. Submit a sample profile from the `Profile` tab.
-5. Inspect the `Plan` tab for:
-   - readiness
-   - calorie prediction
-   - intensity prediction
-   - recommended exercises
-   - generated weekly split
-6. Open the floating assistant or `RAG Chat` and ask:
-   - `Why this plan?`
-   - `Can I replace barbell exercises with dumbbells?`
+## Quality Checks
 
-## Verification
-
-Local backend verification completed on `2026-06-29`:
-
-```text
+```powershell
 python -m pytest backend\tests -q
-12 passed, 2 warnings in 6.09s
+cd frontend
+cmd /c npm run build
 ```
 
-Notes:
-- the Starlette/httpx warning is a dependency warning, not a failure
-- the XGBoost warning is an artifact-serialization warning, not a failed test
+## Deployment Notes
 
-## Main Backend Endpoints
+- The repository includes Render blueprint configuration in render.yaml.
+- Backend and frontend can be deployed together from the same repo.
+- Required environment variables:
+  - Backend: CORS_ALLOW_ORIGINS
+  - Frontend: VITE_API_URL, VITE_API_V1
 
-| Endpoint | Method | Purpose |
-|---|---|---|
-| `/api/v1/health` | GET | backend health check |
-| `/api/v1/health/readiness` | GET | data/model availability check |
-| `/api/v1/dashboard/summary` | GET | overview + GymDB + lifestyle dashboard payload |
-| `/api/v1/workout/preprocess` | POST | preprocess user input |
-| `/api/v1/workout/predict-calories` | POST | run calorie prediction |
-| `/api/v1/workout/predict-intensity` | POST | run intensity prediction |
-| `/api/v1/workout/recommend-exercises` | POST | retrieve ExerciseDB recommendations |
-| `/api/v1/workout/generate-plan` | POST | generate the weekly workout plan |
-| `/api/v1/chat` | POST | retrieval-grounded assistant response |
-
-## Key Files
-
-| File | Purpose |
-|---|---|
-| `backend/app/services/ml_service.py` | loads model artifacts and runs inference |
-| `backend/app/services/workout_service.py` | preprocessing, recommendation, and plan generation |
-| `backend/app/services/dashboard_service.py` | dashboard aggregation logic |
-| `backend/app/services/chat_service.py` | grounded chat response assembly |
-| `docs/WEEK1_WEEK2_RUN_STEPS.md` | full reproducibility and rerun guide |
-| `docs/demo_script.md` | presentation/demo walk-through |
-| `MODEL_RESULTS.md` | model-comparison summary |
+Detailed instructions are available in docs/RENDER_DEPLOYMENT_GUIDE.md.
 
 ## Documentation
 
-For detailed technical and reproducibility material, use:
-- [docs/WEEK1_WEEK2_RUN_STEPS.md](docs/WEEK1_WEEK2_RUN_STEPS.md)
-- [docs/demo_script.md](docs/demo_script.md)
-- [frontend/README.md](frontend/README.md)
+- docs/WEEK1_WEEK2_RUN_STEPS.md
+- docs/demo_script.md
+- docs/RENDER_DEPLOYMENT_GUIDE.md
+- frontend/README.md
+- MODEL_RESULTS.md
 
-## Remaining Work
+## Current Status
 
-Before final submission, the main remaining items are:
-- complete final screenshots and presentation evidence
-- finalize local walkthrough and polish
-- optionally add an external LLM API as a future enhancement
-
-## Notes
-
-- The current assistant works **without** an external LLM API.
-- The current chat is retrieval-grounded and uses current plan context.
-- The project should be presented as a **working prototype** rather than a proposal.
+Working prototype with deployed live environment, predictive planning flow, and retrieval-grounded explanation support.
