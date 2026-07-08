@@ -16,9 +16,9 @@ RUN pip install --no-cache-dir -r /tmp/requirements.txt
 COPY backend/ ./backend/
 COPY data/ ./data/
 COPY models/ ./models/
-COPY chroma_db/ ./chroma_db/
 COPY docs/rag/ ./docs/rag/
 COPY --from=frontend-build /app/frontend/dist ./frontend/dist/
+RUN mkdir -p /app/chroma_db
 
 EXPOSE 10000
 CMD ["sh", "-c", "uvicorn app.main:app --app-dir backend --host 0.0.0.0 --port ${PORT:-10000}"]
