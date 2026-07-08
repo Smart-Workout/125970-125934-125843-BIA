@@ -178,6 +178,14 @@ TA: Anushka Ojha
 
 \chapter*{ABSTRACT}
 \addcontentsline{toc}{chapter}{ABSTRACT}
+
+Smart Workout is a Retrieval-Augmented Generation (RAG)-assisted Decision Support System and Business Intelligence dashboard for personalized weight-training planning. The project addresses the limitation of generic workout routines by combining gym membership and check-in records, exercise tracking data, lifestyle and sleep indicators, nutrition context, and an exercise knowledge base into one descriptive, predictive, and prescriptive analytics workflow.
+
+The system was implemented as a full-stack web application using a React frontend and a FastAPI backend. Raw data was transformed through feature engineering into utilization and time-pattern signals, membership and estimated revenue signals, lifestyle readiness indicators, workout-intensity features, calorie-burn-rate targets, final training-score variables, and RAG retrieval inputs. These engineered features support two decision contexts: executive users who need branch, segment, cohort, and demand insights, and individual users who need readiness-aware training guidance.
+
+The predictive layer evaluates two supervised machine learning tasks: calorie-burn-rate regression and three-class workout-intensity classification. XGBoost was selected for calorie-burn-rate estimation with RMSE 15.820 kcal/hr and $R^2=0.970$. XGBoost was also selected for intensity classification using macro-F1 as the main metric because the Low, Mid, and High classes are imbalanced. The classifier's modest accuracy is reported transparently as a hard three-class task with label-leakage prevention, corrected train/inference feature alignment, and class-balancing improvements. The model audit also documents fixes for gender feature mismatch, balanced class weighting, stable model serialization, and honest regression reporting.
+
+The prescriptive layer combines model outputs with readiness rules and RAG-retrieved exercise evidence. It generates personalized plan recommendations, plan rationale, safety notes, and assistant responses grounded in exercise instructions, target body part, equipment, predicted intensity, and readiness band. The final dashboard integrates executive summaries, membership utilization and revenue signals, lifestyle segment analysis, client readiness inputs, exercise plan analytics, nutrition context, Tableau map embedding, and RAG-assisted explanation. The result is a decision-support prototype that links data preparation, model evaluation, explainable recommendations, and dashboard-based action decisions in one workflow.
 \clearpage
 
 
@@ -354,7 +362,7 @@ for regression, while classification uses the majority vote across trees. These 
 \toprule
 \textbf{Task} & \textbf{Input variables} & \textbf{Output} & \textbf{Selected result} \\
 \midrule
-Calorie-burn-rate regression & Numerical: age, weight, height, max BPM, average BPM, resting BPM, fat percentage, water intake, workout frequency, experience level, BMI, BPM response ratio. Categorical: workout type, intensity band. & kcal/hr estimate and session calorie target & XGBoost Regressor, RMSE 15.021 kcal/hr, MAE 10.424 kcal/hr, $R^2=0.970$. \\
+Calorie-burn-rate regression & Numerical: age, weight, height, max BPM, average BPM, resting BPM, fat percentage, water intake, workout frequency, experience level, BMI, BPM response ratio. Categorical: workout type, intensity band. & kcal/hr estimate and session calorie target & XGBoost Regressor, RMSE 15.82 kcal/hr, MAE 10.424 kcal/hr, $R^2=0.970$. \\
 Workout-intensity classification & Numerical: age, weight, height, resting BPM, fat percentage, water intake, workout frequency, experience level, BMI. Categorical: workout type. & Low, Mid, or High intensity class & XGBoost Classifier, accuracy 0.399 and macro-F1 0.342 after class-balancing. \\
 Prescriptive plan mapping & Predicted intensity, readiness score, readiness band, goal, equipment, target body part, constraints, and available schedule. & Sets, reps, rest seconds, weekly schedule, safety notes, and primary action & Rule-based plan output capped by readiness and grounded by RAG-retrieved exercise evidence. \\
 \bottomrule
@@ -401,160 +409,372 @@ Presented in this chapter is the comprehensive methodology for constructing a da
 % ==================== CHAPTER 4 ====================
 \chapter{Results and Discussion}
 
-\section{Final Synthesised Ranking}
+This chapter presents the implemented results of Smart Workout after the descriptive, predictive, and prescriptive layers were integrated into one dashboard workflow. The discussion follows four parts: dataset evidence, model selection results, RAG-supported plan generation, and dashboard decision support. To avoid repeating appendix material, detailed EDA plots are placed in Appendix B, while this chapter focuses on the meaning of the results and how they support business and user decisions.
 
-The final system output is evaluated as an integrated DSS/BIS workflow rather than as a single model score. The strongest result is the completed end-to-end decision path: descriptive dashboard filters identify branch, member, and lifestyle patterns; the predictive layer estimates workout intensity and calorie-burn rate; and the prescriptive layer maps those estimates into a readiness-aware training plan. This satisfies the project objective of moving from descriptive insight to predictive estimation and then to actionable guidance.
+\section{Dataset and Feature Engineering Results}
 
-\begin{table}[htbp]
-\centering
-\small
-\caption{Final model comparison after predictive-layer corrections.}
-\label{tab:final_model_results}
-\begin{tabularx}{\linewidth}{p{4.2cm}p{3.6cm}p{2.4cm}p{2.4cm}X}
-\toprule
-\textbf{Task} & \textbf{Selected model} & \textbf{RMSE / Accuracy} & \textbf{MAE / Macro-F1} & \textbf{Interpretation} \\
-\midrule
-Calorie-burn-rate regression & XGBoost Regressor & RMSE 15.021 kcal/hr & MAE 10.424 kcal/hr; $R^2=0.970$ & Selected because it gives the lowest cross-validated error after removing misleading feature behaviour. \\
-Workout-intensity classification & XGBoost Classifier & Accuracy 0.399 & Macro-F1 0.342 & Selected because it improves balanced class performance, especially Low and High recall, instead of over-predicting the majority Mid class. \\
-\bottomrule
-\end{tabularx}
-\end{table}
-
-\section{Business Decision Question Mapping}
-
-Table~\ref{tab:business_mapping} maps the required executive and user decision questions to the dashboard visual and the expected action decision. This table clarifies that the dashboard is not only a visualization layer; each view is tied to an operational or personal training decision.
-
-\begin{longtable}{p{5.2cm}p{4.2cm}p{5.2cm}}
-\caption{Business question, dashboard visual, and action-decision mapping.}\label{tab:business_mapping}\\
-\toprule
-\textbf{Business question} & \textbf{Dashboard visual} & \textbf{Action decision} \\
-\midrule
-\endfirsthead
-\toprule
-\textbf{Business question} & \textbf{Dashboard visual} & \textbf{Action decision} \\
-\midrule
-\endhead
-Which locations, segments, and months contribute the highest utilization and estimated revenue share, and how has this changed versus the prior period? & Executive KPIs, monthly activity trend, subscription summary, Tableau location map & Prioritize staffing, facility investment, and local campaigns for high-share branches and segments. \\
-Where do demand patterns indicate staffing overload, underused capacity, or early churn risk by branch and cohort? & Usage heatmap, calendar heatmap, location utilization table, cohort filters & Rebalance trainer schedules, open off-peak promotions, and flag cohorts that need retention outreach. \\
-Which lifestyle segments have the largest member share and lowest readiness, and which intervention type should be prioritized first? & Lifestyle profile cards, readiness distribution, radar profile panel & Prioritize recovery, sleep, or activity interventions for large low-readiness segments. \\
-How different are weekday versus weekend check-in patterns, and what schedule or campaign changes are required? & Weekday/weekend usage heatmap and calendar activity & Adjust class schedules and campaign timing to match peak and underused periods. \\
-Which subscription cohorts have the highest retention risk versus upsell potential, and what targeted action should be taken per cohort? & Membership-tier lens, subscription mix, engagement scatter & Offer retention nudges for low-engagement cohorts and upsell high-engagement cohorts to richer plans. \\
-Are prediction-to-plan outputs consistent with observed descriptive behavior by location, segment, and membership tier? & Prediction summary, SHAP impact panel, plan card, descriptive dashboard filters & Audit whether model recommendations align with observed usage and adjust rules when descriptive behaviour contradicts the plan. \\
-Which profile and wellness inputs currently have the strongest influence on my readiness and plan output? & User SHAP panel, readiness score breakdown, decision mapping panel & Focus on the highest-impact modifiable factor, such as sleep, stress, water intake, or weekly activity. \\
-What do my predicted intensity and calorie targets mean in practical weekly training terms? & Prediction cards, calorie target, weekly plan card & Translate model output into sets, reps, rest periods, target calories, and weekly schedule. \\
-Which plan components are personalized from my sleep, stress, activity, and constraints? & Readiness factors, plan rationale, exercise table & Understand which parts of the plan came from recovery status, equipment, target body part, and schedule constraints. \\
-If readiness is low, what is the highest-priority adjustment I should make first this week? & Decision mapping panel and primary-action message & Reduce volume, increase recovery work, or adjust intensity before increasing load. \\
-Which indicators should I track weekly to confirm that my plan is improving readiness and consistency? & Readiness trend, calendar heatmap, weekly adherence indicators & Track sleep duration, stress, workout frequency, and completed sessions to validate improvement. \\
-\bottomrule
-\end{longtable}
-
-\section{Predictive Layer Audit}
-
-The final predictive layer was audited after implementation testing found several issues that could make model scores look stronger than the deployed system actually deserved. Table~\ref{tab:predictive_audit} summarizes each finding and the correction applied.
+The dataset preparation stage produced several feature-engineering results that became the input to the dashboard, predictive models, and plan-generation workflow. Instead of using the raw datasets directly, the system transformed visit records, membership records, exercise-tracking records, lifestyle records, and user-profile inputs into decision-ready variables. These engineered results are important because they connect the raw data sources to the actual business and user questions addressed in the dashboard.
 
 \begin{table}[htbp]
 \centering
 \small
-\caption{Predictive layer audit and correction summary.}
-\label{tab:predictive_audit}
-\begin{tabularx}{\linewidth}{p{3.1cm}p{5.3cm}X}
+\caption{Feature-engineering results used in the final Smart Workout system.}
+\label{tab:feature_engineering_results}
+\begin{tabularx}{\linewidth}{p{3.5cm}p{4.1cm}X}
 \toprule
-\textbf{Finding} & \textbf{Problem} & \textbf{Correction and reporting effect} \\
+\textbf{Engineered result} & \textbf{Main derived fields} & \textbf{Dashboard or model usage} \\
 \midrule
-Gender mismatch & Training rows contained Male/Female values, but inference sent unknown because the user form does not collect gender. One-hot encoding therefore produced an inference distribution not seen during training. & Gender was removed from regression and classification features, and the backend no longer sends a gender proxy in ML inference. \\
-Classifier below baseline & The class distribution was skewed: Mid was the majority class, so unweighted models nearly ignored Low and High. & Logistic Regression and Random Forest use balanced class weights; the XGBoost wrapper computes fold-local balanced sample weights. Macro-F1 rose from 0.304 to 0.342. \\
-Joblib class path & A wrapper defined inside the training script would serialize as a script-local class and fail when loaded by the backend. & \texttt{BalancedXGBClassifier} was moved to \texttt{app.core.ml\_wrappers}, giving joblib a stable import path. \\
-Inflated regression score & The previous $R^2=0.999$ was misleading because feature behaviour and proxy availability inflated the training result. & The corrected selected regressor is XGBoost with $R^2=0.970$ and RMSE 15.021 kcal/hr, a more honest cross-validated estimate. \\
+Utilization and time features & Session month, check-in hour, weekday/weekend pattern, branch session count & Used to compare demand by location and time period, detect overloaded or underused capacity, and support staffing or campaign decisions. \\
+Membership and revenue signals & Subscription tier, plan mix, estimated monthly recurring revenue, cohort-level activity & Used to compare utilization with estimated revenue share and identify retention or upsell opportunities by cohort. \\
+Lifestyle readiness features & Readiness score, readiness band, sleep/stress/activity indicators, lifestyle segment & Used to explain wellness risk, prioritize recovery interventions, and personalize plan intensity. \\
+Workout-intensity features & Workout type, avg BPM proxy, resting BPM, body-composition features, intensity band & Used by the classifier to predict Low, Mid, or High intensity and by the dashboard to explain which user inputs influence the plan. \\
+Calorie-burn-rate target & Calories normalized as kcal/hr, with session duration excluded from regression features & Used by the regressor to estimate calorie-burn rate without directly learning from session length. \\
+Plan decision features & Predicted intensity, readiness cap, final training score, primary action & Used to convert prediction results into sets, reps, rest periods, exercise count, and weekly adjustment guidance. \\
+RAG retrieval features & Goal, target body part, equipment, readiness band, predicted intensity & Used to retrieve relevant exercises and explanation snippets for personalized plan rationale and chat responses. \\
 \bottomrule
 \end{tabularx}
 \end{table}
 
-The classifier accuracy requires careful interpretation. The old XGBoost classifier reached 45.9\% accuracy, but this was below the 52.5\% majority-class baseline of always predicting Mid. After balancing, the final accuracy is lower at 39.9\%, yet macro-F1 improves and Low/High recall become meaningfully usable. This is acceptable for a three-class task because the deployed goal is not to maximize majority-class accuracy; it is to identify Low, Mid, and High intensity cases with more balanced attention. The low overall accuracy is therefore explained by label-leakage prevention, class imbalance, and the deliberate choice to optimize balanced class behaviour rather than easy majority-class prediction.
+The feature-engineering result shows that Smart Workout is not only a visualization of raw records. It converts operational data into utilization and revenue signals, converts lifestyle and profile data into readiness signals, and converts model outputs into plan-decision variables. This allows the executive dashboard to answer where action is needed, while the user dashboard explains why a specific plan, intensity level, and weekly adjustment were recommended.
+
+The EDA findings are summarized briefly here because the detailed EDA figures are placed in Appendix B. Overall, the EDA showed uneven utilization across gym locations, clear time-of-day demand patterns, visible subscription and workout-type differences, and imbalanced intensity classes. These patterns justify the dashboard filters, the branch-level decision panels, the readiness segmentation, and the decision to evaluate the classifier with macro-F1 rather than accuracy alone.
+\section{Model Selection}
+
+The predictive layer contains two machine learning tasks. The first task estimates calorie-burn rate in kcal/hr, and the second task predicts workout intensity as a three-class label: Low, Mid, or High. Model selection used cross-validation and compared a linear baseline, Random Forest, and XGBoost for each task. The selected regressor is the model with the lowest RMSE, while the selected classifier is the model with the highest macro-F1 because the classes are imbalanced.
+
+\begin{table}[htbp]
+\centering
+\small
+\caption{Regression model comparison for calorie-burn-rate estimation.}
+\label{tab:chapter4_regression_results}
+\begin{tabular}{lrrrl}
+\toprule
+\textbf{Model} & \textbf{RMSE} & \textbf{MAE} & \textbf{$R^2$} & \textbf{Selected} \\
+\midrule
+Ridge Regression & 28.095 & 22.524 & 0.895 & No \\
+Random Forest Regressor & 17.991 & 11.457 & 0.957 & No \\
+XGBoost Regressor & 15.820 & 10.424 & 0.970 & Yes \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The XGBoost Regressor is selected because it produces the strongest calorie-burn-rate estimation result, with RMSE 15.820 kcal/hr and $R^2=0.970$. This score is intentionally reported as an honest deployment-aware result. The earlier inflated regression performance was corrected by removing features that created misleading training-time advantage or inference mismatch. In particular, gender was excluded because the deployed user form does not collect it.
+
+\begin{table}[htbp]
+\centering
+\small
+\caption{Classifier comparison for three-class workout-intensity prediction.}
+\label{tab:chapter4_classifier_results}
+\begin{tabular}{lrrl}
+\toprule
+\textbf{Model} & \textbf{Accuracy} & \textbf{Macro-F1} & \textbf{Selected} \\
+\midrule
+Multinomial Logistic Regression & 0.323 & 0.298 & No \\
+Random Forest Classifier & 0.407 & 0.337 & No \\
+XGBoost Classifier & 0.399 & 0.342 & Yes \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The classifier result requires careful interpretation. The raw accuracy is 46\% in the audit context and 0.399 in the cross-validated model-result table, which is low for a simple classification task.The results of Low Recall 21.5\%, Mid Recall \% 51.9 \%, High Recall 29.3 \%, as shown in Figure~\ref{fig:confusematrix}. However, this is a three-class problem with class imbalance and leakage prevention, making it harder than a majority-class baseline. The project therefore reports macro-F1 and minority-class recall improvements rather than optimizing only for raw accuracy.
+
+\begin{table}[htbp]
+\centering
+\small
+\caption{Predictive layer audit summary after model and inference fixes.}
+\label{tab:chapter4_predictive_audit}
+\begin{tabularx}{\linewidth}{p{3.3cm}p{4cm}X}
+\toprule
+\textbf{Audit item} & \textbf{Issue found} & \textbf{Result after correction} \\
+\midrule
+Gender feature mismatch & Training used Male/Female, while inference sent an unknown value because the form does not ask for gender. & Gender was removed from both training and inference feature sets, preventing train/inference distribution mismatch. \\
+Classifier imbalance & Mid class was the majority class, so the model under-predicted Low and High intensity. & Balanced class weighting improved macro-F1 from 0.304 to 0.342, Low recall to 21.5\%, and High recall to 30\%. \\
+Joblib deserialization risk & A custom XGBoost wrapper defined inside the training script serialized with an unstable class path. & The wrapper was moved to \path{app.core.ml_wrappers.BalancedXGBClassifier}, making model loading stable in the backend. \\
+Inflated regression score & Some training features made the regression score appear too optimistic under deployment conditions. & The honest cross-validated result is $R^2=0.970$ and RMSE 15.82 kcal/hr, with XGBoost selected over Random Forest. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+The key model-selection conclusion is that the final predictive layer prioritizes deployable reliability over inflated scores. The regression model is strong enough to support calorie-target guidance, while the classifier is reported transparently as a difficult three-class readiness and intensity task. This explanation is important for the report because a 46\% classifier accuracy would look weak without the context of leakage prevention, class imbalance, and improved minority-class recall.
+
+\section{RAG}
+
+The RAG layer supports the user-facing plan output and chat explanation. It indexes exercise instructions, equipment options, target body parts, and plan-rationale snippets with ChromaDB and sentence embeddings. During inference, the system retrieves relevant exercise and rule context before presenting the workout plan. This prevents the recommendation from being only a generic text response; the final plan is grounded in retrieved exercise evidence and constrained by the user's readiness, predicted intensity, equipment, and target muscle group.
+
+\begin{table}[htbp]
+\centering
+\small
+\caption{RAG input, retrieval, and output behavior in the Smart Workout system.}
+\label{tab:chapter4_rag_io}
+\begin{tabularx}{\linewidth}{p{3.2cm}p{3.7cm}X}
+\toprule
+\textbf{Input} & \textbf{Retrieved evidence} & \textbf{Output result} \\
+\midrule
+User goal, target body part, equipment, and constraints & ExerciseDB instructions, equipment alternatives, and body-part matching rules & Personalized exercise list with sets, reps, and practical weekly training guidance. \\
+Readiness score, sleep, stress, activity level, and predicted intensity & Readiness rules and plan-adjustment snippets & Priority adjustment such as reducing intensity, increasing recovery, or maintaining progressive load. \\
+User chat question about a plan component & Relevant exercise instructions and substitution context & Natural-language explanation that links the recommendation to the user's profile and retrieved evidence. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+The RAG result is most valuable for the user questions that ask why a plan was generated and what should be adjusted first. For example, when readiness is low, the system can explain whether the highest-priority action is sleep recovery, stress reduction, lower intensity, or a smaller weekly workload. This gives the user a practical reason for the plan output rather than only displaying a prediction score.
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=0.95\linewidth]{figures/ml_summary_metrics.jpeg}
-    \caption{Summary of final predictive-layer metrics after audit corrections.}
-    \label{fig:ml_summary_metrics}
+    \begin{subfigure}[t]{0.48\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{figures/Dashboard Figure/Plan Rational Assistant.png}
+        \caption{Plan rationale assistant input}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[t]{0.48\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{figures/Dashboard Figure/Plan Rational Assistant Result.png}
+        \caption{Plan rationale assistant result}
+    \end{subfigure}
+    \caption{RAG-assisted plan rationale showing how the dashboard explains the reasoning behind a personalized recommendation.}
+    \label{fig:chapter4_plan_rationale_assistant}
 \end{figure}
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=0.95\linewidth]{figures/ml_classifier_balance.jpeg}
-    \caption{Classifier audit showing improved class balance despite lower raw accuracy.}
-    \label{fig:classifier_balance}
+    \begin{subfigure}[t]{0.48\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{figures/Dashboard Figure/Smart Workout Assistant Chat.png}
+        \caption{Assistant chat input}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[t]{0.48\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{figures/Dashboard Figure/Smart Workout Assistant Chat Reply.png}
+        \caption{Assistant chat reply}
+    \end{subfigure}
+    \caption{Smart Workout assistant chat interface for answering user questions with plan and exercise context.}
+    \label{fig:chapter4_smart_workout_assistant}
+\end{figure}
+
+These RAG dashboard outputs show that the prescriptive layer is explainable at the interface level. The user can ask why the plan was produced, review the rationale, and receive a response that connects the retrieved exercise context to readiness, intensity, and weekly training constraints.
+\section{Dashboard}
+
+The dashboard is the main delivery layer of the project. It connects descriptive analytics, predictive outputs, and prescriptive recommendations into one React and FastAPI workflow. The executive view focuses on branch, segment, month, utilization, and revenue-share decisions. The user view focuses on readiness, predicted intensity, calorie target, and personalized plan interpretation. The following dashboard figures are all new captures from the implemented dashboard and are used once in this chapter.
+
+\begin{table}[htbp]
+\centering
+\small
+\caption{Business question, dashboard visual, and action decision mapping.}
+\label{tab:chapter4_business_visual_action}
+\begin{tabularx}{\linewidth}{p{4.2cm}p{3.6cm}X}
+\toprule
+\textbf{Business question} & \textbf{Dashboard visual} & \textbf{Action decision} \\
+\midrule
+Which locations, segments, and months contribute the highest utilization and estimated revenue share? & Executive summary and membership revenue signals & Prioritize branch-level staffing, retention, or campaign review for high-impact locations and cohorts. \\
+Where do demand patterns indicate overload or underused capacity? & Executive utilization and time-pattern views & Adjust staffing schedules, class slots, or branch-level promotions. \\
+Which lifestyle segments have the largest member share and lowest readiness? & Member lifestyle segment dashboard & Prioritize recovery, low-intensity, or habit-building interventions. \\
+How different are weekday and weekend check-in patterns? & Date controls, utilization views, and Appendix B EDA & Shift campaigns, class times, or operational staffing by day type. \\
+Which subscription cohorts have retention risk or upsell potential? & Membership utilisation and revenue signals & Target low-engagement cohorts for retention and high-engagement cohorts for upgrade offers. \\
+Are prediction-to-plan outputs consistent with observed descriptive behavior? & Client inputs, exercise plan analytics, and member profile outputs & Audit whether model outputs align with branch, segment, and tier behavior before using recommendations operationally. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Executive Dashboard Result}
+
+The executive dashboard turns gym activity into business-level monitoring. It answers which branches, customer segments, months, and subscription cohorts should receive attention first. The before-state capture shows the base executive context, while the updated executive summary views show the final KPI and decision layout after the dashboard redesign.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.92\linewidth]{figures/Dashboard Figure/Executive Summary before A.png}
+    \caption{Executive summary before the final dashboard decision layout was applied.}
+    \label{fig:chapter4_exec_before}
 \end{figure}
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=0.95\linewidth]{figures/ml_regression_winner.jpeg}
-    \caption{Regression audit showing the corrected selection of XGBoost Regressor.}
-    \label{fig:regression_winner}
+    \begin{subfigure}[t]{0.48\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{figures/Dashboard Figure/Executive Summary A.png}
+        \caption{Executive summary, section A}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[t]{0.48\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{figures/Dashboard Figure/Executive Summary B.png}
+        \caption{Executive summary, section B}
+    \end{subfigure}
+    \caption{Final executive summary dashboard showing KPI context, utilization signals, and decision-oriented summary panels.}
+    \label{fig:chapter4_exec_summary}
+\end{figure}
+
+The important result from the executive summary is that it reduces the analysis path from several separate datasets into one decision surface. Branch performance, time filtering, segment mix, and action signals are visible together, so managers can compare utilization and estimated revenue share before making staffing or campaign decisions.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.92\linewidth]{figures/Dashboard Figure/Membership Utilisation and Revenue Signals A.png}
+    \caption{Membership utilisation and revenue signals used to compare activity volume with estimated revenue contribution.}
+    \label{fig:chapter4_membership_revenue}
+\end{figure}
+
+The membership utilisation and revenue view answers whether high activity also corresponds with high estimated revenue share. This matters because an overloaded branch and a high-value branch may require different responses: one may need capacity planning, while the other may justify retention or upsell campaigns.
+
+\subsection{Lifestyle Segment Result}
+
+The lifestyle segment view connects descriptive member profiles with readiness. It is designed for the question of which lifestyle segments have the largest member share, the lowest readiness, and the clearest need for intervention.
+
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}[t]{0.32\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{figures/Dashboard Figure/Member Lifestyle Segments A.png}
+        \caption{Segment overview}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[t]{0.32\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{figures/Dashboard Figure/Member Lifestyle Segments B.png}
+        \caption{Segment comparison}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[t]{0.32\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{figures/Dashboard Figure/Member Lifestyle Segments C.png}
+        \caption{Segment detail}
+    \end{subfigure}
+    \caption{Member lifestyle segment dashboard for comparing readiness, stress, sleep, activity, and cohort behavior.}
+    \label{fig:chapter4_lifestyle_segments}
+\end{figure}
+
+The important result is that lifestyle segments give the dashboard a bridge between business monitoring and personalized recommendation. A low-readiness segment can be treated as a candidate for recovery-focused messaging, while a high-readiness and high-engagement segment can be treated as a candidate for progression or upsell.
+
+\subsection{Exercise Plan and User Result}
+
+The user-facing dashboard translates model outputs into practical plan guidance. It shows the profile and readiness inputs before plan generation, then displays plan analytics, member profile context, and nutrition context. This supports the user questions about which inputs influence readiness, what predicted intensity means, and what to track weekly.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.92\linewidth]{figures/Dashboard Figure/Client Profile and Readiness Inputs Before Generated.png}
+    \caption{Client profile and readiness inputs before the personalized plan is generated.}
+    \label{fig:chapter4_client_inputs}
+\end{figure}
+
+The profile input result shows that the plan is not generated from a single goal field. It incorporates readiness-related inputs such as sleep, stress, activity, constraints, and body context, which are then converted into intensity and plan recommendations.
+
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}[t]{0.48\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{figures/Dashboard Figure/Client Profile and Readiness Inputs Before Plan.png}
+        \caption{Inputs before plan generation}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[t]{0.48\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{figures/Dashboard Figure/Client Profile and Readiness Inputs Before Result.png}
+        \caption{Initial readiness result}
+    \end{subfigure}
+    \caption{Client profile workflow from readiness inputs to the first generated result.}
+    \label{fig:chapter4_client_profile_workflow_a}
 \end{figure}
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=0.95\linewidth]{figures/ml_accuracy_explanation.jpeg}
-    \caption{Explanation of why the lower classifier accuracy is still an improved model outcome.}
-    \label{fig:accuracy_explanation}
+    \begin{subfigure}[t]{0.32\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{figures/Dashboard Figure/Client Profile and Readiness Inputs Before Result B.png}
+        \caption{Result B}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[t]{0.32\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{figures/Dashboard Figure/Client Profile and Readiness Inputs Before Result C.png}
+        \caption{Result C}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[t]{0.32\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{figures/Dashboard Figure/Client Profile and Readiness Inputs Before Result D.png}
+        \caption{Result D}
+    \end{subfigure}
+    \caption{Additional readiness-result panels showing how profile inputs are translated into plan and adjustment outputs.}
+    \label{fig:chapter4_client_profile_workflow_b}
 \end{figure}
 
-\section{Dashboard and Tableau Map Result}
+The additional readiness workflow figures show the full user path after form submission. The dashboard does not stop at a readiness score; it expands the result into plan guidance, adjustment advice, and context that the user can track during the week.
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}[t]{0.32\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{figures/Dashboard Figure/Exercise Plan Analytics A.png}
+        \caption{Plan output A}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[t]{0.32\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{figures/Dashboard Figure/Exercise Plan Analytics B.png}
+        \caption{Plan output B}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[t]{0.32\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{figures/Dashboard Figure/Exercise Plan Analytics C.png}
+        \caption{Plan output C}
+    \end{subfigure}
+    \caption{Exercise plan analytics translating readiness, predicted intensity, and calorie target into weekly training guidance.}
+    \label{fig:chapter4_exercise_plan}
+\end{figure}
 
-The dashboard result combines React-based analytic panels with an embedded Tableau Public map. The Tableau map gives the executive view a spatial lens for branch utilization, while the React panels preserve the custom predictive and prescriptive workflow. This matters because branch-level business decisions require location context, but user-level plan decisions require model outputs, readiness explanations, and RAG-grounded exercise evidence in the same workspace.
+The exercise plan analytics result is the prescriptive output of the system. It connects the estimated calorie target and predicted intensity to concrete training terms such as exercise selection, weekly focus, and adjustment priority. This is the point where machine learning becomes an action plan rather than only a prediction.
 
-The embedded map link is \url{https://public.tableau.com/views/SmartWorkout/GymLocationMap}. In the implemented dashboard, the Tableau iframe is placed inside the executive workspace with supporting location utilization rows. This confirms that the map integration and embedding of Tableau in the React dashboard were completed.
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}[t]{0.48\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{figures/Dashboard Figure/Member-Profile01.png}
+        \caption{Member profile result}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[t]{0.48\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{figures/Dashboard Figure/Nutrition01.png}
+        \caption{Nutrition result}
+    \end{subfigure}
+    \caption{User profile and nutrition dashboard outputs used to contextualize readiness and weekly plan consistency.}
+    \label{fig:chapter4_member_nutrition}
+\end{figure}
 
+The member profile and nutrition result completes the user loop. It gives the user a way to monitor weekly indicators that can improve readiness and consistency, including activity context, nutrition signals, and profile-related constraints.
+
+
+
+Overall, Chapter 4 shows that the project delivers more than isolated charts or models. The dataset evidence identifies operational patterns, the model-selection results provide deployable predictions, the RAG layer translates predictions into grounded plan explanations, and the dashboard turns these outputs into business and user decisions.
 % ==================== CHAPTER 5 ====================
 \chapter{Conclusion and Recommendations}
 \section{Conclusion}
 
-The Smart Workout system demonstrates how a BI dashboard, predictive models, and RAG-grounded planning can be combined into one decision-support workflow. The descriptive layer supports operational questions about member activity, branch utilization, subscription mix, and lifestyle profiles. The predictive layer estimates calorie-burn rate and workout intensity with transparent model evaluation. The prescriptive layer translates those predictions into a readiness-aware weekly plan with practical actions for the user.
+This project developed Smart Workout as an integrated Decision Support System and Business Intelligence dashboard for personalized weight training. The final system combines feature engineering, descriptive analytics, predictive machine learning, RAG-grounded exercise retrieval, and rule-based plan generation into one workflow. The main contribution is that the system does not stop at reporting data or predicting a label; it converts raw records into decision-ready signals, turns model outputs into plan guidance, and presents those outputs through dashboard views designed for both executive and individual users.
 
-The most important conclusion is that the system chooses transparency over inflated performance. The final regression score is lower than the earlier inflated result, but it is more faithful to deployment conditions. Similarly, the classifier's raw accuracy is modest, but its balanced macro-F1 and improved minority-class recall make it more useful for a three-class intensity decision.
+The dataset and feature-engineering results show that the project successfully transformed multiple independent data sources into usable analytical features. Gym membership and check-in records were converted into utilization, time-pattern, subscription, and estimated revenue signals. Exercise tracking and user-profile data were converted into calorie-burn-rate and intensity features. Lifestyle, sleep, stress, and activity inputs were converted into readiness scores and readiness bands. These engineered results enabled the dashboard to connect branch-level business questions with user-level training decisions.
+
+The predictive layer produced deployable and transparent model results. The XGBoost Regressor was selected for calorie-burn-rate estimation with RMSE 15.820 kcal/hr and $R^2=0.970$. For intensity classification, the XGBoost Classifier was selected based on macro-F1 because the Low, Mid, and High classes are imbalanced. Although the classifier accuracy is modest, the report explains why the task is difficult: label leakage was prevented, gender was removed to avoid train/inference mismatch, and balanced weighting was applied to improve minority-class behavior. Therefore, the final evaluation is more honest and useful for deployment than an inflated score.
+
+The RAG and dashboard results demonstrate that the system can translate predictions into explainable action. The RAG layer retrieves exercise instructions and substitution context to support plan rationale and assistant responses. The dashboard then presents executive summaries, membership utilization and revenue signals, lifestyle segments, readiness inputs, plan analytics, user profile context, nutrition context, and Tableau map integration. Together, these outputs answer the business decision questions about branch demand, cohort risk, segment readiness, weekday/weekend patterns, and prediction-to-plan consistency, while also helping individual users understand their readiness, predicted intensity, calorie target, and weekly action priority.
 
 \section{Recommendations}
 
-For executive users, the dashboard should be used to review utilization and estimated revenue share by branch, segment, and month before making staffing, scheduling, and campaign decisions. The Tableau map should be used with the React dashboard filters so that location-level decisions are interpreted together with subscription and activity patterns.
+For executive users, Smart Workout should be used as a decision-support tool for monitoring branch utilization, segment demand, subscription-cohort behavior, and estimated revenue share. Managers should use the executive summary, membership utilization and revenue signals, lifestyle segment views, and Tableau map together rather than interpreting one chart in isolation. This combined view is most useful for identifying where staffing, campaign timing, capacity balancing, retention action, or upsell planning should be prioritized.
 
-For individual users, the predicted intensity and calorie target should be interpreted as planning guidance rather than medical instruction. Users should review the readiness score, primary action, and plan rationale before following the weekly schedule, especially when sleep, stress, or recovery conditions are poor.
+For individual users, the predicted intensity and calorie target should be interpreted as planning guidance rather than medical instruction. Users should review the readiness score, readiness band, primary action, plan rationale, and safety notes before following the generated weekly plan. When readiness is low, the highest priority should be recovery and controlled training volume. When readiness and predicted intensity are both high, the plan can support more progressive workload, but users should still monitor consistency, sleep, stress, and form quality.
+
+For future dashboard use, the business mapping table in Chapter 4 should be treated as the operational guide. Each dashboard visual should be connected to a decision: utilization views support staffing and capacity choices, lifestyle segments support intervention prioritization, membership and revenue signals support retention or upsell actions, and user-plan analytics support weekly training adjustment. This keeps the dashboard from becoming only a set of charts and preserves its role as a decision-support system.
 
 \section{Scope Limitations and Future Research Directions}
 
-The current dataset supports membership activity, check-in behaviour, workout-type patterns, plan mix, estimated recurring revenue, and model-backed workout planning. It does not directly observe true churn, profit, staff rosters, equipment capacity, injury outcomes, or long-term adherence. Therefore, retention risk, staffing overload, and upsell potential are treated as decision-support proxies derived from activity and subscription patterns rather than confirmed business outcomes.
+The current project is a prototype built from available academic and public datasets plus processed gym database records. It supports utilization analysis, subscription and cohort monitoring, estimated revenue signals, readiness scoring, workout-intensity prediction, calorie-burn-rate estimation, RAG-assisted exercise retrieval, and personalized plan generation. However, it does not directly observe true churn, profit, staffing rosters, equipment capacity, injury outcomes, long-term adherence, or verified member satisfaction. Therefore, retention risk, staffing overload, upsell potential, and readiness intervention priorities should be understood as decision-support proxies rather than confirmed business outcomes.
 
-Future work should connect the prototype to live operational data, add real churn labels, collect post-plan adherence and satisfaction feedback, and validate the recommendations with coaches or domain experts. The predictive layer should also be retrained with data collected from the deployed user form so that inference-time inputs match training-time features even more closely. Finally, the Tableau integration can be expanded from a single location map into a multi-view embedded workbook covering revenue share, cohort retention, and utilization forecasting.
+The predictive layer also has limitations. The regression model performs strongly, but some inference-time physiology, such as average BPM, is estimated from predicted intensity rather than measured directly during deployment. The classifier is intentionally evaluated under leakage-prevention constraints, which makes the task harder and keeps accuracy modest. Future work should collect deployment-form data, real workout outcomes, wearable-device signals, and longitudinal adherence labels so that the model can be retrained on inputs that match real usage more closely.
 
+Future research should extend the system in five directions. First, the dashboard should connect to live operational data so that utilization, revenue, and cohort signals update automatically. Second, true churn, upgrade, satisfaction, and retention labels should be added to validate the business decision questions. Third, the RAG layer should be expanded with coach-reviewed training rules, injury constraints, and nutrition guidance. Fourth, user feedback after following a plan should be collected to improve readiness scoring and plan personalization. Finally, the Tableau integration can be expanded from a single location map into a multi-view embedded workbook covering revenue share, cohort retention, and utilization forecasting.
 
-\appendix
-\chapter{Exploratory Data Analysis Figures}
-
-The following appendix figures provide supporting EDA evidence for the descriptive layer. They are placed in the appendix to keep the main report focused on methodology, results, and decision mapping while still documenting the observed data patterns used during dashboard design.
-
-\begin{figure}[htbp]
-    \centering
-    \includegraphics[width=0.86\linewidth]{figures/eda_location_utilization.png}
-    \caption{EDA: location utilization distribution from the Gym DB warehouse.}
-\end{figure}
-
-\begin{figure}[htbp]
-    \centering
-    \includegraphics[width=0.86\linewidth]{figures/eda_hourly_usage.png}
-    \caption{EDA: hourly usage pattern supporting staffing and schedule decisions.}
-\end{figure}
-
-\begin{figure}[htbp]
-    \centering
-    \includegraphics[width=0.86\linewidth]{figures/eda_readiness_distribution.png}
-    \caption{EDA: training readiness distribution from lifestyle-derived rules.}
-\end{figure}
-
-\begin{figure}[htbp]
-    \centering
-    \includegraphics[width=0.86\linewidth]{figures/eda_intensity_distribution.png}
-    \caption{EDA: workout-intensity class distribution used to explain classifier imbalance.}
-\end{figure}
-
+Overall, Smart Workout demonstrates that a BI dashboard, machine learning layer, RAG knowledge layer, and rule-based workout planner can be combined into one explainable decision-support prototype. The strongest outcome of the project is the connection between data engineering, transparent predictive evaluation, grounded recommendations, and dashboard-based action decisions.
 % ==================== REFERENCES ====================
 
 \cleardoublepage
@@ -578,7 +798,7 @@ The following appendix figures provide supporting EDA evidence for the descripti
 The complete source code for Smart Workout is available at:
 
 \begin{center}
-\texttt{https://github.com/your-repository}
+\texttt{https://github.com/Smart-Workout/125970-125934-125843-BIA.git}
 \end{center}
 
 A live deployment is accessible at: 
@@ -595,7 +815,143 @@ The repository includes:
     \item Documentation
 \end{itemize}
 
-\end{document}
+\clearpage
+
+\begin{center}
+\Large\bfseries APPENDIX B 
+
+\vspace{0.8cm}
+
+\Large\bfseries Exploratory Data Analysis Figures
+\end{center}
+
+\vspace{1cm}
+
+The following appendix figures provide the detailed EDA and model-diagnostic evidence used during dashboard design. They are placed in the appendix to keep Chapter 4 focused on dashboard results and decision interpretation while still documenting the observed data patterns behind the analysis.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.86\linewidth]{../docs/figures/week1/gymdb_location_utilization.png}
+    \caption{EDA: Gym DB location utilization.}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.86\linewidth]{../docs/figures/week1/gymdb_hourly_usage_pattern.png}
+    \caption{EDA: hourly gym usage pattern for staffing and schedule analysis.}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.86\linewidth]{../docs/figures/week1/gymdb_subscription_plan_mix.png}
+    \caption{EDA: subscription plan mix supporting cohort and revenue-share interpretation.}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.86\linewidth]{../docs/figures/week1/gymdb_sessions_by_workout_type.png}
+    \caption{EDA: Gym DB sessions by workout type.}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.86\linewidth]{../docs/figures/week1/gymdb_calories_per_minute_by_workout.png}
+    \caption{EDA: calories per minute by workout type.}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.86\linewidth]{../docs/figures/week1/workout_type_distribution.png}
+    \caption{EDA: workout type distribution from exercise tracking data.}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.86\linewidth]{../docs/figures/week1/intensity_band_distribution.png}
+    \caption{EDA: workout-intensity band distribution used to explain class imbalance.}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.86\linewidth]{../docs/figures/week1/training_readiness_distribution.png}
+    \caption{EDA: training readiness distribution from lifestyle-derived rules.}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.86\linewidth]{../docs/figures/week1/calories_by_experience_level.png}
+    \caption{EDA: calories burned by experience level.}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.86\linewidth]{../docs/figures/week1/sleep_archetype_clusters.png}
+    \caption{EDA: sleep archetype clusters used for readiness interpretation.}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.86\linewidth]{../docs/figures/week1/nutrition_macro_mix_by_meal_type.png}
+    \caption{EDA: nutrition macro mix by meal type.}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}[t]{0.48\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{../docs/figures/week1/exercise_coverage_by_body_part.png}
+        \caption{Body-part coverage}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[t]{0.48\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{../docs/figures/week1/exercise_coverage_by_equipment.png}
+        \caption{Equipment coverage}
+    \end{subfigure}
+    \caption{EDA: ExerciseDB coverage supporting RAG exercise retrieval and substitution.}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.86\linewidth]{../docs/figures/week2/selected_calorie_regressor_shap.png}
+    \caption{Model diagnostic: SHAP explanation for the selected calorie-burn-rate regressor.}
+    
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.86\linewidth]{../docs/figures/week2/selected_intensity_classifier_shap.png}
+    \caption{Model diagnostic: SHAP explanation for the selected intensity classifier.}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}[t]{0.32\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{../docs/figures/week2/multinomial_logistic_regression_confusion_matrix.png}
+        \caption{Logistic Regression}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[t]{0.32\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{../docs/figures/week2/random_forest_classifier_confusion_matrix.png}
+        \caption{Random Forest}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[t]{0.32\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{../docs/figures/week2/xgboost_classifier_confusion_matrix.png}
+        \caption{XGBoost}
+    \end{subfigure}
+    \caption{Model diagnostic: classifier confusion matrices used to audit Low, Mid, and High intensity prediction behavior.}
+    \label{fig:confusematrix}
+\end{figure}\end{document}
+
+
+
+
+
+
 
 
 
