@@ -163,12 +163,15 @@ def save_confusion_matrix(
     title: str,
     output_path: Path,
 ) -> None:
+    fig, ax = plt.subplots(figsize=(6.4, 5.4))                              # Fixed canvas size keeps report figures consistent.
     display = ConfusionMatrixDisplay(confusion_matrix=matrix, display_labels=labels) # sklearn handles labeled confusion matrix rendering.
-    display.plot(cmap="Blues", values_format="d")                            # Integer counts are easier to inspect than normalized values here.
-    plt.title(title)                                                          # Plot title identifies the model being evaluated.
-    plt.tight_layout()                                                        # Tight layout prevents labels from being clipped.
-    plt.savefig(output_path, dpi=160, bbox_inches="tight")                    # PNG output is saved for report and dashboard documentation.
-    plt.close()                                                               # Close figure to avoid memory buildup during repeated plotting.
+    display.plot(ax=ax, cmap="Blues", values_format="d", colorbar=True)       # Integer counts are easier to inspect than normalized values here.
+    ax.set_title(title, pad=12)                                               # Plot title identifies the model being evaluated.
+    ax.set_xlabel("Predicted label")                                          # Explicit axis text avoids ambiguity in exported figures.
+    ax.set_ylabel("True label")                                               # True class stays on the row axis.
+    fig.tight_layout()                                                        # Tight layout prevents labels from being clipped.
+    fig.savefig(output_path, dpi=180, bbox_inches="tight")                    # PNG output is saved for report and dashboard documentation.
+    plt.close(fig)                                                            # Close figure to avoid memory buildup during repeated plotting.
 
 
 def transformed_sample(pipeline: Pipeline, x: pd.DataFrame, sample_size: int = 200) -> tuple[np.ndarray, list[str]]:
