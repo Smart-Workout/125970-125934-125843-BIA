@@ -106,3 +106,29 @@ def retrieve_snippets(query: str, limit: int = 5) -> list[RetrievedSnippet]:
         )
     logger.info("PERF rag.total_ms=%.2f mode=vector limit=%d snippets=%d", (time.perf_counter() - started) * 1000, limit, len(snippets))
     return snippets                                                         # Final top-k snippets are returned to the chat service.
+
+
+def warmup_retrieval_cache() -> None:
+    started = time.perf_counter()
+
+    if _use_keyword_only_mode():
+        logger.info("PERF rag.warmup_ms=%.2f mode=keyword_skipped", (time.perf_counter() - started) * 1000)
+        return
+
+    try:
+        __import__("chromadb")
+        __import__("sentence_transformers")
+    except ImportError:
+        logger.info("PERF rag.warmup_ms=%.2f mode=missing_dependency_skipped", (time.perf_counter() - started) * 1000)
+        return
+
+    if not settings.CHROMA_DB_DIR.exists():
+        logger.info("PERF rag.warmup_ms=%.2f mode=missing_index_skipped", (time.perf_counter() - started) * 1000)
+        return
+
+    try:
+        _get_chroma_collection()
+        _get_sentence_transformer()
+        logger.info("PERF rag.warmup_ms=%.2f mode=vector_ready", (time.perf_counter() - started) * 1000)
+    except Exception:
+        logger.exception("RAG warmup failed; retrieval will fall back at request time")

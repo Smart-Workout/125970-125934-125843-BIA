@@ -1,3 +1,5 @@
+import logging                                                            # Startup logs include optional warmup diagnostics.
+import threading                                                          # Warmup runs in the background so API startup is not blocked.
 from pathlib import Path                                                   # Build file-system paths for optional frontend static hosting.
 
 from fastapi import FastAPI                                                # FastAPI creates the backend application object.
@@ -6,6 +8,10 @@ from fastapi.responses import FileResponse, JSONResponse                   # Ser
 
 from app.api.v1 import chat, dashboard, health, workout                    # Versioned routers keep endpoint groups organized.
 from app.core.config import settings                                       # Shared settings include deployment CORS allowlist overrides.
+from app.services.rag_service import warmup_retrieval_cache                # Preload retrieval cache to reduce first-request latency.
+
+
+logger = logging.getLogger("uvicorn.error")                              # Use uvicorn logger for consistent backend diagnostics.
 
 
 app = FastAPI(
@@ -43,6 +49,15 @@ app.include_router(health.router, prefix="/api/v1")                        # Hea
 app.include_router(workout.router, prefix="/api/v1")                       # Workout endpoints expose preprocessing, prediction, and planning logic.
 app.include_router(dashboard.router, prefix="/api/v1")                     # Dashboard endpoint exposes BI summary data.
 app.include_router(chat.router, prefix="/api/v1")                          # Chat endpoint exposes retrieval-only RAG output.
+
+
+@app.on_event("startup")
+def warmup_dependencies() -> None:
+    def _run_warmup() -> None:
+        warmup_retrieval_cache()                                           # Populate cached Chroma/model handles in the background.
+
+    threading.Thread(target=_run_warmup, name="rag-warmup", daemon=True).start()
+    logger.info("Started background RAG warmup thread")
 
 
 FRONTEND_DIST_DIR = settings.PROJECT_ROOT / "frontend" / "dist"            # Single-service deployment serves the compiled Vite build from here.

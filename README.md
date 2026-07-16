@@ -115,8 +115,17 @@ python -m pip install --upgrade pip
 python -m pip install -r backend\requirements.txt
 
 $env:PYTHONPATH = "backend"
+# Fastest local plan/chat startup: skip vector RAG warmup and use keyword retrieval.
+$env:RAG_MODE = "keyword"
+# Optional: keep vector retrieval quality and allow one-time warmup after backend starts.
+# Remove/comment this line to use default auto mode.
 python -m uvicorn app.main:app --app-dir backend --host 127.0.0.1 --port 8000 --reload
 ```
+
+Local performance note:
+
+- With `RAG_MODE=auto`, the first call to `/api/v1/workout/generate-plan` or `/api/v1/chat` can be slower while embedding/index resources warm up.
+- With `RAG_MODE=keyword`, local first-call latency is much lower because vector model loading is skipped.
 
 Backend local URLs:
 
